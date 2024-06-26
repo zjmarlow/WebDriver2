@@ -390,9 +390,11 @@ class WebDriver2::Driver does WebDriver2 {
 	method text( WebDriver2::Model::Element:D $element --> Str:D ) {
 		$element.text
 	}
+	
+	method browser ( --> Str:D ) { ... }
 
 	method !displayed( Str:D $element --> Bool ) {
-		return Bool if $.browser eq 'safari';
+		return Bool if not $.browser or $.browser.Str eq 'safari';
 		my WebDriver2::Command::Result::Displayed $displayed =
 			WebDriver2::Command::Displayed.new( :$element )
 				.execute-with: self;
@@ -672,7 +674,7 @@ my class WebDriver2::Internal-Element does WebDriver2::Model::Element {
 	method enabled( --> Bool:D ) {
 		$!driver!WebDriver2::Driver::enabled( $!internal-id )
 	}
-	method displayed( --> Bool:D ) {
+	method displayed( --> Bool ) {
 		$!driver!WebDriver2::Driver::displayed( $!internal-id )
 	}
 	method selected( --> Bool:D ) {

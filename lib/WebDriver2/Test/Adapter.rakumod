@@ -74,6 +74,12 @@ method throws-like ( Str:D $reason, $ex-type, $code, *%matcher ) {
 	$result;
 }
 
+method fails-like ( Str:D $reason, $ex-type, $code, *%matcher ) {
+	my Bool $result = 0 == fails-like $code, $ex-type, $reason, |%matcher;
+	self.handle-test-failure: $reason unless $result;
+	$result;
+}
+
 method diag ( Str:D $msg ) {
 	diag $msg;
 }

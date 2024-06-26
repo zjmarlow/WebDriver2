@@ -11,10 +11,10 @@ class WebDriver2::Command::Execution-Status {
 	
 	has Cool $.code;
 	# TODO : implement OS data ?
-	has WebDriver2::Command::Execution-Status::Type $.type;
-	has Str $.message;
+	has WebDriver2::Command::Execution-Status::Type:D $.type is required;
+	has Str:D $.message is required;
 	
-	method Str( --> Str ) {
+	method Str( --> Str:D ) {
 		"$!type\n$!message";
 	}
 	

@@ -16,7 +16,7 @@ my WebDriver2::SUT::Tree::URL:D $page =
 class Local does WebDriver2::Test::Template {
 	has Bool $!screenshot;
 	
-	has Int:D $.plan = 38;
+	has Int:D $.plan = 41;
 	has Str:D $.name = 'local';
 	has Str:D $.description = 'local test';
 	
@@ -24,7 +24,7 @@ class Local does WebDriver2::Test::Template {
 	#   sets the browser / loads from file if not passed
 	#   and instantiates the corresponding driver
 	
-	method test {
+	method test  {
 		$.driver.navigate: $page.Str;
 
 		is $.driver.title, 'test', 'page title';
@@ -32,6 +32,12 @@ class Local does WebDriver2::Test::Template {
 		ok
 			self.element-by-id( 'outer' ) ~~ self.element-by-tag( 'ul' ),
 			'same element found different ways';
+		
+		skip 'optional endpoint "displayed" not supported', 2;
+		if False {
+			self.ok: 'outer', $.driver.displayed: self.element-by-id: 'outer';
+			self.ok: 'ul', $.driver.displayed: self.element-by-tag: 'ul';
+		}
 
 		my WebDriver2::Command::Element::Locator $by-tag-ul =
 				WebDriver2::Command::Element::Locator::Tag-Name.new: 'ul';
@@ -64,11 +70,12 @@ class Local does WebDriver2::Test::Template {
 		$el.send-keys: 'page test';
 
 		is $el.value, 'page test', 'page textbox received text';
-
+		
 		$.driver.top;
-
+		
 		$el = self.element-by-id: 'iframe';
 		$el.frame.switch-to;
+		
 		$el = self.element-by-id: 'inner';
 		my Str $frame-ul-text = $el.text;
 
@@ -89,12 +96,11 @@ class Local does WebDriver2::Test::Template {
 		$el.clear;
 
 		nok $el.value, 'textbox cleared';
+		
+		$el.click;
+		$.driver.click: $el;
 
 		$el.send-keys: "\xe004";
-
-		ok
-			( $.driver.active ~~ self.element-by-id: 'iframe-cb' ),
-			'active matches';
 
 		$.driver.switch-to-parent;
 
@@ -123,6 +129,15 @@ class Local does WebDriver2::Test::Template {
 		$el = self.element-by-id( 'iframe-cb' );
 
 		nok $el.property( 'checked' ), 'frame cb still not checked';
+		
+		nok
+				( $.driver.active ~~ $el ), # self.element-by-id: 'iframe-cb'
+				'iframe-cb not active yet';
+		
+		$el.click;
+		ok
+				( $.driver.active ~~ $el ), # self.element-by-id: 'iframe-cb'
+				'active matches';
 
 		$.driver.top;
 

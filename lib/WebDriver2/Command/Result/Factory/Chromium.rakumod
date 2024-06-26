@@ -23,7 +23,7 @@ method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Co
 			WebDriver2::Command::Execution-Status.new:
 						code => $response.code,
 						type => WebDriver2::Command::Execution-Status::Type::OK,
-						message => $data<value><message> // Str
+						message => $data<value><message> // ''
 			unless $data<value><error>:exists;
 	given $data<value><error> {
 	when 'no such element' {
@@ -37,6 +37,7 @@ method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Co
 		).throw;
 	}
 	when 'invalid session id' {
+$data.say;
 		WebDriver2::Command::Result::X.new( execution-status =>
 				WebDriver2::Command::Execution-Status.new:
 						|self!status-args:
@@ -107,7 +108,7 @@ method single-value( WebDriver2::HTTP::Response $response ) {
 	\(
 			str => $response.content,
 			:$execution-status,
-			value => $data<value> // Str
+			value => $data<value> // ''
 	)
 }
 
@@ -120,7 +121,7 @@ method status( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Res
 			str => $response.content,
 			version => $data<value><build><version>,
 			ready => $data<value><ready>,
-			message => $data<value><message> // Str,
+			message => $data<value><message> // '',
 			execution-status => self.execution-status( $response )
 	);
 }

@@ -17,13 +17,12 @@ my IO::Path $html-file = .add: 'doc-main.html' with 'content'.IO;
 class Session-Test does WebDriver2::Test::Template {
 #	has WebDriver2::Driver $.driver;
 #	has Str $.browser;
-	has Str:D $.sut-name = 'session';
-	has Int:D $.plan = 3;
-	has Str:D $.name = 'session';
+	has Str:D $.sut-name = 'session-sut-name';
+	has Int:D $.plan = 4;
+	has Str:D $.name = 'session-name';
 	has Str:D $.description = 'session test';
 	
 	method test {
-#		plan $!plan;
 #		if $.browser eq 'firefox' {
 #			skip 'geckodriver does not return valid JSON before session creation';
 #		} else {
@@ -54,14 +53,18 @@ class Session-Test does WebDriver2::Test::Template {
 					{ $.driver.title },
 					message => *.contains: 'invalid session id';
 		} else {
-			self.throws-like:
-					'no title after session deletion',
-					WebDriver2::Command::Result::X:D,
-					{ $.driver.title },
-					message => "Session\ninvalid session id";
+#			self.throws-like:
+#					'no title after session deletion',
+#					WebDriver2::Command::Result::X:D,
+#					{ $.driver.title },
+#					message => "Session\ninvalid session id";
+			try $.driver.title;
+			self.ok: 'right exception', $! ~~ WebDriver2::Command::Result::X:D;
+			self.is: 'no title after session deletion', "Session\ninvalid session id", $!.Str;
 		}
-		$.driver.session;
-		done-testing;
+		say '   ';
+#		$.driver.session;
+#		done-testing;
 	}
 	
 	method handle-test-failure ( Str:D $description ) {

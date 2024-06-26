@@ -8,6 +8,8 @@ use WebDriver2::Command::Result::Factory::Chrome;
 
 unit class WebDriver2::Driver::Chrome is WebDriver2::Driver;
 
+#submethod BUILD( :$!browser = 'chrome', :$!debug ) { }
+
 method new(
 		:$debug = 0,
 		:$server = WebDriver2::Driver::Server.new: host => '127.0.0.1', port => 9515
@@ -16,6 +18,8 @@ method new(
 			:$server,
 			:$debug;
 }
+
+method browser ( --> Str:D ) { 'chrome' }
 
 method param-factory( --> WebDriver2::Command::Param::Factory ) {
 	$.param // WebDriver2::Command::Param::Factory::Chrome.new

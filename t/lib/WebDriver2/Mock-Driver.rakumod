@@ -4,6 +4,8 @@ use WebDriver2::Command::Element::Locator;
 
 unit class  WebDriver2::Mock-Driver does WebDriver2;
 
+method browser { !!! }
+
 method start { !!! }
 
 method session { !!! }

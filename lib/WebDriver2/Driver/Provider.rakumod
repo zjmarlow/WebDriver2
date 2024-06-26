@@ -13,7 +13,7 @@ my WebDriver2 %driver = (
 		chrome => WebDriver2::Driver::Chrome,
 		edge => WebDriver2::Driver::Edge,
 		firefox => WebDriver2::Driver::Firefox,
-		safari => WebDriver2::Driver::Safari
+		safari => WebDriver2::Driver::Safari,
 );
 
 my WebDriver2 $driver;
@@ -31,5 +31,5 @@ method browser ( --> Str:D ) { ... }
 
 method driver ( --> WebDriver2:D ) {
 	self.set-from-file: $!browser, #`[ $.debug ] unless $driver;
-	$driver ||= %driver{ self.browser }.new: :$.debug;
+	$driver ||= %driver{ $!browser }.new: :$.debug;
 }

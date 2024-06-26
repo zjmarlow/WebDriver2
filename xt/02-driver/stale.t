@@ -30,6 +30,9 @@ class Stale
 		self.ok: 'element in iframe reachable from containing page', $reachable.enabled;
 		$iframe.frame.switch-to;
 		if $.browser ne 'firefox' {
+			
+			self.driver.navigate: 'file://' ~ $html-file.absolute;
+			
 			self.ok:
 					'stale',
 					.retry with WebDriver2::Until::Command::Stale.new: element => $stale, duration => 3,

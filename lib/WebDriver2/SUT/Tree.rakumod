@@ -184,9 +184,9 @@ class WebDriver2::SUT::Tree::Element
 		@children
 	}
 	method present ( --> WebDriver2::Model::Element ) {
-		my @results = $!parent.resolve.elements: $!locator;
+#		my @results = $!parent.resolve.elements: $!locator;
 		return .[0] with $!parent.resolve.elements: $!locator;
-		Model::Element
+		WebDriver2::Model::Element
 	}
 	method accept ( WebDriver2::SUT::Tree::Visitor:D $v ) {
 		$v.visit-element: self;

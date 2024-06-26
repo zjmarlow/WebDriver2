@@ -102,9 +102,11 @@ role WebDriver2::Element-Actions {
 
 role WebDriver2 does WebDriver2::Driver-Actions does WebDriver2::Element-Actions does WebDriver2::Model::Context {
 	has Str $.session-id is rw;
-	has Str $.browser;
+#	has Str:D $.browser is required;
 	has WebDriver2::HTTP::UserAgent $.ua;
 	has Int $.debug is rw;
+	
+	method browser ( --> Str:D ) { ... }
 }
 
 role WebDriver2::Model::Context {
