@@ -23,9 +23,9 @@ has Str:D $.key-prefix = '';
 
 method name ( --> Str:D ) { ... }
 
-method add-element ( Str $k, WebDriver2::SUT::Tree::ANode $v ) {
+method add-element ( Str $k, WebDriver2::SUT::Tree::ANode:D $v ) {
 	warn "overwriting $k" if %!elements{ $k }:exists;
-	%!elements{ $k } = "$!prefix$v";
+	%!elements{ $k } = $v;
 }
 
 method get ( Str:D $name --> WebDriver2::SUT::Tree::ANode:D ) {

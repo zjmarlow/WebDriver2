@@ -63,7 +63,7 @@ method load-elements ( WebDriver2::SUT::Service:D $svc ) {
 		($k, $v) = $line.split(/\:/, 2)>>.trim;
 		$k = $key-prefix ~ '-' ~ $k if $key-prefix;
 		die "element named $k already set" if %elements{$k}:exists;
-		%elements{$k} = $nav.traverse: "$prefix$v";
+		$svc.add-element: $k, $nav.traverse: "$prefix$v";
 	}
-	$svc.elements = %elements;
+#	$svc.elements = %elements;
 }

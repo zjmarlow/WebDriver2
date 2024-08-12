@@ -176,7 +176,11 @@ class WebDriver2::SUT::Tree::Element
 		$child.parent-frame = $!parent-frame;
 	}
 	method get ( Str:D $name --> WebDriver2::SUT::Tree::ANode:D ) {
-		die "no child with name $name" unless %!children{ $name }:exists;
+		unless %!children{ $name }:exists {
+			say $!parent.name;
+			.say for %!children.keys;
+			die "no child with name $name";
+		}
 		%!children{ $name }
 	}
 	method children ( --> Array of WebDriver2::SUT::Tree::ANode ) {
