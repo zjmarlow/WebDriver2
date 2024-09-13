@@ -562,6 +562,7 @@ class WebDriver2::Driver does WebDriver2 {
 		my WebDriver2::Command::Result::Close-Window $cw =
 			WebDriver2::Command::Close-Window.new.execute-with: self;
 		self.debug: $cw;
+		self.switch-to-window: self.window-handles[0];
 	}
 	
 	method switch-to-window ( Str:D $wh ) {

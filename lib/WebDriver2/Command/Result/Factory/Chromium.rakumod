@@ -73,6 +73,22 @@ $data.say;
 								WebDriver2::Command::Execution-Status::Type::Alert
 		).throw;
 	}
+	when 'unexpected alert open' {
+		WebDriver2::Command::Result::X.new( execution-status =>
+				WebDriver2::Command::Execution-Status.new:
+						|self!status-args:
+								$response,
+								WebDriver2::Command::Execution-Status::Type::Alert
+		).throw;
+	}
+	when 'element click intercepted' {
+		WebDriver2::Command::Result::X.new( execution-status =>
+				WebDriver2::Command::Execution-Status.new:
+						|self!status-args:
+								$response,
+								WebDriver2::Command::Execution-Status::Type::Intercepted
+						).throw;
+	}
 	default {
 		# FIXME : do something sensible here
 		return unless $data<value><error>;

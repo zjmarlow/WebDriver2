@@ -21,13 +21,15 @@ method plan ( --> Int ) { Int; }
 method name ( --> Str:D ) { ... }
 method description ( --> Str:D ) { ... }
 
-multi method new ( WebDriver2::Test::Template:U: Str $browser is copy, IO::Path:D :$test-root, Int:D :$debug is copy = 0 ) {
+multi method new ( WebDriver2::Test::Template:U: Str $browser is copy, IO::Path:D :$test-root, Int:D :$debug is copy = 0, *%_ ) {
 	self.set-from-file: $browser, :$test-root, :$debug;
 	self.bless:
 			:$browser,
 			:$test-root,
 			:$debug,
-			driver => WebDriver2::Driver::Provider.new( :$browser, :$debug ).driver;
+			driver => WebDriver2::Driver::Provider.new( :$browser, :$debug ).driver,
+			|%_
+	;
 }
 
 method !init {
