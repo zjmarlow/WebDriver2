@@ -64,6 +64,9 @@ class Multi-Service-Test does WebDriver2::Test::Service-Test {
 		$.loader.load-elements: $!form-service = Multi-Form.new: :$.driver;
 	}
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		$!outer-service.navigate;
 		

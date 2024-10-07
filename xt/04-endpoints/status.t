@@ -14,6 +14,9 @@ class Status-Test does WebDriver2::Test::Template {
 	has Str:D $.name = 'status';
 	has Str:D $.description = 'status test';
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		my WebDriver2::Command::Result::Status $status = $.driver.status;
 		self.ok: 'version defined: ' ~ $status.version, $status.version.defined;

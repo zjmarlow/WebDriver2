@@ -99,6 +99,9 @@ class Frames-Test does WebDriver2::Test::Service-Test {
 		$.loader.load-elements: $!to-service = Page-Link-To-Service.new: :$.driver;
 	}
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		$!from-service.nav;
 		self.is: 'page title', 'iframe test', $.driver.title;

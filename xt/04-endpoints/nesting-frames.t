@@ -15,6 +15,9 @@ class Test-Nav-To-Frame
 	has Str:D $.name = 'nesting frames';
 	has Str:D $.description = 'nesting frames test';
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		$.driver.navigate: 'file://' ~ $file.absolute;
 		

@@ -27,6 +27,9 @@ class Nav-Test
 	has Str:D $.name = 'URL tests';
 	has Str:D $.description = 'test nav to URL and get URL';
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		$.driver.navigate: 'file://' ~ $html-from-file.absolute;
 		

@@ -112,6 +112,9 @@ class Readme-Test does WebDriver2::Test::Service-Test {
 		$.loader.load-elements: $!frs = Frame-Service.new: :$.driver;
 	}
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		$!ls.log-in: 'user', 'pass';
 		

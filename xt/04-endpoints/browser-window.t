@@ -14,6 +14,9 @@ class Browser-Window-Test does WebDriver2::Test::Template does WebDriver2::Test:
 	has Str:D $.name = 'window';
 	has Str:D $.description = 'multi-window test';
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		my Str $original-window = $.driver.original-window;
 		self.is: 'current handle matches original', $original-window, $.driver.window-handle;

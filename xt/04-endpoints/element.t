@@ -20,6 +20,9 @@ class Focus-Test
 	has Int:D $.plan = 37;
 	has Str:D $.name = 'element element state / interaction tests';
 	has Str:D $.description = 'tests element state / interaction endpoints';
+	
+	method pre-test { }
+	method post-test { }
 
 	method test {
 		$.driver.navigate: 'file://' ~ $html-file.absolute;

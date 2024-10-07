@@ -21,6 +21,9 @@ class Session-Test does WebDriver2::Test::Template {
 	has Int:D $.plan = 4;
 	has Str:D $.name = 'session-name';
 	has Str:D $.description = 'session test';
+
+method pre-test { }
+method post-test { }
 	
 	method test {
 #		if $.browser eq 'firefox' {

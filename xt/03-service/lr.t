@@ -111,6 +111,9 @@ class LR does WebDriver2::Test::Service-Test {
         $.loader.load-elements: $!rs = R.new: :$.driver;
     }
 
+    method pre-test { }
+    method post-test { }
+
     method test {
         $!mls.li;
         self.is: 'main title', 'lr root', $.driver.title;

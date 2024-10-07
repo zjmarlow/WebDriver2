@@ -15,6 +15,9 @@ class Alerts does WebDriver2::Test::Template {
 	
 	
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		$.driver.navigate: 'file://' ~ $html-file.absolute;
 

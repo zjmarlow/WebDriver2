@@ -95,6 +95,9 @@ class Mixed-Test does WebDriver2::Test::Service-Test {
 #		$self;
 #	}
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 #		$!mixed = $.service-loader.load: Mixed;
 		$!mixed.navigate;

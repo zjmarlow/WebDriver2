@@ -28,6 +28,9 @@ class Nav-Test
 	has Str:D $.description = q:to/DESCRIPTION/;
 		tests Navigate To, Get Current URL, Back, Forward, Refresh
 	DESCRIPTION
+
+	method pre-test { }
+	method post-test { }
 	
 	method test {
 		$.driver.navigate: 'file://' ~ $html-from-file.absolute;

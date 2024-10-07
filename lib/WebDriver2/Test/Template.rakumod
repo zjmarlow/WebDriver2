@@ -37,9 +37,9 @@ method !init {
 	$.driver.set-window-rect: 1200, 750, 8, 8
 		if $.browser eq 'chrome' | 'safari';
 }
-method pre-test { }
+method pre-test { ... }
 method test { ... }
-method post-test { }
+method post-test { ... }
 method !close {
 	say "\nclosing in";
 	.say, sleep 1 for ( 1 .. $.close-delay ).reverse;

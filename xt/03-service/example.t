@@ -137,6 +137,9 @@ class Example-Test does WebDriver2::Test::Service-Test {
 		$.loader.load-elements: $!rf = Replacement-Frame.new: :$.driver;
 		$.loader.load-elements: $!nf = Nested-Frame.new: :$.driver;
 	}
+	
+	method pre-test { }
+	method post-test { }
 
 	method test {
 		my Str:D @results =

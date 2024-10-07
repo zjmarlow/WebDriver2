@@ -19,6 +19,9 @@ class Stale
 	has Str:D $.name = 'stale';
 	has Str:D $.description = 'stale handling';
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		self.driver.navigate: 'file://' ~ $html-file.absolute;
 		is self.driver.title, 'test', 'page title';

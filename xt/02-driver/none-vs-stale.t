@@ -16,6 +16,9 @@ class Local
 	has Str:D $.name = 'none vs stale';
 	has Str:D $.description = 'none and stale both handled';
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		my IO::Path:D $html-file = $!test-root.add: <content test.html>;
 #				.add: 'test.html' with $*CWD.add: 'content';

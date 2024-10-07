@@ -23,6 +23,8 @@ has Str:D $.key-prefix = '';
 
 method name ( --> Str:D ) { ... }
 
+method elements-loaded ( --> Bool:D ) { so %!elements<>.elems }
+
 method add-element ( Str $k, WebDriver2::SUT::Tree::ANode:D $v ) {
 	warn "overwriting $k" if %!elements{ $k }:exists;
 	%!elements{ $k } = $v;

@@ -90,6 +90,9 @@ class Frames-Test
 		$.loader.load-elements: $!frames = Frames-Test-Service.new: :$.driver;
 	}
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		$!from.nav;
 		$!from.page-link;

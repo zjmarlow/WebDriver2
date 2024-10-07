@@ -24,6 +24,9 @@ class Local does WebDriver2::Test::Template {
 	#   sets the browser / loads from file if not passed
 	#   and instantiates the corresponding driver
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test  {
 		$.driver.navigate: $page.Str;
 

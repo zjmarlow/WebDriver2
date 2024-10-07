@@ -120,6 +120,9 @@ class Frames-Test does WebDriver2::Test::Service-Test {
 		$.loader.load-elements: $!service = Frames-Test-Service.new: :$.driver, :$.sut;
 	}
 	
+	method pre-test { }
+	method post-test { }
+	
 	method test {
 		$!service.nav;
 
