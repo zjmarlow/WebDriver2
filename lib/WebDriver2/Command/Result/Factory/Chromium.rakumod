@@ -25,6 +25,7 @@ method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Co
 						type => WebDriver2::Command::Execution-Status::Type::OK,
 						message => $data<value><message> // ''
 			unless $data<value><error>:exists;
+	warn $data<value><error>;
 	given $data<value><error> {
 	when 'no such element' {
 		WebDriver2::Command::Result::X.new( execution-status =>
@@ -55,7 +56,7 @@ $data.say;
 				)
 		).throw;
 	}
-	when 'stale element reference' {
+	when 404 | 'stale element reference' {
 		WebDriver2::Command::Result::X.new( execution-status =>
 				WebDriver2::Command::Execution-Status.new(
 						|self!status-args(

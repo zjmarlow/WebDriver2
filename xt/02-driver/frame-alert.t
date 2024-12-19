@@ -14,51 +14,33 @@ class Local
 		does WebDriver2::Test::Config-From-File
 {
 	has Str:D $.sut-name = 'test';
-	has Int:D $.plan = 3;
+	has Int:D $.plan = 2;
 	has Str:D $.name = 'none vs stale';
 	has Str:D $.description = 'none and stale both handled';
+#	has IO::Path:D $!test-root = 'xt'.IO;
 	
 	method pre-test { }
 	method post-test { }
 	
 	method test {
-		my IO::Path:D $html-file = $!test-root.add: <content test.html>;
-#				.add: 'test.html' with $*CWD.add: 'content';
+		my IO::Path:D $html-file = $!test-root.add: <content frame-alert-root-doc.html>;
+		#				.add: 'test.html' with $*CWD.add: 'content';
 		$.driver.set-window-rect( 1200, 750, 8, 8 ) if $.browser eq 'safari';
 		$.driver.navigate: 'file://' ~ $html-file.absolute;
 		
-		ok
-			self.element-by-id( 'outer' )
-			~~ self.element-by-tag( 'ul' ),
-			'same element found different ways';
-		
-		throws-like
-				{ self.element-by-id: 'not here' },
-				WebDriver2::Command::Result::X,
-				'not found',
-				execution-status => { .type ~~ WebDriver2::Command::Execution-Status::Type::Element };
-		
-		my $outer = self.element-by-id: 'outer';
-		my WebDriver2::Until $stale = WebDriver2::Until::Command::Stale.new:
-				element => $outer,
-				duration => 3,
-				interval => 1/10;
-		$outer.click;
+		.frame.switch-to with self.element-by-tag: 'iframe';
+		.click with self.element-by-tag: 'h2';
 		$!driver.accept-alert;
-		ok $stale.retry, 'stale check';
-		
-		
-#		throws-like
-#				{ $outer.click },
-#				WebDriver2::Command::Result::X,
-#				'stale',
-#				execution-status => { .type ~~ WebDriver2::Command::Execution-Status::Type::Stale };
-		
+		ok self.element-by-id( 'inner-form' ), 'still in iframe';
+		.click with self.element-by-tag: 'p';
+		$!driver.accept-alert;
+		$!driver.top;
+		ok self.element-by-id( 'form' ), 'root page';
 	}
 	method element-by-tag( Str $tag-name ) {
 		$.driver.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
 	}
-
+	
 	method element-by-id( Str $id ) {
 		$.driver.element( WebDriver2::Command::Element::Locator::ID.new: $id )
 	}

@@ -183,6 +183,8 @@ class Frames-Test does WebDriver2::Test::Service-Test {
 				'iframe h2 parent frame is iframe',
 				$!service.iframe.raku,
 				$!service.iframe-h2.parent-frame.raku;
+#		$!service.iframe.resolve.element:
+#				WebDriver2::Command::Element::Locator::Tag-Name.new: 'body';
 		
 		$!service.each-iframe-item: {
 			self.is:

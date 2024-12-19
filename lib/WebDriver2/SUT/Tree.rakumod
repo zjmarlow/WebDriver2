@@ -536,6 +536,7 @@ class WebDriver2::SUT::Tree::Frame
 			$!frame = ( $!parent.resolve.element: $!locator ).frame;
 			$!frame.switch-to;
 		}
+#		$!frame.switch-to;
 		$!frame.context.element: WebDriver2::Command::Element::Locator::Tag-Name.new: 'body';
 	}
 	method present ( --> WebDriver2::Model::Element ) {

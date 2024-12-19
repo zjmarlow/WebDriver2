@@ -16,7 +16,7 @@ my WebDriver2::SUT::Tree::URL:D $page =
 class Local does WebDriver2::Test::Template {
 	has Bool $!screenshot;
 	
-	has Int:D $.plan = 41;
+	has Int:D $.plan = 42;
 	has Str:D $.name = 'local';
 	has Str:D $.description = 'local test';
 	
@@ -41,6 +41,9 @@ class Local does WebDriver2::Test::Template {
 			self.ok: 'outer', $.driver.displayed: self.element-by-id: 'outer';
 			self.ok: 'ul', $.driver.displayed: self.element-by-tag: 'ul';
 		}
+		my $cb = self.element-by-id: 'cb';
+		my $at = $cb.attribute: 'type';
+		is $at, 'checkbox', 'get attr works';
 
 		my WebDriver2::Command::Element::Locator $by-tag-ul =
 				WebDriver2::Command::Element::Locator::Tag-Name.new: 'ul';
