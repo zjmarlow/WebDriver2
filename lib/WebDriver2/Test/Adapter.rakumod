@@ -84,6 +84,10 @@ method diag ( Str:D $msg ) {
 	diag $msg;
 }
 
+method skip ( Str $reason, Int $count ) {
+	skip $reason, $count;
+}
+
 method flunk ( Str:D $descr ) {
 	self.handle-test-failure: $descr;
 	flunk $descr;
