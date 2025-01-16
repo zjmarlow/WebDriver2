@@ -603,7 +603,7 @@ my class WebDriver2::Internal-Element does WebDriver2::Model::Element {
 	
 	submethod BUILD( :$!driver, :$!internal-id, :$!debug = 0 ) { }
 	
-	method screenshot( WebDriver2: --> Str:D ) {
+	method screenshot( --> Str:D ) {
 		$!driver!WebDriver2::Driver::screenshot: $!internal-id
 	}
 	
