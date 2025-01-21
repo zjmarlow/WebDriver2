@@ -158,7 +158,7 @@ class WebDriver2::Until::Command::Stale is WebDriver2::Until {
 	}
 }
 
-class WebDriver2::Until::Title-Is is WebDriver2::Until {
+class WebDriver2::Until::Command::Title-Is is WebDriver2::Until {
 	method new (
 			WebDriver2 :$driver!,
 			Str :$title!,

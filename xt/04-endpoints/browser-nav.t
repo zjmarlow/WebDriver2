@@ -8,6 +8,7 @@ use WebDriver2;
 use WebDriver2::Test::Config-From-File;
 
 use WebDriver2::Until;
+use WebDriver2::Until::Command;
 use WebDriver2::Test::Locating-Test;
 use WebDriver2::Test::Template;
 use WebDriver2::Command::Result;
@@ -40,7 +41,7 @@ class Nav-Test
 		self.is: 'starting page title', 'iframe test', $.driver.title;
 		
 		my WebDriver2::Until $title =
-				WebDriver2::Until::Title-Is.new:
+				WebDriver2::Until::Command::Title-Is.new:
 						:$.driver,
 						title => 'to page';
 		.click with self.element-by-tag: 'a';
