@@ -8,6 +8,7 @@ use WebDriver2;
 use WebDriver2::Test::Config-From-File;
 
 use WebDriver2::Until;
+use WebDriver2::Until::Command;
 use WebDriver2::Test::Locating-Test;
 use WebDriver2::Test::Template;
 use WebDriver2::Command::Result;
@@ -35,7 +36,7 @@ class Nav-Test
 		
 		self.is: 'navigation url result', self.prep-path( $html-from-file ),  url-decode $.driver.url; 
 		my WebDriver2::Until $title =
-				WebDriver2::Until::Title-Is.new:
+				WebDriver2::Until::Command::Title-Is.new:
 						:$.driver,
 						title => 'simple example';
 		.click with self.element-by-tag: 'button';
