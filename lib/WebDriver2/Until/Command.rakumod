@@ -158,6 +158,23 @@ class WebDriver2::Until::Command::Stale is WebDriver2::Until {
 	}
 }
 
+class WebDriver2::Until::Title-Is is WebDriver2::Until {
+	method new (
+			WebDriver2 :$driver!,
+			Str :$title!,
+			Real :$duration = 5,
+			Real :$interval = 1 / 10,
+			Int :$debug = 0,
+			Bool :$soft = False
+	) {
+		callwith
+				operation => { $driver.title eq $title },
+				:$duration,
+				:$interval,
+				:$debug,
+	}
+}
+
 #class WebDriver2::Until::Command::Not-Stale is WebDriver2::Until {
 #	method new(
 #			WebDriver2::Model::Context :$context,

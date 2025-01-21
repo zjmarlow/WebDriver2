@@ -90,6 +90,14 @@ $data.say;
 								WebDriver2::Command::Execution-Status::Type::Intercepted
 						).throw;
 	}
+	when 'element not interactable' {
+		WebDriver2::Command::Result::X.new( execution-status =>
+				WebDriver2::Command::Execution-Status.new:
+						|self!status-args:
+								$response,
+								WebDriver2::Command::Execution-Status::Type::Interactable
+						).throw;
+	}
 	default {
 		# FIXME : do something sensible here
 		return unless $data<value><error>;

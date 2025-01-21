@@ -1,5 +1,7 @@
 use WebDriver2;
 
+use WebDriver2::Command::Result;
+
 class WebDriver2::Until::Timeout::X is Exception {
 	method message ( ) { 'timeout' }
 }
@@ -46,7 +48,7 @@ class WebDriver2::Until {
 				:&operation,
 				:&matcher,
 				:&cleanup,
-				duration => Duration.new( $duration ),
+				duration => ( ( DateTime.now.later: seconds => $duration ) - DateTime.now ),
 				interval => Duration.new( $interval // $_interval ),
 				:$soft,
 				debug => $debug // $_debug;
@@ -58,18 +60,18 @@ class WebDriver2::Until {
 		repeat {
 			say "\n\nTRYING " ~ $start.DateTime ~ "\n\n" if $!debug;
 			my $return = &!operation();
-			say "\n\nOP VAL ",$return.raku, "\n\n" if $!debug;
+			say "\n\nOP VAL ", $return.raku, "\n\n" if $!debug;
 			return $return
 				if &!matcher and &!matcher( $return )
 				or not &!matcher and $return;
 			&!cleanup() if &!cleanup;
 			sleep $!interval;
 		} while ( now - $start ) < $!duration;
-		return if $!soft;
-		WebDriver2::Until::Timeout::X.new.throw;
+		WebDriver2::Until::Timeout::X.new.throw unless $!soft;
 	}
 }
 
+# returns $! from thrown instead of propagating exception
 class WebDriver2::Until::Throwable is WebDriver2::Until {
 	method new (
 			:&operation,
@@ -80,13 +82,10 @@ class WebDriver2::Until::Throwable is WebDriver2::Until {
 			Bool :$soft,
 			Int :$debug
 	) {
-		callwith operation => sub () {
-			try {
-				CATCH {
-					default { return $_ }
-				}
-				return &operation();
-			}
+		callwith operation => -> {
+			my $val;
+			try $val = &operation();
+			$! or $val;
 		}, :&matcher, :&cleanup, :$duration, :$interval, :$soft, :$debug;
 	}
 }
@@ -109,11 +108,12 @@ class WebDriver2::Until::Throws is WebDriver2::Until::Throwable {
 	}
 }
 
+# wait until expected exception no longer occurs;
+# propagate throw if exception not expected
 class WebDriver2::Until::No-Throw is WebDriver2::Until::Throwable {
 	method new (
 			:&operation,
 			:$exception,
-			:&matcher,
 			:&cleanup,
 			Real :$duration,
 			Real :$interval,
@@ -121,36 +121,12 @@ class WebDriver2::Until::No-Throw is WebDriver2::Until::Throwable {
 			Int :$debug
 	) {
 		callwith :&operation, :$exception,
-		matcher => -> $ret {
-			say "\n\nTRYING MATCH\n\n" if $debug;
-			$ret.throw
-				if $ret
-						and $ret ~~ Exception
-						and ! &matcher( $ret )
-							|| ! &matcher && $ret !~~ $exception;
-			say "\n\nNO THROW\n\n" if $debug;
-			say $ret.raku if $debug;
-			say so $ret ~~ $exception if $debug;
-			say $exception.raku if $debug;
-			$ret !~~ $exception;
+		matcher => sub ( $ret ) {
+			if $ret.isa: Exception {
+				return True if $ret ~~ $exception;
+				$ret.throw;
+			}
+			return $ret;
 		}, :&cleanup, :$duration, :$interval, :$soft, :$debug;
-	}
-}
-
-class WebDriver2::Until::Title-Is is WebDriver2::Until {
-	method new (
-			WebDriver2 :$driver!,
-			Str :$title!,
-			Real :$duration = 5,
-			Real :$interval = 1 / 10,
-			Int :$debug = 0,
-			Bool :$soft = False
-	) {
-		callwith
-				operation => { $driver.title eq $title },
-				:$duration,
-				:$interval,
-				:$debug,
-				:$soft;
 	}
 }
