@@ -1,5 +1,3 @@
-use v6.e.PREVIEW;
-
 use WebDriver2;
 
 class WebDriver2::Until-C::Timeout::X is Exception {
@@ -54,6 +52,16 @@ our sub throwable (&operation) {
 		try $val = &operation();
 		$! or $val
 	};
+}
+
+our proto sub expect-throw ( | ) {*}
+
+multi sub expect-throw ( $exception, &operation ) {
+	sub {
+		my $result = .() with throwable &operation;
+		return False unless $result ~~ $exception;
+		return $result;
+	}
 }
 
 our proto sub no-throw ( | ) {*}

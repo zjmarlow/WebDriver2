@@ -1,5 +1,3 @@
-use v6.e.PREVIEW;
-
 use Test;
 
 use lib <lib>;
@@ -10,7 +8,7 @@ use WebDriver2::Until-C;
 my class TA does WebDriver2::Test::Adapter {}
 
 my $test = TA;
-plan 13;
+plan 14;
 
 did duration => 3;
 
@@ -51,62 +49,53 @@ $test.isa-ok:
 $test.is:
 		'simple no thrown',
 		'no throw',
-		.() with throwable sub {
-	'no throw'
-};
+		.() with throwable sub { 'no throw' };
 
 $test.is:
 		'no throw no throw - defined',
 		'hello',
-		.() with no-throw Simple-Throwable, sub {
-	'hello'
-};
+		.() with no-throw Simple-Throwable, sub { 'hello' };
 
 $test.is:
 		'no throw no throw - undefined',
 		Any,
-		.() with no-throw Simple-Throwable, sub {};
+		.() with no-throw Simple-Throwable, sub { };
 
-my class Other-Throwable is Exception {}
+my class Other-Throwable is Exception { }
 
 $test.throws-like:
 		'no throw - wrong exception',
 		Other-Throwable,
-		no-throw Simple-Throwable, sub {
-			Other-Throwable.new.throw
-		};
+		no-throw Simple-Throwable, sub { Other-Throwable.new.throw };
 
 $test.is:
 		'no throw - expected exception',
 		False,
-		.() with no-throw Simple-Throwable, sub {
-	Simple-Throwable.new.throw
-};
+		.() with no-throw Simple-Throwable, sub { Simple-Throwable.new.throw };
 
 my @any = Simple-Throwable, Other-Throwable;
 $test.is:
 		'no throw - junction - one',
 		False,
-		.() with no-throw @any, sub {
-	Simple-Throwable.new.throw
-};
+		.() with no-throw @any, sub { Simple-Throwable.new.throw };
 
 $test.is:
 		'no throw - junction - other',
 		False,
-		.() with no-throw @any, sub {
-	Other-Throwable.new.throw
-};
+		.() with no-throw @any, sub { Other-Throwable.new.throw };
 
-my class Another-Throwable is Exception {}
+my class Another-Throwable is Exception { }
 $test.throws-like:
 		'throw - junction - neither',
 		Another-Throwable,
-		no-throw @any, sub {
-			Another-Throwable.new.throw
-		};
+		no-throw @any, sub { Another-Throwable.new.throw };
 
+$test.isa-ok:
+		'expect throw',
+		Simple-Throwable,
+		.() with expect-throw Simple-Throwable, sub { Simple-Throwable.new.throw };
 
+# TODO : better expect-throw coverage
 
 # retry
 
