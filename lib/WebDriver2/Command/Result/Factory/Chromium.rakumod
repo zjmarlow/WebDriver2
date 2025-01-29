@@ -25,20 +25,20 @@ method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Co
 						type => WebDriver2::Command::Execution-Status::Type::OK,
 						message => $data<value><message> // ''
 			unless $data<value><error>:exists;
-	warn $data<value><error>;
+warn $data<value><error>;
 	given $data<value><error> {
-	when 'no such element' {
-		WebDriver2::Command::Result::X.new( execution-status =>
-				WebDriver2::Command::Execution-Status.new(
-						|self!status-args(
-								$response,
-								WebDriver2::Command::Execution-Status::Type::Element
-						)
-				)
-		).throw;
-	}
+#	when 'no such element' {
+#		WebDriver2::Command::Result::X.new( execution-status =>
+#				WebDriver2::Command::Execution-Status.new(
+#						|self!status-args(
+#								$response,
+#								WebDriver2::Command::Execution-Status::Type::Element
+#						)
+#				)
+#		).throw;
+#	}
 	when 'invalid session id' {
-$data.say;
+#$data.say;
 		WebDriver2::Command::Result::X.new( execution-status =>
 				WebDriver2::Command::Execution-Status.new:
 						|self!status-args:
@@ -46,7 +46,8 @@ $data.say;
 								WebDriver2::Command::Execution-Status::Type::Session
 		).throw;
 	}
-	when 7 {
+	when 7 | 'no such element' | 'element not found' {
+say 'no such element';
 		WebDriver2::Command::Result::X.new( execution-status =>
 				WebDriver2::Command::Execution-Status.new(
 						|self!status-args(

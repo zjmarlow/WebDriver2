@@ -6,6 +6,14 @@ class WebDriver2::Until::Timeout::X is Exception {
 	method message ( ) { 'timeout' }
 }
 
+role WebDriver2::Until::Sequential {
+	has &!next;
+	;
+	method preceed ( &inner ) {
+	
+	}
+}
+
 class WebDriver2::Until {
 	my Real $_interval = 1/10;
 	my Int $_debug = 0;
@@ -13,8 +21,8 @@ class WebDriver2::Until {
 	has &!operation is required;
 	has &!matcher;
 	has &!cleanup;
-	has Duration $!duration is required;
-	has Duration $!interval;
+	has Duration $.duration is required;
+	has Duration $!interval = $_interval;
 	has Bool $!soft = False;
 	has Int $!debug = 0;
 
@@ -122,8 +130,10 @@ class WebDriver2::Until::No-Throw is WebDriver2::Until::Throwable {
 	) {
 		callwith :&operation, :$exception,
 		matcher => sub ( $ret ) {
+say 'No-Throw ', ( $ret ~~ $exception ), ', ', $ret.raku, "\n\t", $exception.raku;
 			if $ret.isa: Exception {
-				return True if $ret ~~ $exception;
+say 'ret ', $ret.raku;
+				return False if $ret ~~ $exception;
 				$ret.throw;
 			}
 			return $ret;

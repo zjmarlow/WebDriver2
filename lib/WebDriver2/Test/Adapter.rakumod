@@ -69,13 +69,13 @@ method dies-ok ( Str:D $descr, &cb ) {
 }
 
 method throws-like ( Str:D $reason, $ex-type, $code, *%matcher ) {
-	my Bool $result = 0 == throws-like $code, $ex-type, $reason, |%matcher;
+	my $result = throws-like $code, $ex-type, $reason, |%matcher;
 	self.handle-test-failure: $reason unless $result;
 	$result;
 }
 
 method fails-like ( Str:D $reason, $ex-type, $code, *%matcher ) {
-	my Bool $result = 0 == fails-like $code, $ex-type, $reason, |%matcher;
+	my $result = fails-like $code, $ex-type, $reason, |%matcher;
 	self.handle-test-failure: $reason unless $result;
 	$result;
 }
