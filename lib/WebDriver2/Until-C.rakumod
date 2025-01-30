@@ -54,6 +54,8 @@ our sub throwable (&operation) {
 	};
 }
 
+
+
 our proto sub expect-throw ( | ) {*}
 
 multi sub expect-throw ( $exception, &operation ) {
@@ -63,6 +65,16 @@ multi sub expect-throw ( $exception, &operation ) {
 		return $result;
 	}
 }
+
+multi sub expect-throw ( @exception, &operation ) {
+	sub {
+		my $result = .() with throwable &operation;
+		return False unless $result ~~ @exception.any;
+		return $result;
+	}
+}
+
+
 
 our proto sub no-throw ( | ) {*}
 
@@ -84,6 +96,17 @@ multi sub no-throw (@exception, &operation) {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
 		$result.throw unless $result ~~ @exception.any;
+		False;
+	}
+}
+
+# wait until expected exception no longer occurs;
+# propagate throw if exception not expected
+multi sub no-throw ( &matcher, &operation ) {
+	sub {
+		my $result = .() with throwable &operation;
+		return $result unless $result ~~ Exception;
+		$result.throw unless &matcher( $result );
 		False;
 	}
 }
