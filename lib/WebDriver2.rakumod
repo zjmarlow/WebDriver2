@@ -27,8 +27,8 @@ role WebDriver2::Driver-Actions {
 	method title( --> Str:D ) { ... }
 	
 	method alert-text( --> Str:D ) { ... }
-	method accept-alert { ... }
-	method dismiss-alert { ... }
+	method accept-alert ( --> Bool ) { ... }
+	method dismiss-alert ( --> Bool ) { ... }
 	method send-alert-text( Str:D ) { ... }
 	
 	multi method screenshot( WebDriver2: --> Str:D ) { ... }

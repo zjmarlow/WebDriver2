@@ -1,5 +1,8 @@
 use WebDriver2;
 
+use WebDriver2::Command::Result;
+use WebDriver2::Command::Execution-Status;
+
 class WebDriver2::Until-C::Timeout::X is Exception {
 	method message () {
 		'timeout'
@@ -22,15 +25,16 @@ our sub did (
 
 our sub basic (
 		&operation is required,
-		:&expect = sub ( $value ) { $value !=== Any },
+		:&expect = sub ( $value ) { $value.defined }, # { $value !=== Any }
 		:&cleanup,
 		Real :$duration = $_max-duration,
 		Real :$interval = $_interval,
 		Bool :$soft,
-		Int :$debug = $_debug
+		Int :$debug is copy = $_debug
 ) {
 	sub {
 		my $return;
+#$debug = 2;
 		my Instant $start = now;
 		say "\n\nSTARTING TRIALS " ~ $start.DateTime ~ "\n\n" if $debug;
 		repeat {
@@ -61,16 +65,28 @@ our proto sub expect-throw ( | ) {*}
 multi sub expect-throw ( $exception, &operation ) {
 	sub {
 		my $result = .() with throwable &operation;
-		return False unless $result ~~ $exception;
-		return $result;
+		return False unless $result ~~ Exception;
+		$result.rethrow unless $result ~~ $exception;
+		$result;
 	}
 }
 
 multi sub expect-throw ( @exception, &operation ) {
 	sub {
 		my $result = .() with throwable &operation;
-		return False unless $result ~~ @exception.any;
-		return $result;
+		return False unless $result ~~ Exception;
+		$result.rethrow unless [or] ( $result <<~~<< @exception );
+		$result;
+	}
+}
+
+our sub expect-throw-type ( @types, &operation ) {
+	sub {
+		my $result = .() with throwable &operation;
+		return False unless $result ~~ Exception;
+		$result.rethrow unless [or] ( $result.execution-status.type <<~~<< @types );
+say 'EXPECT ', $result.raku;
+		$result;
 	}
 }
 
@@ -84,18 +100,19 @@ multi sub no-throw ($exception, &operation) {
 	sub {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
-		$result.throw unless $result ~~ $exception;
-		False;
+		$result.rethrow unless $result ~~ $exception;
+		$result; # return the expected exception
 	}
 }
 
 # wait until expected exception no longer occurs;
 # propagate throw if exception not expected
+# TODO : does this work ?
 multi sub no-throw (@exception, &operation) {
 	sub {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
-		$result.throw unless $result ~~ @exception.any;
+		$result.rethrow unless [or] ( $result <<~~<< @exception );
 		False;
 	}
 }
@@ -106,7 +123,20 @@ multi sub no-throw ( &matcher, &operation ) {
 	sub {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
-		$result.throw unless &matcher( $result );
+		$result.rethrow unless &matcher( $result );
+		False;
+	}
+}
+
+# wait until expected exception no longer occurs;
+# propagate throw if exception not expected
+our sub no-throw-type ( @types, &operation ) {
+	sub {
+		my $result = .() with throwable &operation;
+		return $result unless $result ~~ Exception;
+		$result.rethrow unless $result ~~ WebDriver2::Command::Result::X;
+		$result.rethrow unless [or] ( $result.execution-status.type <<~~<< @types );
+say 'NO THROW TYPE ', $result.raku;
 		False;
 	}
 }

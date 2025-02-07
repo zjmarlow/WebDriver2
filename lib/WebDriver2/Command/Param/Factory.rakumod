@@ -6,9 +6,19 @@ unit class WebDriver2::Command::Param::Factory;
 
 method session {
 	{
-#		desiredCapabilities => {},
-#		requiredCapabilities => {}
-		capabilities => {}
+		capabilities => {
+			alwaysMatch => {
+				unhandledPromptBehavior => {
+					alert => 'ignore',
+					beforeUnload => 'ignore',
+					confirm => 'ignore',
+					default => 'ignore',
+					prompt => 'ignore',
+					defaultPrompt => 'ignore',
+					:!notify
+				}
+			}
+		}
 	}
 }
 method status { { } }

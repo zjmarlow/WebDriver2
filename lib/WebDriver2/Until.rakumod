@@ -90,7 +90,7 @@ class WebDriver2::Until::Throwable is WebDriver2::Until {
 			Bool :$soft,
 			Int :$debug
 	) {
-		callwith operation => -> {
+		callwith operation => sub {
 			my $val;
 			try $val = &operation();
 			$! or $val;
@@ -110,7 +110,7 @@ class WebDriver2::Until::Throws is WebDriver2::Until::Throwable {
 			Int :$debug
 	) {
 		callwith :&operation, :$exception,
-		matcher => -> $ret {
+		matcher => sub ( $ret ) {
 			$ret ~~ $exception and ! &matcher || &matcher( $ret );
 		}, :&cleanup, :$duration, :$interval, :$soft, :$debug;
 	}
@@ -128,13 +128,13 @@ class WebDriver2::Until::No-Throw is WebDriver2::Until::Throwable {
 			Bool :$soft,
 			Int :$debug
 	) {
-		callwith :&operation, :$exception,
+		callwith :&operation,
 		matcher => sub ( $ret ) {
 say 'No-Throw ', ( $ret ~~ $exception ), ', ', $ret.raku, "\n\t", $exception.raku;
-			if $ret.isa: Exception {
+			if $ret ~~ Exception {
 say 'ret ', $ret.raku;
 				return False if $ret ~~ $exception;
-				$ret.throw;
+				$ret.rethrow;
 			}
 			return $ret;
 		}, :&cleanup, :$duration, :$interval, :$soft, :$debug;

@@ -253,7 +253,7 @@ class WebDriver2::SUT::Tree::Fragile
 					{
 						if $tries >= $!max-tries {
 							warn 'bailing due to max tries';
-							.throw;
+							.rethrow;
 						}
 						warn 'retrying';
 #						self.resolve.switch-to;
@@ -262,7 +262,7 @@ class WebDriver2::SUT::Tree::Fragile
 					default {
 						warn 'caught non stale exception ' ~ $_;
 						.raku.say;
-						.throw;
+						.rethrow;
 					}
 				}
 				++$tries;

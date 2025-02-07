@@ -92,4 +92,9 @@ class WebDriver2::Command::Result::X is Exception {
 	method message( WebDriver2::Command::Result::X:D: --> Str ) {
 		~ $!execution-status
 	}
+	method ACCEPTS ( $topic ) {
+say 'TOPIC ', $topic.raku;
+		return False unless $topic ~~ WebDriver2::Command::Result::X;
+		$topic.execution-status.type === $!execution-status;
+	}
 }

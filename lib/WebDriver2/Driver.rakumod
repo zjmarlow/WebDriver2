@@ -82,11 +82,14 @@ class WebDriver2::Driver does WebDriver2 {
 
 	method session {
 		for 1 .. 3 {
+#say 'SESSION ATTEMPT';
+.say;
 			if self!ready() {
 				my WebDriver2::Command::Result::Session $session =
 					WebDriver2::Command::Session.new
 						.execute-with: self;
 				self.debug: $session, $session.value;
+say 'SESSION RESULT ', $session.raku;
 				$!session-id = $session.value;
 				$!original-window = self.window-handle;
 				return $!session-id;
@@ -184,14 +187,17 @@ class WebDriver2::Driver does WebDriver2 {
 		my WebDriver2::Command::Result::Accept-Alert $accept-alert =
 			WebDriver2::Command::Accept-Alert.new
 				.execute-with: self;
-		self.debug: $accept-alert
+		self.debug: $accept-alert;
+# say 'ACCEPT ALERT ', $accept-alert.execution-status.type === WebDriver2::Command::Execution-Status::Type::OK;
+		$accept-alert.execution-status.type === WebDriver2::Command::Execution-Status::Type::OK;
 	}
 	
 	method dismiss-alert {
 		my WebDriver2::Command::Result::Dismiss-Alert $dismiss-alert =
 			WebDriver2::Command::Dismiss-Alert.new
 				.execute-with: self;
-		self.debug: $dismiss-alert
+		self.debug: $dismiss-alert;
+		$dismiss-alert === Empty;
 	}
 	
 	method send-alert-text( Str:D $text ) {
@@ -611,7 +617,7 @@ my class WebDriver2::Internal-Element does WebDriver2::Model::Element {
 #		try { self.enabled }
 		try self.enabled;
 #		$!id.say;
-		$!.throw if $!
+		$!.rethrow if $!
 				and (
 				( $! !~~ WebDriver2::Command::Result::X )
 						or ( $!.execution-status.type !~~

@@ -67,7 +67,7 @@ say 'no such element';
 				)
 		).throw;
 	}
-	when 26 {
+	when 26 | 'unexpected alert open' {
 		WebDriver2::Command::Result::X.new( execution-status =>
 				WebDriver2::Command::Execution-Status.new:
 						|self!status-args:
@@ -75,14 +75,22 @@ say 'no such element';
 								WebDriver2::Command::Execution-Status::Type::Alert
 		).throw;
 	}
-	when 'unexpected alert open' {
+	when 'no such alert' {
 		WebDriver2::Command::Result::X.new( execution-status =>
-				WebDriver2::Command::Execution-Status.new:
-						|self!status-args:
-								$response,
-								WebDriver2::Command::Execution-Status::Type::Alert
-		).throw;
+		WebDriver2::Command::Execution-Status.new:
+				|self!status-args:
+						$response,
+						WebDriver2::Command::Execution-Status::Type::No-Alert
+				).throw;
 	}
+#	when 'unexpected alert open' {
+#		WebDriver2::Command::Result::X.new( execution-status =>
+#				WebDriver2::Command::Execution-Status.new:
+#						|self!status-args:
+#								$response,
+#								WebDriver2::Command::Execution-Status::Type::Alert
+#		).throw;
+#	}
 	when 'element click intercepted' {
 		WebDriver2::Command::Result::X.new( execution-status =>
 				WebDriver2::Command::Execution-Status.new:

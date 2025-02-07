@@ -8,6 +8,19 @@ method session {
 	{
 #		desiredCapabilities => { 'unhandledPromptBehavior' => 'ignore' },
 #		requiredCapabilities => {}
-		capabilities => { alwaysMatch => { browserName => 'firefox' } }
+#		capabilities => { alwaysMatch => { browserName => 'firefox' } }
+		capabilities => {
+			alwaysMatch => {
+				browserName => 'firefox',
+				:acceptInsecureCerts,
+				unhandledPromptBehavior => {
+					alert =>  'ignore',
+					beforeUnload => 'ignore',
+					confirm => 'ignore',
+					default => 'ignore',
+					prompt => 'ignore'
+				}
+			}
+		}
 	}
 }

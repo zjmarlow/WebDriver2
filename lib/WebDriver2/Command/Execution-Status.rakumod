@@ -2,7 +2,7 @@ enum WebDriver2::Command::Execution-Status::Type
 	<OK
 		Method
 		Intercepted Interactable
-		Alert Element Frame Window
+		Alert No-Alert Element Frame Window
 		Stale Timeout Unexpected
 		Session
 	Unimplemented>;
