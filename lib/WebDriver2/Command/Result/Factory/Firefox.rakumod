@@ -20,8 +20,8 @@ method status-args( WebDriver2::HTTP::Response $response, $type ) {
 method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Execution-Status ) {
 #say 'EXECUTION STATUS DATA ', $response.raku;
 	my $data = from-json( $response.content );
-say '', $data<>;
-say 'EXECUTION STATUS DATA ', $data.raku;
+#say '', $data<>;
+#say 'EXECUTION STATUS DATA ', $data.raku;
 	given $response.code {
 	when 200 {
 		WebDriver2::Command::Execution-Status.new(

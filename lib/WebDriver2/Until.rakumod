@@ -130,9 +130,9 @@ class WebDriver2::Until::No-Throw is WebDriver2::Until::Throwable {
 	) {
 		callwith :&operation,
 		matcher => sub ( $ret ) {
-say 'No-Throw ', ( $ret ~~ $exception ), ', ', $ret.raku, "\n\t", $exception.raku;
+#say 'No-Throw ', ( $ret ~~ $exception ), ', ', $ret.raku, "\n\t", $exception.raku;
 			if $ret ~~ Exception {
-say 'ret ', $ret.raku;
+#say 'ret ', $ret.raku;
 				return False if $ret ~~ $exception;
 				$ret.rethrow;
 			}

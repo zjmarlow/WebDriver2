@@ -25,7 +25,7 @@ method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Co
 						type => WebDriver2::Command::Execution-Status::Type::OK,
 						message => $data<value><message> // ''
 			unless $data<value><error>:exists;
-warn $data<value><error>;
+#warn $data<value><error>;
 	given $data<value><error> {
 #	when 'no such element' {
 #		WebDriver2::Command::Result::X.new( execution-status =>
@@ -47,7 +47,7 @@ warn $data<value><error>;
 		).throw;
 	}
 	when 7 | 'no such element' | 'element not found' {
-say 'no such element';
+#say 'no such element';
 		WebDriver2::Command::Result::X.new( execution-status =>
 				WebDriver2::Command::Execution-Status.new(
 						|self!status-args(
@@ -83,14 +83,14 @@ say 'no such element';
 						WebDriver2::Command::Execution-Status::Type::No-Alert
 				).throw;
 	}
-#	when 'unexpected alert open' {
-#		WebDriver2::Command::Result::X.new( execution-status =>
-#				WebDriver2::Command::Execution-Status.new:
-#						|self!status-args:
-#								$response,
-#								WebDriver2::Command::Execution-Status::Type::Alert
-#		).throw;
-#	}
+	when 500 | 'unknown error' {
+		WebDriver2::Command::Result::X.new( execution-status =>
+				WebDriver2::Command::Execution-Status.new:
+						|self!status-args:
+								$response,
+								WebDriver2::Command::Execution-Status::Type::Unexpected
+		).throw;
+	}
 	when 'element click intercepted' {
 		WebDriver2::Command::Result::X.new( execution-status =>
 				WebDriver2::Command::Execution-Status.new:

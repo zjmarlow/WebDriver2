@@ -9,8 +9,8 @@ class WebDriver2::Until-C::Timeout::X is Exception {
 	}
 }
 
-my Real $_interval = 1 / 10;
-my Real $_max-duration = 1 * 60;
+my Duration $_interval = Duration.new: 1 / 10;
+my Duration $_max-duration = Duration.new: 1 * 60;
 my Int $_debug = 0;
 
 our sub did (
@@ -27,8 +27,8 @@ our sub basic (
 		&operation is required,
 		:&expect = sub ( $value ) { $value.defined }, # { $value !=== Any }
 		:&cleanup,
-		Real :$duration = $_max-duration,
-		Real :$interval = $_interval,
+		Duration :$duration = $_max-duration,
+		Duration :$interval = $_interval,
 		Bool :$soft,
 		Int :$debug is copy = $_debug
 ) {
@@ -85,7 +85,7 @@ our sub expect-throw-type ( @types, &operation ) {
 		my $result = .() with throwable &operation;
 		return False unless $result ~~ Exception;
 		$result.rethrow unless [or] ( $result.execution-status.type <<~~<< @types );
-say 'EXPECT ', $result.raku;
+#say 'EXPECT ', $result.raku;
 		$result;
 	}
 }
@@ -136,7 +136,7 @@ our sub no-throw-type ( @types, &operation ) {
 		return $result unless $result ~~ Exception;
 		$result.rethrow unless $result ~~ WebDriver2::Command::Result::X;
 		$result.rethrow unless [or] ( $result.execution-status.type <<~~<< @types );
-say 'NO THROW TYPE ', $result.raku;
+#say 'NO THROW TYPE ', $result.raku;
 		False;
 	}
 }
