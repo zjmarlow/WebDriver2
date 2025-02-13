@@ -17,7 +17,7 @@ class Focus-Test
 		does WebDriver2::Test::Template
 		does WebDriver2::Test::Locating-Test
 {
-	has Int:D $.plan = 37;
+	has Int:D $.plan = 38;
 	has Str:D $.name = 'element element state / interaction tests';
 	has Str:D $.description = 'tests element state / interaction endpoints';
 	
@@ -80,6 +80,7 @@ class Focus-Test
 		# attribute / property
 		$el = self.element-by-css-selector: 'label > input';
 		self.is: 'correct name attribute value', 'radio-group', $el.attribute: 'name';
+		self.is: 'css class selector', 'h3 by class', .text with self.element-by-css-selector: '.second';
 		
 		# attribute / property + clear and send keys
 		$el = self.element-by-id: 'attr-prop';
