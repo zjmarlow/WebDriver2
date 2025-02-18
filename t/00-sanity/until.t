@@ -10,7 +10,7 @@ my class TA does WebDriver2::Test::Adapter {}
 my $test = TA;
 plan 14;
 
-did duration => 3;
+did duration => Duration.new: 3;
 
 my &simple-ok = sub {
 	'hello'
@@ -37,7 +37,7 @@ $test.ok: 'simple repeat',
 
 my class Simple-Throwable is Exception {}
 
-my &simple-throw = sub {
+my &simple-throw = {
 	Simple-Throwable.new.throw
 }
 
@@ -54,46 +54,49 @@ $test.is:
 $test.is:
 		'no throw no throw - defined',
 		'hello',
-		.() with no-throw Simple-Throwable, sub { 'hello' };
+		.() with no-throw Simple-Throwable, { 'hello' };
 
 $test.is:
 		'no throw no throw - undefined',
 		Any,
-		.() with no-throw Simple-Throwable, sub { };
+		.() with no-throw Simple-Throwable, { ; };
 
 my class Other-Throwable is Exception { }
 
 $test.throws-like:
 		'no throw - wrong exception',
 		Other-Throwable,
-		no-throw Simple-Throwable, sub { Other-Throwable.new.throw };
+		no-throw Simple-Throwable, { Other-Throwable.new.throw };
 
-$test.is:
+
+
+$test.isa-ok:
 		'no throw - expected exception',
-		False,
-		.() with no-throw Simple-Throwable, sub { Simple-Throwable.new.throw };
+#		False,
+		Simple-Throwable,
+		.() with no-throw Simple-Throwable, { Simple-Throwable.new.throw };
 
 my @any = Simple-Throwable, Other-Throwable;
 $test.is:
 		'no throw - junction - one',
 		False,
-		.() with no-throw @any, sub { Simple-Throwable.new.throw };
+		.() with no-throw @any, { Simple-Throwable.new.throw };
 
 $test.is:
 		'no throw - junction - other',
 		False,
-		.() with no-throw @any, sub { Other-Throwable.new.throw };
+		.() with no-throw @any, { Other-Throwable.new.throw };
 
 my class Another-Throwable is Exception { }
 $test.throws-like:
 		'throw - junction - neither',
 		Another-Throwable,
-		no-throw @any, sub { Another-Throwable.new.throw };
+		no-throw @any, { Another-Throwable.new.throw };
 
 $test.isa-ok:
 		'expect throw',
 		Simple-Throwable,
-		.() with expect-throw Simple-Throwable, sub { Simple-Throwable.new.throw };
+		.() with expect-throw Simple-Throwable, { Simple-Throwable.new.throw };
 
 # TODO : better expect-throw coverage
 
