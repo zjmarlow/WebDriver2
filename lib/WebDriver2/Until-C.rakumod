@@ -83,9 +83,9 @@ multi sub expect-throw ( @exception, &operation ) {
 our sub expect-throw-type ( @types, &operation ) {
 	sub {
 		my $result = .() with throwable &operation;
-		return False unless $result ~~ Exception;
+		return WebDriver2::Command::Result::X
+			unless $result ~~ WebDriver2::Command::Result::X:D;
 		$result.rethrow unless [or] ( $result.execution-status.type <<~~<< @types );
-#say 'EXPECT ', $result.raku;
 		$result;
 	}
 }

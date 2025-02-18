@@ -33,7 +33,7 @@ class WebDriver2::Driver does WebDriver2 {
 
 	submethod BUILD(
 			:$!server,
-			Int :$!debug = 2
+			Int :$!debug = 0
 	) {
 		my Bool $throw-exceptions = ( $!debug >= 4 );
 		$!ua = (
@@ -89,7 +89,7 @@ class WebDriver2::Driver does WebDriver2 {
 					WebDriver2::Command::Session.new
 						.execute-with: self;
 				self.debug: $session, $session.value;
-say 'SESSION RESULT ', $session.raku;
+say 'SESSION RESULT ', $session.raku if $!debug;
 				$!session-id = $session.value;
 				$!original-window = self.window-handle;
 				return $!session-id;

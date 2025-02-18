@@ -57,7 +57,8 @@ method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Co
 				)
 		).throw;
 	}
-	when 404 | 'stale element reference' {
+	when 404 | 'stale element reference' | 'stale element reference: stale element not found' | .starts-with: 'stale element reference: stale element not found' {
+#say 'STALE ', $_;
 		WebDriver2::Command::Result::X.new( execution-status =>
 				WebDriver2::Command::Execution-Status.new(
 						|self!status-args(

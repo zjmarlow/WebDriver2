@@ -182,8 +182,8 @@ method status( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Res
 
 method session( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Session ) {
 	my $data = from-json( $response.content );
-say $data<value><sessionId>;
-say 'SESSION RESPONSE ', $data.raku;
+#say $data<value><sessionId>;
+#say 'SESSION RESPONSE ', $data.raku;
 	return WebDriver2::Command::Result::Session.new(
 			str => $response.content,
 			status => self.status( $response ),
