@@ -51,7 +51,7 @@ our sub basic (
 }
 
 our sub throwable (&operation) {
-	sub {
+	-> {
 		my $val;
 		try $val = &operation();
 		$! or $val

@@ -8,7 +8,7 @@ class WebDriver2::Until::Timeout::X is Exception {
 
 role WebDriver2::Until::Sequential {
 	has &!next;
-	;
+	
 	method preceed ( &inner ) {
 	
 	}
