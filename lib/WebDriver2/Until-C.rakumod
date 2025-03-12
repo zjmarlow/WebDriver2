@@ -115,7 +115,8 @@ multi sub no-throw (@exception, &operation) {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
 		$result.rethrow unless [or] ( $result <<~~<< @exception );
-		False;
+#		False;
+		$result;
 	}
 }
 
@@ -126,7 +127,8 @@ multi sub no-throw ( &matcher, &operation ) {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
 		$result.rethrow unless &matcher( $result );
-		False;
+#		False;
+		$result;
 	}
 }
 
@@ -138,6 +140,7 @@ our sub no-throw-type ( @types, &operation ) {
 		return $result unless $result ~~ Exception;
 		$result.rethrow unless $result ~~ WebDriver2::Command::Result::X;
 		$result.rethrow unless [or] ( $result.execution-status.type <<~~<< @types );
-		return WebDriver2::Command::Result::X; # False;
+#		return WebDriver2::Command::Result::X; # False;
+		$result;
 	}
 }

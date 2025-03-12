@@ -93,7 +93,7 @@ multi method screenshot ( Str:D $name ) {
 		return;
 	}
 	my Instant $now = now;
-	my $fn = $name.subst: /<-[a..zA..Z0..9_-]>+/, '-', :g;
-	IO::Path.new( $fn ~ '-' ~ $now.Date ~ '-' ~ $now.to-posix[0] ~ '.png' )
+	my $fn = ( $name ~ '-' ~ $now.DateTime ~ '-' ~ $now.to-posix[0] ~ '.png' );
+	IO::Path.new( $fn.subst: /<-[.a..zA..Z0..9_-]>+/, '-', :g )
 			.spurt: MIME::Base64.decode: $screenshot;
 }
