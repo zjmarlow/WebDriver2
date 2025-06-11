@@ -27,7 +27,7 @@ method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Co
 		WebDriver2::Command::Execution-Status.new(
 				code => $response.code,
 				type => WebDriver2::Command::Execution-Status::Type::OK,
-				message => $data<value><message> // Str
+				message => $data<value><message> // 'Status OK' #  Str
 		)
 	}
 	when 400 {
