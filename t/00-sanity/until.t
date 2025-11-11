@@ -2,10 +2,13 @@ use Test;
 
 use lib <lib>;
 
-use WebDriver2::Test::Adapter;
+use WebDriver2::Test; # ::Adapter;
 use WebDriver2::Until-C;
 
-my class TA does WebDriver2::Test::Adapter {}
+my class TA does WebDriver2::Test {
+	has Str $.name;
+	has Str $.description;
+} # ::Adapter {}
 
 my $test = TA;
 plan 14;

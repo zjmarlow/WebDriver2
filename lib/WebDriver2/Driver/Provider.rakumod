@@ -24,7 +24,7 @@ unit role WebDriver2::Driver::Provider
 
 has Str $.browser;
 
-has Int $.close-delay is rw = 3;
+#has Int $.close-delay is rw = 3;
 
 #method os ( --> Str:D ) { ... }
 method browser ( --> Str:D ) { ... }

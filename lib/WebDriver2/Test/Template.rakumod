@@ -14,8 +14,10 @@ unit role WebDriver2::Test::Template
 my constant $PLAN = 2;
 has IO::Path:D $.test-root is required;
 has Int:D $.close-delay is rw = 3;
-has Str $.browser;
+# has Str $.browser;
 has WebDriver2::Driver:D $.driver is required;
+
+method browser ( --> Str:D ) { $!driver.browser }
 
 method plan ( --> Int ) { Int; }
 method name ( --> Str:D ) { ... }
@@ -35,7 +37,7 @@ multi method new ( WebDriver2::Test::Template:U: Str $browser is copy, IO::Path:
 method !init {
 	self.lives-ok: 'session created', { $.driver.session };
 	$.driver.set-window-rect: 1200, 750, 8, 8
-		if $.browser eq 'chrome' | 'safari';
+		if $.driver.browser eq 'chrome' | 'safari';
 }
 method pre-test { ... }
 method test { ... }
