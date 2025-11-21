@@ -36,28 +36,28 @@ class Mixed does WebDriver2::SUT::Service {
 	}
 	
 	method h2-text {
-		%.elements<h2>.resolve.text
+		%!elements<h2>.resolve.text
 	}
 	method header-text {
-		%.elements<header-text>.resolve.text
+		%!elements<header-text>.resolve.text
 	}
 	method button1 {
-		%.elements<button1>.resolve.value
+		%!elements<button1>.resolve.value
 	}
 	method button2 {
-		%.elements<button2>.resolve.value
+		%!elements<button2>.resolve.value
 	}
 	method items {
 		return @!content if @!content;
-		for %.elements<main-content>.iterator {
+		for %!elements<main-content>.iterator {
 			@!content.push: Mixed-Content.new:
-				content1 => %.elements<content1>.resolve.text,
-				content2 => %.elements<content2>.resolve.text,
-				content3 => %.elements<content3>.resolve.text;
+				content1 => %!elements<content1>.resolve.text,
+				content2 => %!elements<content2>.resolve.text,
+				content3 => %!elements<content3>.resolve.text;
 		}
 		my Str @attached;
-		@attached.push: %.elements<attached>.resolve.text
-			for %.elements<attached-content>.iterator;
+		@attached.push: %!elements<attached>.resolve.text
+			for %!elements<attached-content>.iterator;
 		die "{ @!content.elems } content vs { @attached.elems } attached"
 			if @!content.elems != @attached.elems;
 		for @!content Z @attached -> ( $m, $a ) {
