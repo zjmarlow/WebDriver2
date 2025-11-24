@@ -105,7 +105,8 @@ class Nav-Test
 	}
 	
 	method prep-path ( IO::Path $path ) {
-		return 'file://' ~ $path.absolute if $.browser eq 'safari';
+		#		return 'file://' ~ $path.absolute if $.browser eq 'safari';
+		return 'file://' ~ $path.absolute unless $*SPEC.isa: IO::Spec::Win32;
 		'file:///' ~ $path.absolute.subst: '\\', '/', :g;
 	}
 }
