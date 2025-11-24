@@ -114,7 +114,8 @@ multi sub no-throw (@exception, &operation) {
 	sub {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
-		$result.rethrow unless [or] ( $result <<~~<< @exception );
+#		$result.rethrow unless [or] ( $result <<~~<< @exception );
+		$result.rethrow unless $result ~~ @exception.any;
 #		False;
 		$result;
 	}

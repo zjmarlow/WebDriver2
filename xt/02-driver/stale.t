@@ -46,9 +46,10 @@ class Stale
 						$stale2.send-keys: 'hello';
 						$stale3.value.say;
 					},
-					WebDriver2::Command::Result::X,
+					WebDriver2::Command::Result::X.new( execution-status => WebDriver2::Command::Execution-Status.new: type => WebDriver2::Command::Execution-Status::Type::Stale, message => '' ),
 					'stale',
-					execution-status => { .type ~~ WebDriver2::Command::Execution-Status::Type::Stale };
+					;
+#					execution-status => { .type ~~ WebDriver2::Command::Execution-Status::Type::Stale };
 		} else {
 			skip 'firefox stale / frame interaction', 2;
 		}

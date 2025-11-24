@@ -8,9 +8,13 @@ use WebDriver2::Until-C;
 my class TA does WebDriver2::Test {
 	has Str $.name;
 	has Str $.description;
+	method pre-test { }
+	method post-test { }
+	method test { }
+#	method is ( *@_ ) { $.driver.session-id.say; callsame; }
 } # ::Adapter {}
 
-my $test = TA;
+my $test = TA.new: 'chrome';
 plan 14;
 
 did duration => Duration.new: 3;
@@ -80,14 +84,16 @@ $test.isa-ok:
 		.() with no-throw Simple-Throwable, { Simple-Throwable.new.throw };
 
 my @any = Simple-Throwable, Other-Throwable;
-$test.is:
+$test.isa-ok:
 		'no throw - junction - one',
-		False,
+#		False,
+		Simple-Throwable,
 		.() with no-throw @any, { Simple-Throwable.new.throw };
 
-$test.is:
+$test.isa-ok:
 		'no throw - junction - other',
-		False,
+#		False,
+		Other-Throwable,
 		.() with no-throw @any, { Other-Throwable.new.throw };
 
 my class Another-Throwable is Exception { }

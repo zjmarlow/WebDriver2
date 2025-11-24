@@ -94,6 +94,6 @@ class WebDriver2::Command::Result::X is Exception {
 	}
 	method ACCEPTS ( $topic ) {
 		return False unless $topic ~~ WebDriver2::Command::Result::X;
-		$topic.execution-status.type === $!execution-status;
+		$topic.execution-status.type === $!execution-status.type;
 	}
 }

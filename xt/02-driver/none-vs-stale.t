@@ -11,7 +11,7 @@ use WebDriver2::Command::Element::Locator::Tag-Name;
 
 class Local
 		does WebDriver2::Test::Template
-		does WebDriver2::Test::Config-From-File
+#		does WebDriver2::Test::Config-From-File
 {
 	has Str:D $.sut-name = 'test';
 	has Int:D $.plan = 3;
@@ -33,10 +33,12 @@ class Local
 			'same element found different ways';
 		
 		throws-like
-				{ self.element-by-id: 'not here' },
-				WebDriver2::Command::Result::X,
+				{ self.element-by-id: 'not here'; },
+				WebDriver2::Command::Result::X.new( execution-status => WebDriver2::Command::Execution-Status.new: type => WebDriver2::Command::Execution-Status::Type::Element, message => '' ),
+#				Exception,
 				'not found',
-				execution-status => { .type ~~ WebDriver2::Command::Execution-Status::Type::Element };
+						;
+#				execution-status => { .type.isa: WebDriver2::Command::Execution-Status::Type::Element; };
 		
 		my $outer = self.element-by-id: 'outer';
 		my WebDriver2::Until $stale = WebDriver2::Until::Command::Stale.new:
@@ -44,7 +46,7 @@ class Local
 				duration => 3,
 				interval => 1/10;
 		$outer.click;
-		$!driver.accept-alert;
+		$.driver.accept-alert;
 		ok $stale.retry, 'stale check';
 		
 		

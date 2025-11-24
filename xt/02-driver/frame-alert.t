@@ -11,7 +11,7 @@ use WebDriver2::Command::Element::Locator::Tag-Name;
 
 class Local
 		does WebDriver2::Test::Template
-		does WebDriver2::Test::Config-From-File
+#		does WebDriver2::Test::Config-From-File
 {
 	has Str:D $.sut-name = 'test';
 	has Int:D $.plan = 2;
@@ -30,11 +30,11 @@ class Local
 		
 		.frame.switch-to with self.element-by-tag: 'iframe';
 		.click with self.element-by-tag: 'h2';
-		$!driver.accept-alert;
+		$.driver.accept-alert;
 		ok self.element-by-id( 'inner-form' ), 'still in iframe';
 		.click with self.element-by-tag: 'p';
-		$!driver.accept-alert;
-		$!driver.top;
+		$.driver.accept-alert;
+		$.driver.top;
 		ok self.element-by-id( 'form' ), 'root page';
 	}
 	method element-by-tag( Str $tag-name ) {

@@ -20,7 +20,7 @@ has WebDriver2::SUT::Tree::SUT $!sut;
 submethod BUILD (
 		:$!sut,
 		:$!debug,
-		:$!test-root,
+		:$!test-root = 't'.IO,
 		:$!def-dir
 ) { }
 

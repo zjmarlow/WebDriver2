@@ -9,27 +9,28 @@ use WebDriver2::Test::Config-From-File;
 unit role WebDriver2::Test::Template
 		does WebDriver2::Test::Adapter
 		does WebDriver2::Test::Debugging
+		does WebDriver2::Driver::Provider
 		does WebDriver2::Test::Config-From-File;
 
 my constant $PLAN = 2;
 has IO::Path:D $.test-root is required;
 has Int:D $.close-delay is rw = 3;
 # has Str $.browser;
-has WebDriver2::Driver:D $.driver is required;
+#has WebDriver2::Driver:D $.driver is required;
 
-method browser ( --> Str:D ) { $!driver.browser }
+method browser ( --> Str:D ) { $.driver.browser }
 
 method plan ( --> Int ) { Int; }
 method name ( --> Str:D ) { ... }
 method description ( --> Str:D ) { ... }
 
-multi method new ( WebDriver2::Test::Template:U: Str $browser is copy, IO::Path:D :$test-root, Int:D :$debug is copy = 0, *%_ ) {
+multi method new ( WebDriver2::Test::Template:U: Str $browser is copy, IO::Path:D :$test-root = 't'.IO, Int:D :$debug is copy = 0, *%_ ) {
 	self.set-from-file: $browser, :$test-root, :$debug;
 	self.bless:
 			:$browser,
 			:$test-root,
 			:$debug,
-			driver => WebDriver2::Driver::Provider.new( :$browser, :$debug ).driver,
+#			driver => WebDriver2::Driver::Provider.new( :$browser, :$debug ).driver,
 			|%_
 	;
 }
@@ -85,7 +86,7 @@ method handle-error ( Exception $x ) {
 }
 
 multi method screenshot {
-	$.driver.screenshot;
+	$.driver.screenshot if $.driver.session-id;
 }
 
 multi method screenshot ( Str:D $name ) {
@@ -95,7 +96,7 @@ multi method screenshot ( Str:D $name ) {
 		return;
 	}
 	my Instant $now = now;
-	my $fn = ( $name ~ '-' ~ $now.DateTime ~ '-' ~ $now.to-posix[0] ~ '.png' );
+	my Str:D $fn = join '-', $name, $now.to-posix[0] ~ '.png';
 	IO::Path.new( $fn.subst: /<-[.a..zA..Z0..9_-]>+/, '-', :g )
 			.spurt: MIME::Base64.decode: $screenshot;
 }

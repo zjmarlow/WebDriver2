@@ -30,21 +30,21 @@ method handle-error ( Exception $x ) {
 	self.screenshot: $x.WHAT.Str;
 }
 
-multi method screenshot {
-	$.driver.screenshot;
-}
-
-multi method screenshot ( Str:D $name ) {
-	my $screenshot = self.screenshot;
-	unless $screenshot {
-		warn "no screenshot for $name";
-		return;
-	}
-	my Instant $now = now;
-	my $fn = $name.subst: /<-[a..zA..Z0..9_-]>+/, '-', :g;
-	IO::Path.new( $fn ~ '-' ~ $now.Date ~ '-' ~ $now.to-posix[0] ~ '.png' )
-			.spurt: MIME::Base64.decode: $screenshot;
-}
+#multi method screenshot {
+#	$.driver.screenshot;
+#}
+#
+#multi method screenshot ( Str:D $name ) {
+#	my $screenshot = self.screenshot;
+#	unless $screenshot {
+#		warn "no screenshot for $name";
+#		return;
+#	}
+#	my Instant $now = now;
+#	my $fn = $name.subst: /<-[a..zA..Z0..9_-]>+/, '-', :g;
+#	IO::Path.new( $fn ~ '-' ~ $now.Date ~ '-' ~ $now.to-posix[0] ~ '.png' )
+#			.spurt: MIME::Base64.decode: $screenshot;
+#}
 
 
 
