@@ -16,7 +16,7 @@
         "Encode",
         "MIME::Base64",
         "URI",
-	"PostCocoon::Url"
+        "IO::Socket::SSL"
     ],
     "build-depends": [],
     "test-depends": [
