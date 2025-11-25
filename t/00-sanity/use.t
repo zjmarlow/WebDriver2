@@ -2,12 +2,13 @@ use lib <lib t/lib>;
 
 use Test;
 
-plan 50;
+plan 51;
 
 use-ok 'WebDriver2::SUT::Service::Loader';
 use-ok 'WebDriver2::SUT::Build::Page';
 use-ok 'WebDriver2::SUT::Tree';
 use-ok 'WebDriver2::SUT::Service';
+use-ok 'WebDriver2::SUT::Service::Root';
 use-ok 'WebDriver2::SUT::Provider';
 use-ok 'WebDriver2::SUT::Navigator';
 use-ok 'WebDriver2::SUT::Build';

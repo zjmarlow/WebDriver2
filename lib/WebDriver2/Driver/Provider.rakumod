@@ -16,18 +16,23 @@ my WebDriver2 %driver = (
 		safari => WebDriver2::Driver::Safari,
 );
 
-my WebDriver2 $driver;
-
-unit role WebDriver2::Driver::Provider
+unit class WebDriver2::Driver::Provider
 		does WebDriver2::Test::Debugging
 		does WebDriver2::Test::Config-From-File;
 
-has Str $.browser;
+my WebDriver2 $driver;
+my WebDriver2::Driver::Provider $instance;
+
+has Str:D $.browser is required;
+
+submethod BUILD ( Str:D :$!browser ) { }
+
+method new ( Str:D $browser ) { $instance // ( $instance = self.bless: :$browser ) }
 
 #has Int $.close-delay is rw = 3;
 
 #method os ( --> Str:D ) { ... }
-method browser ( --> Str:D ) { ... }
+#method browser ( --> Str:D ) { ... }
 
 method driver ( --> WebDriver2:D ) {
 	self.set-from-file: $!browser, #`[ $.debug ] unless $driver;

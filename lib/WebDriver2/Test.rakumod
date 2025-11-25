@@ -11,9 +11,14 @@ use WebDriver2::Test::Debugging;
 unit role WebDriver2::Test
 		does WebDriver2::Test::Adapter
 		does WebDriver2::Test::Template
-		does WebDriver2::Driver::Provider
 		does WebDriver2::Test::Locating-Test
 		does WebDriver2::Test::Debugging;
+
+#multi method new ( WebDriver2::Test:U: Str $browser is copy, IO::Path:D :$test-root = 't'.IO, Int:D :$debug is copy = 0 ) {
+#	callsame;
+#}
+
+
 
 method init {
 	self.lives-ok: 'session created', { $.driver.session };

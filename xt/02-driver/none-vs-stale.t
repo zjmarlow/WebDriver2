@@ -18,14 +18,21 @@ class Local
 	has Str:D $.name = 'none vs stale';
 	has Str:D $.description = 'none and stale both handled';
 	
+	submethod BUILD (
+			WebDriver2::Driver::Provider:D :$!driver-provider,
+			IO::Path:D :$!test-root = 'xt'.IO,
+			Int:D :$!close-delay = 3,
+			Int:D :$!debug = 0
+	) { }
+	
 	method pre-test { }
 	method post-test { }
 	
 	method test {
 		my IO::Path:D $html-file = $!test-root.add: <content test.html>;
 #				.add: 'test.html' with $*CWD.add: 'content';
-		$.driver.set-window-rect( 1200, 750, 8, 8 ) if $.browser eq 'safari';
-		$.driver.navigate: 'file://' ~ $html-file.absolute;
+		$!driver-provider.driver.set-window-rect( 1200, 750, 8, 8 ) if $.browser eq 'safari';
+		$!driver-provider.driver.navigate: 'file://' ~ $html-file.absolute;
 		
 		ok
 			self.element-by-id( 'outer' )
@@ -46,7 +53,7 @@ class Local
 				duration => 3,
 				interval => 1/10;
 		$outer.click;
-		$.driver.accept-alert;
+		$!driver-provider.driver.accept-alert;
 		ok $stale.retry, 'stale check';
 		
 		
@@ -58,11 +65,11 @@ class Local
 		
 	}
 	method element-by-tag( Str $tag-name ) {
-		$.driver.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
+		$!driver-provider.driver.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
 	}
 
 	method element-by-id( Str $id ) {
-		$.driver.element( WebDriver2::Command::Element::Locator::ID.new: $id )
+		$!driver-provider.driver.element( WebDriver2::Command::Element::Locator::ID.new: $id )
 	}
 }
 

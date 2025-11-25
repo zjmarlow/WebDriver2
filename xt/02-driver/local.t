@@ -24,13 +24,20 @@ class Local does WebDriver2::Test::Template {
 	#   sets the browser / loads from file if not passed
 	#   and instantiates the corresponding driver
 	
+	submethod BUILD (
+			WebDriver2::Driver::Provider:D :$!driver-provider,
+			IO::Path:D :$!test-root = 'xt'.IO,
+			Int:D :$!close-delay = 3,
+			Int:D :$!debug = 0
+	) { }
+	
 	method pre-test { }
 	method post-test { }
 	
 	method test  {
-		$.driver.navigate: $page.Str;
+		$!driver-provider.driver.navigate: $page.Str;
 
-		is $.driver.title, 'test', 'page title';
+		is $!driver-provider.driver.title, 'test', 'page title';
 
 		ok
 			self.element-by-id( 'outer' ) ~~ self.element-by-tag( 'ul' ),
@@ -38,8 +45,8 @@ class Local does WebDriver2::Test::Template {
 		
 		skip 'optional endpoint "displayed" not supported', 2;
 		if False {
-			self.ok: 'outer', $.driver.displayed: self.element-by-id: 'outer';
-			self.ok: 'ul', $.driver.displayed: self.element-by-tag: 'ul';
+			self.ok: 'outer', $!driver-provider.driver.displayed: self.element-by-id: 'outer';
+			self.ok: 'ul', $!driver-provider.driver.displayed: self.element-by-tag: 'ul';
 		}
 		my $cb = self.element-by-id: 'cb';
 		my $at = $cb.attribute: 'type';
@@ -47,12 +54,12 @@ class Local does WebDriver2::Test::Template {
 
 		my WebDriver2::Command::Element::Locator $by-tag-ul =
 				WebDriver2::Command::Element::Locator::Tag-Name.new: 'ul';
-		my WebDriver2::Model::Element $el = $.driver.element: $by-tag-ul;
+		my WebDriver2::Model::Element $el = $!driver-provider.driver.element: $by-tag-ul;
 		nok $el ~~ $el.element( $by-tag-ul ), 'different elements';
 
 		my WebDriver2::Command::Element::Locator $locator =
 			WebDriver2::Command::Element::Locator::Tag-Name.new: 'li';
-		$el = $.driver.element: $locator;
+		$el = $!driver-provider.driver.element: $locator;
 		my Str $outer-li = $el.text;
 		my Str $inner-li =
 				self.element-by-id( 'inner' ).element( $locator ).text;
@@ -77,7 +84,7 @@ class Local does WebDriver2::Test::Template {
 
 		is $el.value, 'page test', 'page textbox received text';
 		
-		$.driver.top;
+		$!driver-provider.driver.top;
 		
 		$el = self.element-by-id: 'iframe';
 		$el.frame.switch-to;
@@ -104,11 +111,11 @@ class Local does WebDriver2::Test::Template {
 		nok $el.value, 'textbox cleared';
 		
 		$el.click;
-		$.driver.click: $el;
+		$!driver-provider.driver.click: $el;
 
 		$el.send-keys: "\xe004";
-
-		$.driver.switch-to-parent;
+		
+		$!driver-provider.driver.switch-to-parent;
 
 		$el = self.element-by-id: 'li3-2';
 
@@ -130,22 +137,22 @@ class Local does WebDriver2::Test::Template {
 		$el = self.element-by-id: 'text';
 
 		is $el.value, 'page test', 'page text is still "page test"';
-
-		$.driver.switch-to(0);
+		
+		$!driver-provider.driver.switch-to(0);
 		$el = self.element-by-id( 'iframe-cb' );
 
 		nok $el.property( 'checked' ), 'frame cb still not checked';
 		
 		nok
-				( $.driver.active ~~ $el ), # self.element-by-id: 'iframe-cb'
+				( $!driver-provider.driver.active ~~ $el ), # self.element-by-id: 'iframe-cb'
 				'iframe-cb not active yet';
 		
 		$el.click;
 		ok
-				( $.driver.active ~~ $el ), # self.element-by-id: 'iframe-cb'
+				( $!driver-provider.driver.active ~~ $el ), # self.element-by-id: 'iframe-cb'
 				'active matches';
-
-		$.driver.top;
+		
+		$!driver-provider.driver.top;
 
 		$el = self.element-by-id: 'toggle';
 
@@ -159,7 +166,7 @@ class Local does WebDriver2::Test::Template {
 
 		ok $el.property( 'checked' ), 'toggle checked after click';
 
-		my WebDriver2::Model::Element @el = $.driver.elements: $locator;
+		my WebDriver2::Model::Element @el = $!driver-provider.driver.elements: $locator;
 
 		is @el.elems, 5, 'all lis';
 
@@ -171,7 +178,7 @@ class Local does WebDriver2::Test::Template {
 
 		is .tag-name.lc, 'li', 'li is li' for @el[*];
 		if $!screenshot {
-			my $screenshot = $.driver.screenshot;
+			my $screenshot = $!driver-provider.driver.screenshot;
 
 			IO::Path.new( 'window.png' ).spurt: MIME::Base64.decode: $screenshot;
 
@@ -182,27 +189,27 @@ class Local does WebDriver2::Test::Template {
 
 		$el = self.element-by-id: 'button';
 		my @args = 0, $el.rect.<y>;
-		$.driver.execute-script: 'window.scrollBy(0, arguments[1])', @args;
+		$!driver-provider.driver.execute-script: 'window.scrollBy(0, arguments[1])', @args;
 
 		$el.click;
 		sleep 1;
-		is $.driver.alert-text, 'hello', 'input submit button onclick triggers js';
-		$.driver.accept-alert;
+		is $!driver-provider.driver.alert-text, 'hello', 'input submit button onclick triggers js';
+		$!driver-provider.driver.accept-alert;
 		sleep 1;
-		is $.driver.alert-text, 'submit', 'triggered js calls submit';
-		$.driver.accept-alert;
+		is $!driver-provider.driver.alert-text, 'submit', 'triggered js calls submit';
+		$!driver-provider.driver.accept-alert;
 		sleep 1;
-		is $.driver.alert-text, 'onsubmit', 'form submission triggers onsubmit';
-		$.driver.accept-alert;
+		is $!driver-provider.driver.alert-text, 'onsubmit', 'form submission triggers onsubmit';
+		$!driver-provider.driver.accept-alert;
 		sleep 3;
-		is $.driver.title, 'Google', 'submitted';
+		is $!driver-provider.driver.title, 'Google', 'submitted';
 	}
 	method element-by-tag( Str $tag-name ) {
-		$.driver.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
+		$!driver-provider.driver.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
 	}
 
 	method element-by-id( Str $id ) {
-		$.driver.element( WebDriver2::Command::Element::Locator::ID.new: $id )
+		$!driver-provider.driver.element( WebDriver2::Command::Element::Locator::ID.new: $id )
 	}
 }
 

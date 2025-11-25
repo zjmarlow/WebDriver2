@@ -1,7 +1,7 @@
 {
     "name": "WebDriver2",
     "description": "WebDriver level 2 bindings",
-    "version": "0.1.13",
+    "version": "0.1.14",
     "raku": "6.d",
     "authors": [
         "zoss"
@@ -169,6 +169,7 @@
         "WebDriver2::SUT::Navigator::Path": "lib/WebDriver2/SUT/Navigator.rakumod",
         "WebDriver2::SUT::Provider": "lib/WebDriver2/SUT/Provider.rakumod",
         "WebDriver2::SUT::Service": "lib/WebDriver2/SUT/Service.rakumod",
+        "WebDriver2::SUT::Service::Root": "lib/WebDriver2/SUT/Service/Root.rakumod",
         "WebDriver2::SUT::Tree": "lib/WebDriver2/SUT/Tree.rakumod",
         "WebDriver2::SUT::Tree::Subject": "lib/WebDriver2/SUT/Tree.rakumod",
         "WebDriver2::SUT::Tree::Observer": "lib/WebDriver2/SUT/Tree.rakumod",

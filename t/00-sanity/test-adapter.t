@@ -10,6 +10,8 @@ class Adapter-Test does WebDriver2::Test::Adapter {
 	has Str:D $.description = 'adapter test';
 	
 	method test {
+		plan $!plan;
+		self.ok: 'one test to pass', True;
 		self.nok: 'PASS BECAUSE FALSE', False;
 	}
 	
@@ -21,5 +23,5 @@ class Adapter-Test does WebDriver2::Test::Adapter {
 sub MAIN(
 		Int:D :$debug = 0
 ) {
-	.test with Adapter-Test.new: :$debug, test-root => 'xt'.IO;
+	.test with Adapter-Test.new: :$debug, test-root => 't'.IO;
 }

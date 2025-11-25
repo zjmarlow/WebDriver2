@@ -9,36 +9,44 @@ use WebDriver2::Test::Config-From-File;
 unit role WebDriver2::Test::Template
 		does WebDriver2::Test::Adapter
 		does WebDriver2::Test::Debugging
-		does WebDriver2::Driver::Provider
 		does WebDriver2::Test::Config-From-File;
 
 my constant $PLAN = 2;
 has IO::Path:D $.test-root is required;
-has Int:D $.close-delay is rw = 3;
+has Int:D $.close-delay is rw is required;
 # has Str $.browser;
-#has WebDriver2::Driver:D $.driver is required;
+has WebDriver2::Driver::Provider:D $!driver-provider is required;
 
-method browser ( --> Str:D ) { $.driver.browser }
+method browser ( --> Str:D ) { $!driver-provider.browser }
 
 method plan ( --> Int ) { Int; }
 method name ( --> Str:D ) { ... }
 method description ( --> Str:D ) { ... }
 
-multi method new ( WebDriver2::Test::Template:U: Str $browser is copy, IO::Path:D :$test-root = 't'.IO, Int:D :$debug is copy = 0, *%_ ) {
+multi method new (
+		WebDriver2::Test::Template:U: Str $browser is copy,
+		IO::Path:D :$test-root = 't'.IO,
+		Int:D :$close-delay = 3,
+		Int:D :$debug is copy = 0,
+		*%_
+) {
 	self.set-from-file: $browser, :$test-root, :$debug;
+	my WebDriver2::Driver::Provider $driver-provider =
+			WebDriver2::Driver::Provider.new: $browser, :$debug;
 	self.bless:
-			:$browser,
 			:$test-root,
 			:$debug,
-#			driver => WebDriver2::Driver::Provider.new( :$browser, :$debug ).driver,
-			|%_
+			:$driver-provider,
+			:$close-delay,
+			|%_,
+#			driver-provider => WebDriver2::Driver::Provider.new: $browser, :$debug
 	;
 }
 
 method !init {
-	self.lives-ok: 'session created', { $.driver.session };
-	$.driver.set-window-rect: 1200, 750, 8, 8
-		if $.driver.browser eq 'chrome' | 'safari';
+	self.lives-ok: 'session created', { $!driver-provider.driver.session };
+	$!driver-provider.driver.set-window-rect: 1200, 750, 8, 8
+		if $!driver-provider.driver.browser eq 'chrome' | 'safari';
 }
 method pre-test { ... }
 method test { ... }
@@ -47,7 +55,7 @@ method !close {
 	say "\nclosing in";
 	.say, sleep 1 for ( 1 .. $.close-delay ).reverse;
 	
-	$.driver.delete-session;
+	$!driver-provider.driver.delete-session;
 }
 #method !done-testing { done-testing }
 method cleanup { }
@@ -81,12 +89,12 @@ method handle-test-failure ( Str $descr ) {
 }
 
 method handle-error ( Exception $x ) {
-	.raku.say for $.driver.frames;
+	.raku.say for $!driver-provider.driver.frames;
 	self.screenshot: $x.WHAT.Str;
 }
 
 multi method screenshot {
-	$.driver.screenshot if $.driver.session-id;
+	$!driver-provider.driver.screenshot if $!driver-provider.driver.session-id;
 }
 
 multi method screenshot ( Str:D $name ) {

@@ -1,9 +1,12 @@
 use WebDriver2;
-use WebDriver2::SUT::Tree;
-#use WebDriver2::Test::Adapter;
 use WebDriver2::Test::Debugging;
+use WebDriver2::Driver::Provider;
+use WebDriver2::SUT::Tree;
 use WebDriver2::SUT::Navigator;
-#use WebDriver2::SUT::Service::Loader;
+use WebDriver2::Command::Element::Locator;
+use WebDriver2::Command::Element::Locator::ID;
+use WebDriver2::Command::Element::Locator::Tag-Name;
+use WebDriver2::Command::Element::Locator::CSS;
 
 unit role WebDriver2::SUT::Service; # does WebDriver2;
 
@@ -15,11 +18,16 @@ unit role WebDriver2::SUT::Service; # does WebDriver2;
 #>;
 has WebDriver2::SUT::Tree::SUT $!sut;
 has WebDriver2:D $!driver is required;
-has WebDriver2::SUT::Tree::URL $.url is rw;
-has WebDriver2::SUT::Tree::ANode %.elements is rw;
+has WebDriver2::SUT::Tree::ANode %!elements;
 
 has Str:D $.prefix = '';
 has Str:D $.key-prefix = '';
+
+multi method new ( Str $browser, *%rest ) {
+	self.bless:
+			|%rest,
+			driver => .driver with WebDriver2::Driver::Provider.new: :$browser;
+}
 
 method name ( --> Str:D ) { ... }
 
@@ -34,3 +42,25 @@ method get ( Str:D $name --> WebDriver2::SUT::Tree::ANode:D ) {
 	die "no element named $name" unless %!elements{ $name }:exists;
 	%!elements{ $name };
 }
+
+method locate-element ( WebDriver2::Command::Element::Locator $locator ) {
+	$!driver.element: $locator;
+}
+
+method element-by-id ( Str:D $id ) {
+	self.locate-element: WebDriver2::Command::Element::Locator::ID.new: $id;
+}
+
+method element-by-tag ( Str:D $tag ) {
+	self.locate-element: WebDriver2::Command::Element::Locator::Tag-Name.new: $tag;
+}
+
+method elements-by-tag ( Str:D $tag ) {
+	$!driver.elements: WebDriver2::Command::Element::Locator::Tag-Name.new: $tag;
+}
+
+method element-by-css-selector ( Str:D $selector ) {
+	$!driver.element: WebDriver2::Command::Element::Locator::CSS.new: $selector;
+}
+
+

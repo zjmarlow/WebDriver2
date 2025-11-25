@@ -16,10 +16,10 @@ method loader ( --> WebDriver2::SUT::Service::Loader:D ) {
 			:$.test-root;
 }
 
-multi method new ( WebDriver2::Test::Service-Test:U: Str $browser is copy, IO::Path:D :$test-root = 't'.IO, Int:D :$debug is copy = 0 ) {
-	my $self = callsame;
-	$self.services;
-	$self;
-}
+#multi method new ( WebDriver2::Test::Service-Test:U: Str $browser is copy, IO::Path:D :$test-root = 't'.IO, Int:D :$debug is copy = 0 ) {
+#	my $self = callsame;
+#	$self.services;
+#	$self;
+#}
 
 method services { ... }
