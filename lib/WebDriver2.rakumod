@@ -14,6 +14,14 @@ role WebDriver2::Driver-Actions {
 	method session { ... }
 	method status { ... }
 	
+	method stop { ... }
+}
+
+role WebDriver2::Session-Actions {
+#	method start { ... }
+	
+#	method session { ... }
+	
 	method maximize-window { ... }
 	method set-window-rect( Int $width, Int $height, Int $x, Int $y ) { ... }
 	method window-handles { ... }
@@ -47,7 +55,7 @@ role WebDriver2::Driver-Actions {
 	
 	method delete-session { ... }
 	
-	method stop { ... }
+#	method stop { ... }
 }
 
 role WebDriver2::Element-Actions {
@@ -100,8 +108,13 @@ role WebDriver2::Element-Actions {
 	multi method switch-to( WebDriver2::Model::Frame:D $frame ) { ... }
 }
 
-role WebDriver2 does WebDriver2::Driver-Actions does WebDriver2::Element-Actions does WebDriver2::Model::Context {
-	has Str $.session-id is rw;
+role WebDriver2
+		does WebDriver2::Session-Actions
+		does WebDriver2::Driver-Actions
+		does WebDriver2::Element-Actions
+		does WebDriver2::Model::Context
+{
+#	has Str $.session-id is rw;
 #	has Str:D $.browser is required;
 	has WebDriver2::HTTP::UserAgent $.ua;
 	has Int $.debug is rw;
