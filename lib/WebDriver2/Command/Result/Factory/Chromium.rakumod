@@ -8,6 +8,10 @@ use WebDriver2::Constants;
 
 unit class WebDriver2::Command::Result::Factory::Chromium does WebDriver2::Command::Result::Factory;
 
+method new {
+	WebDriver2::Command::Result::Factory::Chromium
+}
+
 method !status-args( WebDriver2::HTTP::Response $response, $type ) { # PRIVATE OKAY
 	my $data = from-json $response.content;
 	\(

@@ -39,7 +39,7 @@ role WebDriver2::Session-Actions {
 	method dismiss-alert ( --> Bool ) { ... }
 	method send-alert-text( Str:D ) { ... }
 	
-	multi method screenshot( WebDriver2: --> Str:D ) { ... }
+	multi method screenshot( WebDriver2::Session-Actions: --> Str:D ) { ... }
 	
 	method execute-script( Str:D, Str @ ) { ... }
 	

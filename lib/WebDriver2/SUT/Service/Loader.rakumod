@@ -27,7 +27,7 @@ submethod BUILD (
 
 
 method new (
-		WebDriver2::SUT::Tree::SUT :$sut,
+		Str:D :$sut-name,
 		IO::Path:D :$test-root,
 		Int:D :$debug = 0
 ) {
@@ -38,7 +38,7 @@ method new (
 		return $instance;
 	}
 	my IO::Path $def-dir = $test-root.add: 'def';
-	$instance = self.bless: #`[ :$driver, ] :$sut, :$debug, :$test-root, :$def-dir;
+	$instance = self.bless: :$debug, :$test-root, :$def-dir;
 }
 
 method load-elements ( WebDriver2::SUT::Service:D $svc ) {
@@ -49,7 +49,7 @@ method load-elements ( WebDriver2::SUT::Service:D $svc ) {
 	my WebDriver2::SUT::Navigator $nav;
 	my WebDriver2::SUT::Tree::ANode %elements;
 	
-	my Str $svc-fn = .[*- 1] with $svc.name.lc.split: '::';
+	my Str $svc-fn = .[1] with $svc.name.lc.rsplit: '::', 2;
 	say 'LOADING ', $svc-fn if $!debug;
 	for $!def-dir.add( "$svc-fn.service" ).lines -> Str $line {
 		if $line ~~ /^\s*\#page\:\s*\S+/ {

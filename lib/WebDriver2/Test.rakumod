@@ -3,7 +3,6 @@ use MIME::Base64;
 
 use WebDriver2::Command::Element::Locator;
 use WebDriver2::Test::Locating-Test;
-use WebDriver2::Driver::Provider;
 use WebDriver2::Test::Adapter;
 use WebDriver2::Test::Template;
 use WebDriver2::Test::Debugging;

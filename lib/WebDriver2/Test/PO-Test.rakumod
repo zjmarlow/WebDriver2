@@ -3,7 +3,7 @@ use WebDriver2::Test::Template;
 
 unit role WebDriver2::Test::PO-Test does WebDriver2::Test::Template;
 
-has WebDriver2::SUT::Tree::SUT $.sut is rw;
+#has WebDriver2::SUT::Tree::SUT $.sut is rw;
 
 method sut-name ( --> Str:D ) { ... }
 

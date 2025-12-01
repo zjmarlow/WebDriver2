@@ -2,19 +2,21 @@ use Test;
 
 use lib <lib>;
 
-use WebDriver2::Driver::Provider;
-use WebDriver2::Test; # ::Adapter;
+use WebDriver2::Driver;
+use WebDriver2::Test::Service-Test; # ::Adapter;
 use WebDriver2::Until-C;
 
-my class TA does WebDriver2::Test {
+my class TA does WebDriver2::Test::Service-Test {
 	has Str $.name = 'until test';
 	has Str $.description = 'test timeouts';
-	submethod BUILD ( IO::Path:D :$!test-root = 't'.IO, WebDriver2::Driver::Provider :$!driver-provider, Int:D :$!close-delay, Int:D :$!debug = 0 ) {  }
-#	multi method new ( TA:U: Str $browser is copy, IO::Path:D :$test-root = 't'.IO, Int:D :$debug is copy = 0 ) {
-#		my $self = callsame;
-#		$self.services;
-#		$self;
-#	}
+	has Str $.sut-name = '';
+	submethod BUILD ( IO::Path:D :$!test-root = 't'.IO, WebDriver2::Driver:D :$!driver, Int:D :$!close-delay, Int:D :$!debug = 0 ) {  }
+	multi method new ( TA:U: Str $browser is copy, IO::Path:D :$test-root = 't'.IO, Int:D :$debug is copy = 0 ) {
+		my $self = callsame;
+		$self.services;
+		$self;
+	}
+	method services { }
 	method pre-test { }
 	method post-test { }
 	method test { }

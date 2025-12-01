@@ -1,3 +1,3 @@
 unit role WebDriver2::Test::Debugging;
 
-has Int:D $.debug = 0;
+has Int:D $.debug is rw = 0;

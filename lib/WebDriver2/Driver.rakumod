@@ -6,13 +6,6 @@ use URI::Encode;
 use WebDriver2::Driver::Server;
 use WebDriver2;
 
-#class WebDriver2::Driver::Chrome { ... }
-#class WebDriver2::Driver::Edge { ... }
-#class WebDriver2::Driver::Firefox { ... }
-#class WebDriver2::Driver::Safari { ... }
-
-
-
 use WebDriver2::Command;
 use WebDriver2::Command::Param;
 use WebDriver2::Command::Result;
@@ -21,10 +14,12 @@ use WebDriver2::Command::Result::Factory;
 
 use WebDriver2::Constants;
 
-#my class WebDriver2::Driver::Internal-Element does WebDriver2::Model::Element { ... }
-#my class WebDriver2::Driver::Internal-Frame does WebDriver2::Model::Frame { ... }
+use WebDriver2::Test::Config-From-File;
 
-class WebDriver2::Driver does WebDriver2::Driver-Actions {
+class WebDriver2::Driver
+		does WebDriver2::Driver-Actions
+		does WebDriver2::Test::Config-From-File
+{
 	
 	my WebDriver2::HTTP::UserAgent $ua;
 	has Int:D $.debug is required is rw;
@@ -45,13 +40,14 @@ class WebDriver2::Driver does WebDriver2::Driver-Actions {
 			safari => Safari,
 	);
 	method new (
-			Str:D $browser,
+			Str $browser? is copy,
 			Int:D :$debug = 0
-			--> WebDriver2::Session-Actions:D
+			--> WebDriver2::Driver-Actions:D
 	) {
-		#	self.set-from-file: $!browser, #`[ $.debug ] unless $driver;
-		%driver{ $browser } ||= %driver{ $browser }.new: :$!debug;
-		$ua ||= WebDriver2::HTTP::UserAgent.new: :$!debug;
+		return %driver{ $browser } if %driver{ $browser };
+		self.set-from-file: $browser, #`[ $.debug ];
+		$ua ||= WebDriver2::HTTP::UserAgent.new: :$debug;
+		%driver{ $browser } .=new: :$debug;
 	}
 	
 #	multi method debug {
@@ -226,7 +222,7 @@ class WebDriver2::Driver does WebDriver2::Driver-Actions {
 			self.debug: $refresh;
 		}
 		
-		multi method screenshot( WebDriver2: --> Str:D ) {
+		multi method screenshot( WebDriver2::Session-Actions: --> Str:D ) {
 			my WebDriver2::Command::Result::Screenshot $screenshot =
 					WebDriver2::Command::Screenshot.new
 					.execute-with: self;

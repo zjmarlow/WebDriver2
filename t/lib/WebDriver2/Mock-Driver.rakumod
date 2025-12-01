@@ -23,7 +23,7 @@ method accept-alert { !!! }
 method dismiss-alert { !!! }
 method send-alert-text( Str:D ) { !!! }
 
-multi method screenshot( WebDriver2: --> Str:D ) { !!! }
+multi method screenshot( WebDriver2::Session-Actions: --> Str:D ) { !!! }
 multi method screenshot( WebDriver2::Model::Element:D $element --> Str:D ) { !!! }
 
 multi method element(
