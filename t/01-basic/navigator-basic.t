@@ -14,7 +14,7 @@ sub MAIN(
 		Bool :$check = False,
 		Int :$debug = 0
 ) {
-	my WebDriver2 $driver =  WebDriver2::Mock-Driver.new;
+	my WebDriver2::Driver-Actions $driver =  WebDriver2::Mock-Driver.new;
 	my IO::Path $page-def = $*PROGRAM.parent.parent.add: 'def';
 	$page-def .= add: 'test.page';
 	WebDriver2::SUT::Build.page: { $driver }, 'test' #`[ $page-def ], :$check, :$debug;

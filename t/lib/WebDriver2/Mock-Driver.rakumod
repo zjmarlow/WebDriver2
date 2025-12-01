@@ -2,7 +2,11 @@ use WebDriver2;
 
 use WebDriver2::Command::Element::Locator;
 
-unit class  WebDriver2::Mock-Driver does WebDriver2;
+unit class  WebDriver2::Mock-Driver does WebDriver2::Driver-Actions;
+
+method new { }
+
+method driver { !!! }
 
 method browser { !!! }
 

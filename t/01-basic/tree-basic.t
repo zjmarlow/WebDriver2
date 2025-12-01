@@ -24,7 +24,7 @@ sub MAIN( Int :$debug = 0 ) {
 			form3 inner form2 outer form1 /
 			form1 outer form2 inner
 	>;
-	my WebDriver2 $driver =  WebDriver2::Mock-Driver.new;
+	my WebDriver2::Driver-Actions $driver =  WebDriver2::Mock-Driver.new;
 	my Test-Observer $observer = Test-Observer.new: path => @nav-seq;
 	my WebDriver2::SUT::Tree::URL $url =
 			WebDriver2::SUT::Tree::URL.new: 'file://t/content/test.html';

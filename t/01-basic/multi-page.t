@@ -44,7 +44,7 @@ class Page-Recorder does WebDriver2::SUT::Tree::Visitor {
 sub MAIN( Int :$debug = 0 ) {
 	plan 8;
 	my Str @frames = <frames frame iframe>;
-	my WebDriver2 $driver =  WebDriver2::Mock-Driver.new;
+	my WebDriver2::Driver-Actions $driver =  WebDriver2::Mock-Driver.new;
 	my WebDriver2::SUT::Tree::SUT $sut =
 			WebDriver2::SUT::Build.page: { $driver }, 'frames'; # 't/def/frames.sut'.IO;
 
