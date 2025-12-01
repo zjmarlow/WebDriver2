@@ -160,7 +160,7 @@ class WebDriver2::Until::Command::Stale is WebDriver2::Until {
 
 class WebDriver2::Until::Command::Title-Is is WebDriver2::Until {
 	method new (
-			WebDriver2 :$driver!,
+			WebDriver2::Session-Actions :$driver!,
 			Str :$title!,
 			Real :$duration = 5,
 			Real :$interval = 1 / 10,

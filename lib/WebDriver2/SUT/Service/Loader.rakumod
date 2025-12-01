@@ -9,12 +9,10 @@ use WebDriver2::SUT::Navigator;
 
 unit class WebDriver2::SUT::Service::Loader does WebDriver2::Test::Debugging;
 
-
 my WebDriver2::SUT::Service::Loader $instance;
 
 has IO::Path:D $!test-root is required;
 has IO::Path:D $!def-dir is required;
-has WebDriver2 $.driver;
 has WebDriver2::SUT::Tree::SUT $!sut;
 
 submethod BUILD (

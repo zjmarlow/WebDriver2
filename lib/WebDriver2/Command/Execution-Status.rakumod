@@ -5,7 +5,8 @@ enum WebDriver2::Command::Execution-Status::Type
 		Alert No-Alert Element Frame Window
 		Stale Timeout Unexpected
 		Session
-	Unimplemented>;
+	Unimplemented
+	Other>;
 
 class WebDriver2::Command::Execution-Status {
 	

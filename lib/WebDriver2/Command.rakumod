@@ -7,102 +7,122 @@ use WebDriver2::Command::Execution-Status;
 use WebDriver2::Command::Element::Locator;
 use WebDriver2::Command::Param;
 
-role WebDriver2::Command[::T] {
-	method execute-with( WebDriver2 $driver --> T ) { ... }
-	method !request(
-			WebDriver2 $driver,
-			Str $method,
-			*@command
-			--> WebDriver2::HTTP::Request
-	) {
-		my $host = $driver.server.host;
-		my $port = $driver.server.port;
-		my Str $url = "http://$host:$port/" ~ @command.join( '/' );
-say "$method $url" if $driver.debug > 2;
-		given $method {
-			when 'GET' { return WebDriver2::HTTP::Request.new( :GET( $url ) ); }
-			when 'POST' { return WebDriver2::HTTP::Request.new( :POST( $url ) ); }
-			when 'DELETE' { return WebDriver2::HTTP::Request.new( :DELETE( $url ) ); }
-		}
-	}
-	
-	method !session-request(
-			WebDriver2 $driver,
-			Str $method,
-			*@command
-			--> WebDriver2::HTTP::Request
-	) {
-		my Str @new-command = 'session', $driver.session-id, |@command;
-		return self!request: $driver, $method, @new-command;
-	}
-	
-	method get-request (
-			WebDriver2 $driver,
-			*@command
-			--> WebDriver2::HTTP::Response
-	) {
-		$driver.ua.request( self!request( $driver, 'GET', @command ) )
-	}
-	
-	method get-session-request(
-			WebDriver2 $driver,
-			*@command
-			--> WebDriver2::HTTP::Response
-	) {
-		$driver.ua.request: self!session-request: $driver, 'GET', @command;
-	}
-	
-	method post-request(
-			WebDriver2 $driver,
-			$data,
-			*@command
-			--> WebDriver2::HTTP::Response
-	) {
-		my WebDriver2::HTTP::Request $req = self!request( $driver, 'POST', @command );
-say to-json $data if $driver.debug > 2;
-		$req.add-content( to-json( $data ) );
-		return $driver.ua.request( $req );
-	}
-	
-	method post-session-request(
-			WebDriver2 $driver,
-			$data,
-			*@command
-			--> WebDriver2::HTTP::Response
-	) {
-		my WebDriver2::HTTP::Request $req =
-				self!session-request: $driver, 'POST', @command;
-say to-json $data if $driver.debug > 2;
-		$req.add-content: to-json $data;
-		return $driver.ua.request: $req;
-	}
-	
-	method delete-request (
-			WebDriver2 $driver,
-			*@command
-			--> WebDriver2::HTTP::Response
-	) {
-		$driver.ua.request( self!request( $driver, 'DELETE', @command ) )
-	}
-	
-	method delete-session-request(
-			WebDriver2 $driver,
-			*@command
-			--> WebDriver2::HTTP::Response
-	) {
-		$driver.ua.request: self!session-request: $driver, 'DELETE', @command;
+my sub request (
+		WebDriver2::Driver-Actions:D $driver,
+		Str:D $method,
+		*@command
+		--> WebDriver2::HTTP::Request:D
+) {
+	my $host = $driver.server.host;
+	my $port = $driver.server.port;
+	my Str:D $url = "http://$host:$port/" ~ @command.join( '/' );
+	say "$method $url" if $driver.debug > 2;
+	given $method {
+		when 'GET' { return WebDriver2::HTTP::Request.new: GET => $url; }
+		when 'POST' { return WebDriver2::HTTP::Request.new: POST => $url; }
+		when 'DELETE' { return WebDriver2::HTTP::Request.new: DELETE => $url; }
 	}
 }
 
-class WebDriver2::Command::Accept-Alert does WebDriver2::Command[WebDriver2::Command::Result::Accept-Alert] {
+my sub session-request (
+		WebDriver2::Driver-Actions:D $driver,
+		Str:D $session-id,
+		Str:D $method,
+		*@command
+		--> WebDriver2::HTTP::Request:D
+) {
+	my Str:D @new-command = 'session', $session-id, |@command;
+	request $driver, $method, @new-command;
+}
+
+my sub get-request (
+		WebDriver2::Driver-Actions:D $driver,
+		*@command
+		--> WebDriver2::HTTP::Response:D
+) {
+	$driver.ua.request: request $driver, 'GET', @command
+}
+
+my sub get-session-request(
+		WebDriver2::Driver-Actions:D $driver,
+		Str:D $session-id,
+		*@command
+		--> WebDriver2::HTTP::Response:D
+) {
+	$driver.ua.request:
+			session-request $driver, $session-id, 'GET', @command;
+}
+
+my sub post-request(
+		WebDriver2::Driver-Actions:D $driver,
+		$data,
+		*@command
+		--> WebDriver2::HTTP::Response:D
+) {
+	my WebDriver2::HTTP::Request:D $req =
+			request( $driver, 'POST', @command );
+	say to-json $data if $driver.debug > 2;
+	$req.add-content( to-json( $data ) );
+	return $driver.ua.request( $req );
+}
+
+my sub post-session-request(
+		WebDriver2::Driver-Actions:D $driver,
+		Str:D $session-id,
+		$data,
+		*@command
+		--> WebDriver2::HTTP::Response:D
+) {
+	my WebDriver2::HTTP::Request:D $req =
+			session-request $driver, $session-id, 'POST', @command;
+	say to-json $data if $driver.debug > 2;
+	$req.add-content: to-json $data;
+	return $driver.ua.request: $req;
+}
+
+my sub delete-request (
+		WebDriver2::Driver-Actions:D $driver,
+		*@command
+		--> WebDriver2::HTTP::Response:D
+) {
+	$driver.ua.request: request $driver, 'DELETE', @command;
+}
+
+my sub delete-session-request(
+		WebDriver2::Driver-Actions:D $driver,
+		Str:D $session-id,
+		*@command
+		--> WebDriver2::HTTP::Response:D
+) {
+	$driver.ua.request:
+			session-request $driver, $session-id, 'DELETE', @command;
+}
+
+role WebDriver2::Driver-Command[::R] {
+	method execute-with( WebDriver2::Driver-Actions:D $driver --> R ) { ... }
+}
+
+role WebDriver2::Command[::R] {
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Accept-Alert
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> R:D
+	) { ... }
+}
+
+class WebDriver2::Command::Accept-Alert
+		does WebDriver2::Command[WebDriver2::Command::Result::Accept-Alert]
+{
+	method execute-with(
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Accept-Alert:D
 	) {
-		$driver.result.accept-alert:
-				self.post-session-request:
-						$driver,
-						$driver.param.accept-alert,
+		$session.driver.result.accept-alert:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.accept-alert,
 						'alert',
 						'accept';
 	}
@@ -110,12 +130,14 @@ class WebDriver2::Command::Accept-Alert does WebDriver2::Command[WebDriver2::Com
 
 class WebDriver2::Command::Active does WebDriver2::Command[WebDriver2::Command::Result::Active] {
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Active
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Active:D
 	) {
-		$driver.result.active:
-				self.get-session-request:
-						$driver,
+		$session.driver.result.active:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'element',
 						'active';
 	}
@@ -123,12 +145,14 @@ class WebDriver2::Command::Active does WebDriver2::Command[WebDriver2::Command::
 
 class WebDriver2::Command::Alert-Text does WebDriver2::Command[WebDriver2::Command::Result::Alert-Text] {
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Alert-Text
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Alert-Text:D
 	) {
-		$driver.result.alert-text:
-				self.get-session-request:
-						$driver,
+		$session.driver.result.alert-text:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'alert',
 						'text';
 	}
@@ -141,12 +165,14 @@ class WebDriver2::Command::Attribute does WebDriver2::Command[WebDriver2::Comman
 	submethod BUILD( :$!element, :$!attribute ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Attribute
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Attribute:D
 	) {
-		$driver.result.attribute:
-				self.get-session-request:
-						$driver,
+		$session.driver.result.attribute:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'element',
 						$!element,
 						'attribute',
@@ -156,13 +182,15 @@ class WebDriver2::Command::Attribute does WebDriver2::Command[WebDriver2::Comman
 
 class WebDriver2::Command::Back does WebDriver2::Command[WebDriver2::Command::Result::Back] {
 	method execute-with(
-			WebDriver2 $driver,
-			--> WebDriver2::Command::Result::Back
+			WebDriver2::Driver-Actions $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Back:D
 	) {
-		$driver.result.back:
-				self.post-session-request:
-						$driver,
-						$driver.param.back,
+		$session.driver.result.back:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.back,
 						'back';
 	}
 }
@@ -173,13 +201,15 @@ class WebDriver2::Command::Clear does WebDriver2::Command[WebDriver2::Command::R
 	submethod BUILD( :$!element ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Clear
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Clear:D
 	) {
-		$driver.result.clear:
-				self.post-session-request:
-						$driver,
-						$driver.param.clear,
+		$session.driver.result.clear:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.clear,
 						'element',
 						$!element,
 						'clear';
@@ -192,14 +222,16 @@ class WebDriver2::Command::Click does WebDriver2::Command[WebDriver2::Command::R
 	submethod BUILD( :$!element ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Click
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Click:D
 	) {
 		
-		$driver.result.click:
-				self.post-session-request:
-						$driver,
-						$driver.param.click,
+		$session.driver.result.click:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.click,
 						'element',
 						$!element,
 						'click';
@@ -213,12 +245,14 @@ class WebDriver2::Command::CSS-Value does WebDriver2::Command[WebDriver2::Comman
 	submethod BUILD( :$!element, :$!property ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::CSS-Value
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::CSS-Value:D
 	) {
-		$driver.result.css-value:
-				self.get-session-request:
-						$driver,
+		$session.driver.result.css-value:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'element',
 						$!element,
 						'css',
@@ -228,26 +262,30 @@ class WebDriver2::Command::CSS-Value does WebDriver2::Command[WebDriver2::Comman
 
 class WebDriver2::Command::Delete-Session does WebDriver2::Command[WebDriver2::Command::Result::Delete-Session] {
 	method execute-with(
-			WebDriver2 $driver --> WebDriver2::Command::Result::Delete-Session
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id,
+			--> WebDriver2::Command::Result::Delete-Session:D
 	) {
-		return $driver.result.delete-session:
-				self.delete-request: $driver, 'session', $driver.session-id;
+		return $session.driver.result.delete-session:
+				delete-session-request
+						$session.driver,
+						$session-id;
 	}
 }
 
 class WebDriver2::Command::Dismiss-Alert does WebDriver2::Command[WebDriver2::Command::Result::Dismiss-Alert] {
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Dismiss-Alert
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Dismiss-Alert:D
 	) {
-		$driver.result.dismiss-alert(
-				self.post-session-request(
-						$driver,
-						$driver.param.dismiss-alert,
+		$session.driver.result.dismiss-alert:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.dismiss-alert,
 						'alert',
 						'dismiss'
-				)
-		)
 	}
 }
 
@@ -257,17 +295,17 @@ class WebDriver2::Command::Displayed does WebDriver2::Command[WebDriver2::Comman
 	submethod BUILD( :$!element ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Displayed
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Displayed:D
 	) {
-		$driver.result.displayed(
-				self.get-session-request(
-						$driver,
+		$session.driver.result.displayed:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'element',
 						$!element,
 						'displayed'
-				)
-		)
 	}
 }
 
@@ -277,16 +315,16 @@ class WebDriver2::Command::Element does WebDriver2::Command[WebDriver2::Command:
 	submethod BUILD( :$!locator ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Element
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Element:D
 	) {
-		$driver.result.element(
-				self.post-session-request(
-						$driver,
-						$driver.param.element( $!locator ),
+		$session.driver.result.element:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.element( $!locator ),
 						'element'
-				)
-		)
 	}
 }
 
@@ -298,12 +336,14 @@ class WebDriver2::Command::Element-Screenshot
 	submethod BUILD( :$!element ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Element-Screenshot
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Element-Screenshot:D
 	) {
-		$driver.result.element-screenshot:
-				self.get-session-request:
-						$driver,
+		$session.driver.result.element-screenshot:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'element',
 						$!element,
 						'screenshot';
@@ -316,16 +356,16 @@ class WebDriver2::Command::Elements does WebDriver2::Command[WebDriver2::Command
 	submethod BUILD( :$!locator ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Elements
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Elements:D
 	) {
-		$driver.result.elements(
-				self.post-session-request(
-						$driver,
-						$driver.param.elements( $!locator ),
+		$session.driver.result.elements:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.elements( $!locator ),
 						'elements'
-				)
-		)
 	}
 }
 
@@ -335,17 +375,17 @@ class WebDriver2::Command::Enabled does WebDriver2::Command[WebDriver2::Command:
 	submethod BUILD( :$!element ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Enabled
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Enabled:D
 	) {
-		$driver.result.enabled(
-				self.get-session-request(
-						$driver,
+		$session.driver.result.enabled:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'element',
 						$!element,
 						'enabled'
-				)
-		)
 	}
 }
 
@@ -355,19 +395,19 @@ class WebDriver2::Command::Element-Rect does WebDriver2::Command[WebDriver2::Com
 	submethod BUILD( :$!element ) { }
 
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Element-Rect
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Element-Rect:D
 	) {
 
-		$driver.result.element-rect(
-				self.get-session-request(
-						$driver,
-						$driver.param.element-rect,
+		$session.driver.result.element-rect:
+				get-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.element-rect,
 						'element',
 						$!element,
 						'rect'
-				)
-		)
 	}
 }
 
@@ -378,29 +418,31 @@ class WebDriver2::Command::Execute-Script does WebDriver2::Command[WebDriver2::C
 	submethod BUILD( :$!script, :@!args ) { }
 
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Execute-Script
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Execute-Script:D
 	) {
-		$driver.result.execute-script(
-				self.post-session-request(
-						$driver,
-						$driver.param.execute-script( $!script, @!args ),
+		$session.driver.result.execute-script:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.execute-script( $!script, @!args ),
 						'execute',
 						'sync'
-				)
-		)
 	}
 }
 
 class WebDriver2::Command::Forward does WebDriver2::Command[WebDriver2::Command::Result::Forward] {
 	method execute-with(
-			WebDriver2 $driver,
-			--> WebDriver2::Command::Result::Forward
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Forward:D
 	) {
-		$driver.result.forward:
-				self.post-session-request:
-						$driver,
-						$driver.param.forward,
+		$session.driver.result.forward:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.forward,
 						'forward';
 	}
 }
@@ -413,36 +455,36 @@ class WebDriver2::Command::ID is WebDriver2::Command::Attribute {
 
 class WebDriver2::Command::Maximize-Window does WebDriver2::Command[WebDriver2::Command::Result::Maximize-Window] {
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Maximize-Window
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Maximize-Window:D
 	) {
-		$driver.result.maximize-window(
-				self.post-session-request(
-						$driver,
-						$driver.param.maximize-window,
+		$session.driver.result.maximize-window:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.maximize-window,
 						'window',
 						'maximize'
-				)
-		)
 	}
 }
 
 class WebDriver2::Command::Navigate does WebDriver2::Command[WebDriver2::Command::Result::Navigate] {
-	has Str $!url is required;
+	has Str:D $!url is required;
 	
 	submethod BUILD( :$!url ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Navigate
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Navigate:D
 	) {
-		$driver.result.navigate(
-				self.post-session-request(
-						$driver,
-						$driver.param.navigate( $!url ),
+		$session.driver.result.navigate:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.navigate( $!url ),
 						'url'
-				)
-		)
 	}
 }
 
@@ -453,41 +495,46 @@ class WebDriver2::Command::Property does WebDriver2::Command[WebDriver2::Command
 	submethod BUILD( :$!element, :$!property ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Property
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Property:D
 	) {
-		$driver.result.property(
-				self.get-session-request(
-						$driver,
+		$session.driver.result.property:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'element',
 						$!element,
 						'property',
 						$!property
-				)
-		)
 	}
 }
 
 class WebDriver2::Command::Refresh does WebDriver2::Command[WebDriver2::Command::Result::Refresh] {
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Refresh
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Refresh:D
 	) {
-		$driver.result.refresh(
-				self.post-session-request(
-						$driver,
-						$driver.param.refresh,
+		$session.driver.result.refresh:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.refresh,
 						'refresh'
-				)
-		)
 	}
 }
 
 class WebDriver2::Command::Screenshot does WebDriver2::Command[WebDriver2::Command::Result::Screenshot] {
-	method execute-with( WebDriver2 $driver --> WebDriver2::Command::Result::Screenshot ) {
-		$driver.result.screenshot:
-				self.get-session-request:
-						$driver,
+	method execute-with(
+			WebDriver2::Session-Actions $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Screenshot
+	) {
+		$session.driver.result.screenshot:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'screenshot';
 	}
 }
@@ -498,17 +545,17 @@ class WebDriver2::Command::Selected does WebDriver2::Command[WebDriver2::Command
 	submethod BUILD( :$!element ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Selected
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Selected:D
 	) {
-		$driver.result.selected(
-				self.get-session-request(
-						$driver,
+		$session.driver.result.selected:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'element',
 						$!element,
 						'selected'
-				)
-		)
 	}
 }
 
@@ -518,17 +565,17 @@ class WebDriver2::Command::Send-Alert-Text does WebDriver2::Command[WebDriver2::
 	submethod BUILD( :$!text ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Send-Alert-Text
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Send-Alert-Text:D
 	) {
-		$driver.result.send-alert-text(
-				self.post-session-request(
-						$driver,
-						$driver.param.send-alert-text( $!text ),
+		$session.driver.result.send-alert-text:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.send-alert-text( $!text ),
 						'alert',
 						'text'
-				)
-		)
 	}
 }
 
@@ -539,31 +586,31 @@ class WebDriver2::Command::Send-Keys does WebDriver2::Command[WebDriver2::Comman
 	submethod BUILD( :$!element, :$!keys ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Send-Keys
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Send-Keys:D
 	) {
-		$driver.result.send-keys(
-				self.post-session-request(
-						$driver,
-						$driver.param.send-keys( $!keys ),
+		$session.driver.result.send-keys:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.send-keys( $!keys ),
 						'element',
 						$!element,
 						'value'
-				)
-		)
 	}
 }
 
-class WebDriver2::Command::Session does WebDriver2::Command[WebDriver2::Command::Result::Session] {
+class WebDriver2::Command::Session does WebDriver2::Driver-Command[WebDriver2::Command::Result::Session] {
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Session
+			WebDriver2::Driver-Actions:D $driver
+			--> WebDriver2::Command::Result::Session:D
 	) {
 		my $data = $driver.param.session;
 		my WebDriver2::Command::Result::Session $session-result =
 				$driver.result.session:
-						self.post-request: $driver, $data, 'session';
-		$driver.session-id = $session-result.value;
+						post-request $driver, $data, 'session';
+#		$session.driver.result.session-id = $session-result.value;
 		return $session-result;
 	}
 }
@@ -577,28 +624,28 @@ class WebDriver2::Command::Set-Window-Rect does WebDriver2::Command[WebDriver2::
 	submethod BUILD( :$!width, :$!height, :$!x, :$!y ) { }
 
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Set-Window-Rect
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Set-Window-Rect:D
 	) {
-		$driver.result.set-window-rect(
-				self.post-session-request(
-						$driver,
-						$driver.param.set-window-rect(
+		$session.driver.result.set-window-rect:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.set-window-rect(
 								$!width, $!height, $!x, $!y
 						),
 						'window',
 						'rect'
-				)
-		)
 	}
 }
 
-class WebDriver2::Command::Status does WebDriver2::Command[WebDriver2::Command::Result::Status] {
+class WebDriver2::Command::Status does WebDriver2::Driver-Command[WebDriver2::Command::Result::Status] {
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Status
+			WebDriver2::Driver-Actions:D $driver
+			--> WebDriver2::Command::Result::Status:D
 	) {
-		$driver.result.status( self.get-request( $driver, 'status' ) )
+		$driver.result.status: get-request $driver, 'status'
 	}
 }
 
@@ -609,18 +656,18 @@ class WebDriver2::Command::SubElement does WebDriver2::Command[WebDriver2::Comma
 	submethod BUILD( :$!context, :$!locator ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::SubElement
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::SubElement:D
 	) {
-		$driver.result.subelement(
-				self.post-session-request(
-						$driver,
-						$driver.param.subelement( $!locator ),
+		$session.driver.result.subelement:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.subelement( $!locator ),
 						'element',
 						$!context,
 						'element'
-				)
-		)
 	}
 }
 
@@ -631,48 +678,63 @@ class WebDriver2::Command::SubElements does WebDriver2::Command[WebDriver2::Comm
 	submethod BUILD( :$!context, :$!locator ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::SubElements
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::SubElements:D
 	) {
-		$driver.result.subelements(
-				self.post-session-request(
-						$driver,
-						$driver.param.subelements( $!locator ),
+		$session.driver.result.subelements:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.subelements( $!locator ),
 						'element',
 						$!context,
 						'elements'
-				)
-		)
 	}
 }
 
 class WebDriver2::Command::Window-Handle does WebDriver2::Command[WebDriver2::Command::Result::Window-Handle] {
-	method execute-with( WebDriver2 $driver --> WebDriver2::Command::Result::Window-Handle ) {
-		$driver.result.window-handle:
-				self.get-session-request:
-						$driver,
-						$driver.param.window-handle,
+	method execute-with(
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id,
+			--> WebDriver2::Command::Result::Window-Handle:D
+	) {
+		$session.driver.result.window-handle:
+				get-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.window-handle,
 						'window';
 	}
 }
 
 class WebDriver2::Command::Window-Handles does WebDriver2::Command[WebDriver2::Command::Result::Window-Handles] {
-	method execute-with( WebDriver2 $driver --> WebDriver2::Command::Result::Window-Handles ) {
-		$driver.result.window-handles:
-				self.get-session-request:
-						$driver,
-						$driver.param.window-handles,
+	method execute-with(
+			WebDriver2::Driver-Actions $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Window-Handles:D
+	) {
+		$session.driver.result.window-handles:
+				get-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.window-handles,
 						'window',
 						'handles';
 	}
 }
 
 class WebDriver2::Command::New-Window does WebDriver2::Command[WebDriver2::Command::Result::New-Window] {
-	method execute-with( WebDriver2 $driver --> WebDriver2::Command::Result::New-Window ) {
-		$driver.result.new-window:
-				self.post-session-request:
-						$driver,
-						$driver.param.new-window,
+	method execute-with(
+			WebDriver2::Driver-Actions $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::New-Window:D
+	) {
+		$session.driver.result.new-window:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.new-window,
 						'window',
 						'new';
 	}
@@ -681,21 +743,31 @@ class WebDriver2::Command::New-Window does WebDriver2::Command[WebDriver2::Comma
 class WebDriver2::Command::Switch-to-Window does WebDriver2::Command[WebDriver2::Command::Result::Switch-to-Window] {
 	has Str $!handle;
 	submethod BUILD ( :$!handle ) { }
-	method execute-with( WebDriver2 $driver --> WebDriver2::Command::Result::Switch-to-Window ) {
-		$driver.result.switch-to-window:
-				self.post-session-request:
-						$driver,
-						$driver.param.switch-to-window( $!handle ),
+	method execute-with(
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Switch-to-Window:D
+	) {
+		$session.driver.result.switch-to-window:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.switch-to-window( $!handle ),
 						'window';
 	}
 }
 
 class WebDriver2::Command::Close-Window does WebDriver2::Command[WebDriver2::Command::Result::Close-Window] {
-	method execute-with ( WebDriver2 $driver --> WebDriver2::Command::Result::Close-Window ) {
-		$driver.result.close-window:
-				self.delete-session-request:
-						$driver,
-						$driver.param.close-window,
+	method execute-with (
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Close-Window:D
+	) {
+		$session.driver.result.close-window:
+				delete-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.close-window,
 						'window';
 	}
 }
@@ -707,18 +779,18 @@ class WebDriver2::Command::Switch-To does WebDriver2::Command[WebDriver2::Comman
 	submethod BUILD( :$!frame ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Switch-To
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Switch-To:D
 	) {
-		$driver.result.switch-to(
-				self.post-session-request(
-						$driver,
-						$driver.param.switch-to( $!frame ),
+		$session.driver.result.switch-to:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.switch-to( $!frame ),
 						# { id => $!frame },
 						# { id => 0 },
 						'frame'
-				)
-		)
 	}
 }
 
@@ -726,17 +798,17 @@ class WebDriver2::Command::Switch-To-Parent
 		does WebDriver2::Command[WebDriver2::Command::Result::Switch-To-Parent]
 {
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Switch-To-Parent
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Switch-To-Parent:D
 	) {
-		$driver.result.switch-to-parent(
-				self.post-session-request(
-						$driver,
-						$driver.param.switch-to-parent,
+		$session.driver.result.switch-to-parent:
+				post-session-request
+						$session.driver,
+						$session-id,
+						$session.driver.param.switch-to-parent,
 						'frame',
 						'parent'
-				)
-		)
 	}
 }
 
@@ -746,17 +818,17 @@ class WebDriver2::Command::Tag-Name does WebDriver2::Command[WebDriver2::Command
 	submethod BUILD( :$!element ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Tag-Name
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Tag-Name:D
 	) {
-		$driver.result.tag-name(
-				self.get-session-request(
-						$driver,
+		$session.driver.result.tag-name:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'element',
 						$!element,
 						'name'
-				)
-		)
 	}
 }
 
@@ -766,17 +838,17 @@ class WebDriver2::Command::Text does WebDriver2::Command[WebDriver2::Command::Re
 	submethod BUILD( :$!element ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Text
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Text:D
 	) {
-		$driver.result.text(
-				self.get-session-request(
-						$driver,
+		$session.driver.result.text:
+				get-session-request
+						$session.driver,
+						$session-id,
 						'element',
 						$!element,
 						'text'
-				)
-		)
 	}
 }
 
@@ -788,33 +860,36 @@ class WebDriver2::Command::Timeouts does WebDriver2::Command[WebDriver2::Command
 	submethod BUILD( :$!script, :$!pageLoad, :$!implicit ) { }
 	
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Timeouts
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Timeouts:D
 	) {
-		$driver.result.timeouts(
-				self.post-session-request(
-						$driver,
+		$session.driver.result.timeouts:
+				post-session-request
+						$session.driver,
+						$session-id,
 						{ :$!script, :$!pageLoad, :$!implicit },
 						'timeouts'
-				)
-		)
 	}
 }
 
 class WebDriver2::Command::Title does WebDriver2::Command[WebDriver2::Command::Result::Title] {
 	method execute-with(
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::Title
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::Title:D
 	) {
-		$driver.result.title: self.get-session-request: $driver, 'title';
+		$session.driver.result.title:
+				get-session-request $session.driver, $session-id, 'title';
 	}
 }
 
 class WebDriver2::Command::URL does WebDriver2::Command[WebDriver2::Command::Result::URL] {
 	method execute-with (
-			WebDriver2 $driver
-			--> WebDriver2::Command::Result::URL
+			WebDriver2::Session-Actions:D $session,
+			Str:D $session-id
+			--> WebDriver2::Command::Result::URL:D
 	) {
-		$driver.result.url: self.get-session-request: $driver, 'url';
+		$session.driver.result.url: get-session-request $session, 'url';
 	}
 }

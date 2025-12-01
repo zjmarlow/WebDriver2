@@ -119,7 +119,7 @@ method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Co
 				WebDriver2::Command::Execution-Status.new(
 						|self!status-args(
 								$response,
-								WebDriver2::Command::Execution-Status::Type
+								WebDriver2::Command::Execution-Status::Type::Other
 						)
 				)
 		).throw;
@@ -177,11 +177,11 @@ method session( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Re
 method element( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Element ) {
 	my $data = from-json( $response.content );
 	# FIXME : status 7 for no such element
-	return WebDriver2::Command::Result::Element.new(
+	return WebDriver2::Command::Result::Element.new:
 			str => $response.content,
 			execution-status => self.execution-status( $response ),
 			value => self.value( $data<value>{ ELEMENT-ID } )
-	);
+	;
 }
 
 method subelement( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::SubElement ) {

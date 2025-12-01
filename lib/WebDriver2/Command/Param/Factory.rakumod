@@ -23,7 +23,7 @@ method session {
 }
 method status { { } }
 method current-url { { } }
-method navigate( Str $url ) {
+method navigate( Str:D $url ) {
 	{ :$url }
 }
 method back { { } }

@@ -9,6 +9,11 @@ role WebDriver2::Model::Element does WebDriver2::Model::Context { ... }
 role WebDriver2::Model::Frame does WebDriver2::Model::Element { ... }
 
 role WebDriver2::Driver-Actions {
+#	has WebDriver2::HTTP::UserAgent $!ua;
+#	has Int $.debug is rw;
+	has Str:D $.browser is required;
+#	method browser ( --> Str:D ) { ... }
+	
 	method start { ... }
 	
 	method session { ... }
@@ -21,6 +26,8 @@ role WebDriver2::Session-Actions {
 #	method start { ... }
 	
 #	method session { ... }
+	method browser ( --> Str:D ) { ... }
+	method driver ( --> WebDriver2::Driver-Actions:D ) { ... }
 	
 	method maximize-window { ... }
 	method set-window-rect( Int $width, Int $height, Int $x, Int $y ) { ... }
@@ -132,7 +139,8 @@ role WebDriver2::Model::Context {
 }
 
 role WebDriver2::Model::Element does WebDriver2::Model::Context {
-	method internal-id( --> Str:D ) { ... }
+#	has Str:D $!internal-id is required;
+	method !internal-id( --> Str:D ) { ... }
 	method frame( --> WebDriver2::Model::Frame:D ) { ... }
 	method tag-name( --> Str:D ) { ... }
 	method stale( --> Bool:D ) { ... }
@@ -151,7 +159,7 @@ role WebDriver2::Model::Element does WebDriver2::Model::Context {
 	method click( --> WebDriver2::Model::Element:D ) { ... }
 	method debug ( --> Str:D ) { ... }
 	multi method ACCEPTS( WebDriver2::Model::Element:D: $other ) {
-		self.internal-id eq $other.internal-id;
+		self!internal-id eq $other!internal-id;
 	}
 }
 

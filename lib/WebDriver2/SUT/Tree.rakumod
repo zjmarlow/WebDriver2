@@ -620,7 +620,7 @@ class WebDriver2::SUT::Tree::Page
 class WebDriver2::SUT::Tree::SUT {
 	has WebDriver2::SUT::Tree::APage %!page;
 	# FIXME : revert when resolved https://github.com/rakudo/rakudo/issues/2544
-	has SetHash $!url = SetHash.new; # = SetHash[Str].new;
+	has SetHash $!url = SetHash[Str].new;
 	method add-page ( WebDriver2::SUT::Tree::APage:D $page ) {
 		my Str $url = $page.url.Str;
 		die "$url already added" if $!url{ $url };

@@ -15,7 +15,7 @@ unit role WebDriver2::Test::Template
 my constant $PLAN = 2;
 has IO::Path:D $.test-root is required;
 has Int:D $.close-delay is rw is required;
-has WebDriver2::Driver:D $!driver is required;
+has WebDriver2::Driver-Actions:D $!driver is required;
 has WebDriver2::Session-Actions $!session;
 
 #method browser ( --> Str:D ) { $!driver-provider.browser }
@@ -32,7 +32,7 @@ multi method new (
 		*%_
 ) {
 	self.set-from-file: $browser, :$test-root, :$debug;
-	my WebDriver2::Driver $driver =
+	my WebDriver2::Driver-Actions $driver =
 			WebDriver2::Driver.new: $browser, :$debug;
 	self.bless:
 			:$driver,
@@ -46,8 +46,8 @@ multi method new (
 
 method !init {
 	self.lives-ok: 'session created', { $!session = $!driver.session };
-	$!driver.set-window-rect: 1200, 750, 8, 8
-		if $!driver.browser eq 'chrome' | 'safari';
+	$!session.set-window-rect: 1200, 750, 8, 8
+		if $!session.browser eq 'chrome' | 'safari';
 }
 method pre-test { ... }
 method test { ... }
