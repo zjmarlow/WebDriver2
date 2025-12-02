@@ -2,7 +2,7 @@ use Test;
 use MIME::Base64;
 
 use WebDriver2::Command::Element::Locator;
-use WebDriver2::Test::Locating-Test;
+#use WebDriver2::Test::Locating-Test;
 use WebDriver2::Test::Adapter;
 use WebDriver2::Test::Template;
 use WebDriver2::Test::Debugging;
@@ -10,7 +10,7 @@ use WebDriver2::Test::Debugging;
 unit role WebDriver2::Test
 		does WebDriver2::Test::Adapter
 		does WebDriver2::Test::Template
-		does WebDriver2::Test::Locating-Test
+#		does WebDriver2::Test::Locating-Test
 		does WebDriver2::Test::Debugging;
 
 #multi method new ( WebDriver2::Test:U: Str $browser is copy, IO::Path:D :$test-root = 't'.IO, Int:D :$debug is copy = 0 ) {
