@@ -3,12 +3,11 @@ use Test;
 use lib <lib t/lib>;
 
 use WebDriver2::Test::Template;
-use WebDriver2::Test::Locating-Test;
 
 my IO::Path $html-file =
 		.add: 'alerts-after-load.html' with $*PROGRAM.parent.parent.add: 'content';
 
-class Alerts does WebDriver2::Test::Template does WebDriver2::Test::Locating-Test {
+class Alerts does WebDriver2::Test::Template {
 	
 	has Int:D $.plan = 8;
 	has Str:D $.name = 'alerts';
