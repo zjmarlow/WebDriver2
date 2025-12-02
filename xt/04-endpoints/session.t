@@ -4,7 +4,6 @@ use lib <lib t/lib>;
 
 use WebDriver2;
 use WebDriver2::Test::Template;
-use WebDriver2::Driver::Provider;
 
 use WebDriver2::Test::Adapter;
 use WebDriver2::Test::Debugging;
@@ -15,15 +14,22 @@ use WebDriver2::Command::Execution-Status;
 my IO::Path $html-file = .add: 'doc-main.html' with 'content'.IO;
 
 class Session-Test does WebDriver2::Test::Template {
-#	has WebDriver2::Driver $.driver;
+#	has WebDriver2::Driver $!session;
 #	has Str $.browser;
 	has Str:D $.sut-name = 'session-sut-name';
 	has Int:D $.plan = 4;
 	has Str:D $.name = 'session-name';
 	has Str:D $.description = 'session test';
 
-method pre-test { }
-method post-test { }
+	submethod BUILD (
+			WebDriver2::Driver-Actions:D :$!driver,
+			IO::Path:D :$!test-root = 'xt'.IO,
+			Int:D :$!close-delay = 3,
+			Int:D :$!debug = 0
+    ) { }
+	
+	method pre-test { }
+	method post-test { }
 	
 	method test {
 #		if $.browser eq 'firefox' {
@@ -32,41 +38,41 @@ method post-test { }
 ##			self.throws-like:
 #			self.nok:
 #					'no title before session',
-#					$.driver.title;
+#					$!session.title;
 ##					WebDriver2::Command::Result::X:D,
-##					{ $.driver.title };
+##					{ $!session.title };
 #		}
-#		self.lives-ok: 'session created', { $.driver.session };
+#		self.lives-ok: 'session created', { $!session.session };
 		my IO::Path:D $html-file = $!test-root.add: <content doc-main.html>;
 		my Str:D $url = 'file://' ~ $html-file.absolute;
-		self.nok: 'no title before navigation', $.driver.title;
-		$.driver.navigate: $url;
-		self.is: 'title after navigation', 'simple example', $.driver.title;
-		$.driver.delete-session;
-		if $.browser eq 'firefox' {
+		self.nok: 'no title before navigation', $!session.title;
+		$!session.navigate: $url;
+		self.is: 'title after navigation', 'simple example', $!session.title;
+		$!session.delete-session;
+		if $!session.browser eq 'firefox' {
 			self.throws-like:
 					'no title after session deletion',
 					WebDriver2::Command::Result::X:D,
-					{ $.driver.title },
+					{ $!session.title },
 					message => rx:m :s/.*error\"\s*\:\s*\"invalid session id.*/;
-		} elsif $.browser eq 'safari' {
+		} elsif $!session.browser eq 'safari' {
 			self.throws-like:
 					'no title after session deletion',
 					WebDriver2::Command::Result::X:D,
-					{ $.driver.title },
+					{ $!session.title },
 					message => *.contains: 'invalid session id';
 		} else {
 #			self.throws-like:
 #					'no title after session deletion',
 #					WebDriver2::Command::Result::X:D,
-#					{ $.driver.title },
+#					{ $!session.title },
 #					message => "Session\ninvalid session id";
-			try $.driver.title;
+			try $!session.title;
 			self.ok: 'right exception', $! ~~ WebDriver2::Command::Result::X:D;
 			self.is: 'no title after session deletion', "Session\ninvalid session id", $!.Str;
 		}
 		say '   ';
-#		$.driver.session;
+#		$!session.session;
 #		done-testing;
 	}
 	

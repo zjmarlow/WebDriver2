@@ -14,28 +14,35 @@ class Browser-Window-Test does WebDriver2::Test::Template does WebDriver2::Test:
 	has Str:D $.name = 'window';
 	has Str:D $.description = 'multi-window test';
 	
+	submethod BUILD (
+			WebDriver2::Driver-Actions:D :$!driver,
+			IO::Path:D :$!test-root = 'xt'.IO,
+			Int:D :$!close-delay = 3,
+			Int:D :$!debug = 0
+	) { }
+	
 	method pre-test { }
 	method post-test { }
 	
 	method test {
-		my Str $original-window = $.driver.original-window;
-		self.is: 'current handle matches original', $original-window, $.driver.window-handle;
-		my Str @windows = $.driver.window-handles;
+		my Str $original-window = $!session.window-handle;
+		self.is: 'current handle matches original', $original-window, $!session.window-handle;
+		my Str @windows = $!session.window-handles;
 		self.is: 'only one open', 1, @windows.elems;
 		self.is: 'only one open matches original', $original-window, @windows[0];
-		my %new-window = $.driver.new-window;
+		my %new-window = $!session.new-window;
 		self.is: 'new tab', 'tab', %new-window<type>;
 		self.ok: 'new handle different from original',
 				%new-window<handle> && ( %new-window<handle> ne $original-window );
-		@windows = $.driver.window-handles;
+		@windows = $!session.window-handles;
 		self.is: 'number of handles', 2, @windows.elems;
 		my %windows = @windows.map: * => True;
 		self.ok: 'original included', %windows{ $original-window }:exists;
 		self.ok: 'new one included', %windows{ %new-window<handle> }:exists;
-		$.driver.switch-to-window: %new-window<handle>;
+		$!session.switch-to-window: %new-window<handle>;
 		# TODO : check content
-		$.driver.close-window;
-		@windows = $.driver.window-handles;
+		$!session.close-window;
+		@windows = $!session.window-handles;
 		self.is: 'only one open again', 1, @windows.elems;
 		self.is: 'only one open matches original', $original-window, @windows[0];
 	}

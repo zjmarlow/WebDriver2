@@ -22,29 +22,36 @@ my IO::Path $html-to-file =
 
 class Nav-Test
 		does WebDriver2::Test::Template
-		does WebDriver2::Test::Locating-Test
+#		does WebDriver2::Test::Locating-Test
 {
 	has Int:D $.plan = 2;
 	has Str:D $.name = 'URL tests';
 	has Str:D $.description = 'test nav to URL and get URL';
 	
+	submethod BUILD (
+			WebDriver2::Driver-Actions:D :$!driver,
+			IO::Path:D :$!test-root = 'xt'.IO,
+			Int:D :$!close-delay = 3,
+			Int:D :$!debug = 0
+	) { }
+	
 	method pre-test { }
 	method post-test { }
 	
 	method test {
-		$.driver.navigate: 'file://' ~ $html-from-file.absolute;
+		$!session.navigate: 'file://' ~ $html-from-file.absolute;
 		
-		self.is: 'navigation url result', self.prep-path( $html-from-file ),  url-decode $.driver.url; 
+		self.is: 'navigation url result', self.prep-path( $html-from-file ),  url-decode $!session.url; 
 		my WebDriver2::Until $title =
 				WebDriver2::Until::Command::Title-Is.new:
-						:$.driver,
+						:$!session,
 						title => 'simple example';
-		.click with self.element-by-tag: 'button';
+		.click with $!session.element: tag-locator 'button';
 		$title.retry;
 		self.is:
 				'browser follows link',
 				self.prep-path( $html-to-file ) ~ '?user=&pass=&k=v',
-				url-decode $.driver.url;
+				url-decode $!session.url;
 	}
 	
 	method prep-path ( IO::Path $path ) {

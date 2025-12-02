@@ -14,13 +14,18 @@ class Alerts does WebDriver2::Test::Template does WebDriver2::Test::Locating-Tes
 	has Str:D $.name = 'alerts';
 	has Str:D $.description = 'js alerts';
 	
-	
+	submethod BUILD (
+			WebDriver2::Driver-Actions:D :$!driver,
+			IO::Path:D :$!test-root = 'xt'.IO,
+			Int:D :$!close-delay = 3,
+			Int:D :$!debug = 0
+	) { }
 	
 	method pre-test { }
 	method post-test { }
 	
 	method test {
-		$.driver.navigate: 'file://' ~ $html-file.absolute;
+		$!session.navigate: 'file://' ~ $html-file.absolute;
 
 #		sleep 1;
 		
@@ -52,50 +57,50 @@ class Alerts does WebDriver2::Test::Template does WebDriver2::Test::Locating-Tes
 #		say $h2.text;
 #		sleep 1;
 #
-		is $.driver.alert-text, 'one', 'alert text one';
+		is $!session.alert-text, 'one', 'alert text one';
 
-		$.driver.accept-alert;
+		$!session.accept-alert;
 		sleep 1;
 
-		is $.driver.alert-text, 'two', 'alert text two';
+		is $!session.alert-text, 'two', 'alert text two';
 
-		$.driver.dismiss-alert;
+		$!session.dismiss-alert;
 		sleep 1;
 
-		is $.driver.alert-text, 'yes', 'confirm text yes';
+		is $!session.alert-text, 'yes', 'confirm text yes';
 
-		$.driver.accept-alert;
+		$!session.accept-alert;
 		sleep 1;
 
-		is $.driver.alert-text, 'no', 'confirm text no';
+		is $!session.alert-text, 'no', 'confirm text no';
 
-		$.driver.dismiss-alert;
+		$!session.dismiss-alert;
 		sleep 1;
 
-		is $.driver.alert-text, 'ok', 'prompt text ok';
+		is $!session.alert-text, 'ok', 'prompt text ok';
 
-		$.driver.send-alert-text: 'ok response';
+		$!session.send-alert-text: 'ok response';
 		sleep 1;
-		$.driver.accept-alert;
-		sleep 1;
-
-		is $.driver.alert-text, 'ok response', 'response recorded';
-
-		$.driver.accept-alert;
+		$!session.accept-alert;
 		sleep 1;
 
-		is $.driver.alert-text, 'cancel', 'prompt text cancel';
+		is $!session.alert-text, 'ok response', 'response recorded';
 
-		sleep 1;
-		$.driver.send-alert-text: 'cancel response';
-		sleep 1;
-		$.driver.dismiss-alert;
-
+		$!session.accept-alert;
 		sleep 1;
 
-		is $.driver.alert-text, 'null', 'response not recorded';
+		is $!session.alert-text, 'cancel', 'prompt text cancel';
 
-		$.driver.dismiss-alert;
+		sleep 1;
+		$!session.send-alert-text: 'cancel response';
+		sleep 1;
+		$!session.dismiss-alert;
+
+		sleep 1;
+
+		is $!session.alert-text, 'null', 'response not recorded';
+
+		$!session.dismiss-alert;
 	}
 }
 

@@ -9,87 +9,94 @@ my $file = .add: 'lists.html' with $*PROGRAM.parent.parent.add: 'content';
 
 class Test-Nav-To-Frame
 		does WebDriver2::Test::Template
-		does WebDriver2::Test::Locating-Test
+#		does WebDriver2::Test::Locating-Test
 {
 	has Int:D $.plan = 35;
 	has Str:D $.name = 'nesting frames';
 	has Str:D $.description = 'nesting frames test';
 	
+	submethod BUILD (
+			WebDriver2::Driver-Actions:D :$!driver,
+			IO::Path:D :$!test-root = 'xt'.IO,
+			Int:D :$!close-delay = 3,
+			Int:D :$!debug = 0
+	) { }
+	
 	method pre-test { }
 	method post-test { }
 	
 	method test {
-		$.driver.navigate: 'file://' ~ $file.absolute;
+		$!session.navigate: 'file://' ~ $file.absolute;
 		
-		self.nok: 'at page; no parent frame', $.driver.switch-to-parent.defined;
+		self.nok: 'at page; no parent frame', $!session.switch-to-parent.defined;
 		self.page-content;
 		
 		# descend using tag
-		.frame.switch-to with self.element-by-tag: 'iframe';
+		.frame.switch-to with $!session.element: tag-locator 'iframe';
 		self.frame0-content;
 		
-		.frame.switch-to with self.element-by-tag: 'iframe';
+		.frame.switch-to with $!session.element: tag-locator 'iframe';
 		self.frame1-content;
 		
-		$.driver.switch-to-parent;
-		if $.browser eq 'safari' {
+		$!session.switch-to-parent;
+		if $!session.browser eq 'safari' {
 			skip 'safaridriver switch to parent frame bug', 2;
 		} else {
 			self.frame0-content;
 		}
 		
-		$.driver.switch-to-parent;
+		$!session.switch-to-parent;
 		self.page-content;
 		
 		# at top and make sure frame switching stops at page
-		self.nok: 'at page; no parent frame', $.driver.switch-to-parent.defined;
+		self.nok: 'at page; no parent frame', $!session.switch-to-parent.defined;
 		self.page-content;
 		
 		# descend using id
-		.frame.switch-to with self.element-by-id: 'frame';
+		.frame.switch-to with $!session.element: id-locator 'frame';
 		self.frame0-content;
 		
-		.frame.switch-to with self.element-by-id: 'internal';
+		.frame.switch-to with $!session.element: id-locator 'internal';
 		self.frame1-content;
 		
-		$.driver.switch-to-parent.switch-to-parent;
+		$!session.switch-to-parent.switch-to-parent;
 		# at top but no check for parent to make sure it doesn't affect results
 		self.page-content;
 		
 		# descend using tag
-		.frame.switch-to with self.element-by-tag: 'iframe';
+		.frame.switch-to with $!session.element: tag-locator 'iframe';
 		self.frame0-content;
 		
-		.frame.switch-to with self.element-by-tag: 'iframe';
+		.frame.switch-to with $!session.element: tag-locator 'iframe';
 		self.frame1-content;
 		
 		# TOP
-		$.driver.top;
-		self.nok: 'at page; no parent frame', $.driver.switch-to-parent.defined;
+		$!session.top;
+		self.nok: 'at page; no parent frame', $!session.switch-to-parent.defined;
 		self.page-content;
 		
 		# descend using id
-		.frame.switch-to with self.element-by-id: 'frame';
+		.frame.switch-to with $!session.element: id-locator 'frame';
 		self.frame0-content;
 		
-		.frame.switch-to with self.element-by-id: 'internal';
+		.frame.switch-to with $!session.element: id-locator 'internal';
 		self.frame1-content;
 		
 		# TOP
-		$.driver.top;
+		$!session.top;
 		# at top but no check for parent to make sure it doesn't affect results
 		
 		# descend using tag
-		.frame.switch-to with self.element-by-tag: 'iframe';
+		.frame.switch-to with $!session.element: tag-locator 'iframe';
 		self.frame0-content;
 		
-		.frame.switch-to with self.element-by-tag: 'iframe';
+		.frame.switch-to with $!session.element: tag-locator 'iframe';
 		self.frame1-content;
 	}
 	
 	method page-content {
-		self.is: 'page h2', 'test', .text with self.element-by-tag: 'h2';
-		self.is: 'li text', 'one', .text with self.element-by-tag: 'li';
+		self.is: 'page h2', 'test', .text with $!session.element: tag-locator 'h2';
+		self.is: 'li text', 'one', .text with $!session.element: tag-locator 'li';
 	}
 	
 	method frame0-content {
@@ -97,12 +104,12 @@ class Test-Nav-To-Frame
 				'frame h2',
 				'list frame test',
 				.text
-				with self.element-by-tag: 'h2';
+				with $!session.element: tag-locator 'h2';
 		self.is:
 				'label text',
 				'text input:',
 				.text.trim
-				with self.element-by-tag: 'label';
+				with $!session.element: tag-locator 'label';
 	}
 	
 	method frame1-content {
@@ -110,8 +117,8 @@ class Test-Nav-To-Frame
 				'inner frame h2',
 				'internal frame',
 				.text
-				with self.element-by-tag: 'h2';
-		self.is: 'p text', 'first', .text with self.element-by-tag: 'p';
+				with $!session.element: tag-locator 'h2';
+		self.is: 'p text', 'first', .text with $!session.element: tag-locator 'p';
 	}
 }
 

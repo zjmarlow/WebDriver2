@@ -14,13 +14,20 @@ class Status-Test does WebDriver2::Test::Template {
 	has Str:D $.name = 'status';
 	has Str:D $.description = 'status test';
 	
+	submethod BUILD (
+			WebDriver2::Driver-Actions:D :$!driver,
+			IO::Path:D :$!test-root = 'xt'.IO,
+			Int:D :$!close-delay = 3,
+			Int:D :$!debug = 0
+	) { }
+	
 	method pre-test { }
 	method post-test { }
 	
 	method test {
-		my WebDriver2::Command::Result::Status $status = $.driver.status;
+		my WebDriver2::Command::Result::Status $status = $!driver.status;
 		self.ok: 'version defined: ' ~ $status.version, $status.version.defined;
-		if $.browser eq 'firefox' {
+		if $!session.browser eq 'firefox' {
 			skip 'firefox readiness is false';
 		} else {
 			self.ok: 'session ready', $status.ready;

@@ -182,7 +182,7 @@ class WebDriver2::Command::Attribute does WebDriver2::Command[WebDriver2::Comman
 
 class WebDriver2::Command::Back does WebDriver2::Command[WebDriver2::Command::Result::Back] {
 	method execute-with(
-			WebDriver2::Driver-Actions $session,
+			WebDriver2::Session-Actions $session,
 			Str:D $session-id
 			--> WebDriver2::Command::Result::Back:D
 	) {
@@ -710,7 +710,7 @@ class WebDriver2::Command::Window-Handle does WebDriver2::Command[WebDriver2::Co
 
 class WebDriver2::Command::Window-Handles does WebDriver2::Command[WebDriver2::Command::Result::Window-Handles] {
 	method execute-with(
-			WebDriver2::Driver-Actions $session,
+			WebDriver2::Session-Actions $session,
 			Str:D $session-id
 			--> WebDriver2::Command::Result::Window-Handles:D
 	) {
@@ -726,7 +726,7 @@ class WebDriver2::Command::Window-Handles does WebDriver2::Command[WebDriver2::C
 
 class WebDriver2::Command::New-Window does WebDriver2::Command[WebDriver2::Command::Result::New-Window] {
 	method execute-with(
-			WebDriver2::Driver-Actions $session,
+			WebDriver2::Session-Actions $session,
 			Str:D $session-id
 			--> WebDriver2::Command::Result::New-Window:D
 	) {
@@ -890,6 +890,7 @@ class WebDriver2::Command::URL does WebDriver2::Command[WebDriver2::Command::Res
 			Str:D $session-id
 			--> WebDriver2::Command::Result::URL:D
 	) {
-		$session.driver.result.url: get-session-request $session, 'url';
+		$session.driver.result.url:
+				get-session-request $session.driver, $session-id, 'url';
 	}
 }
