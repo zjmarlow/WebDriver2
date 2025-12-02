@@ -25,7 +25,7 @@ class Stale
 	has Str:D $.description = 'stale handling';
 	
 	submethod BUILD (
-			WebDriver2::Driver::Provider:D :$!driver-provider,
+			WebDriver2::Driver-Actions:D :$!driver,
 			IO::Path:D :$!test-root = 'xt'.IO,
 			Int:D :$!close-delay = 3,
 			Int:D :$!debug = 0
@@ -35,8 +35,8 @@ class Stale
 	method post-test { }
 	
 	method test {
-		$!driver-provider.driver.navigate: 'file://' ~ $html-file.absolute;
-		is $!driver-provider.driver.title, 'test', 'page title';
+		$!session.navigate: 'file://' ~ $html-file.absolute;
+		is $!session.title, 'test', 'page title';
 		my WebDriver2::Model::Element $stale = self.element-by-id: 'cb';
 		my WebDriver2::Model::Element $stale2 = self.element-by-id: 'text';
 		my WebDriver2::Model::Element $stale3 = self.element-by-id: 'button';
@@ -44,9 +44,9 @@ class Stale
 		my WebDriver2::Model::Element $reachable = self.element-by-id: 'link-to-page';
 		self.ok: 'element in iframe reachable from containing page', $reachable.enabled;
 		$iframe.frame.switch-to;
-		if $.browser ne 'firefox' {
+		if $!session.browser ne 'firefox' {
 			
-			$!driver-provider.driver.navigate: 'file://' ~ $html-file.absolute;
+			$!session.navigate: 'file://' ~ $html-file.absolute;
 			
 			self.ok:
 					'stale',
@@ -70,8 +70,8 @@ class Stale
 		} else {
 			skip 'firefox stale / frame interaction', 2;
 		}
-		$!driver-provider.driver.top;
-		$stale = $!driver-provider.driver.element: $link;
+		$!session.top;
+		$stale = $!session.element: $link;
 		my WebDriver2::Until $until-stale =
 				WebDriver2::Until::Command::Stale.new:
 						element => $stale,
@@ -83,11 +83,11 @@ class Stale
 		self.is:
 				'new content available',
 				'to page first',
-				.text with $!driver-provider.driver.element: $h2;
+				.text with $!session.element: $h2;
 	}
 	
 	method element-by-id( Str $id ) {
-		$!driver-provider.driver.element( WebDriver2::Command::Element::Locator::ID.new: $id )
+		$!session.element( WebDriver2::Command::Element::Locator::ID.new: $id )
 	}
 }
 

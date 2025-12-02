@@ -20,7 +20,7 @@ class Local
 #	has IO::Path:D $!test-root = 'xt'.IO;
 	
 	submethod BUILD (
-			WebDriver2::Driver::Provider:D :$!driver-provider,
+			WebDriver2::Driver-Actions:D :$!driver,
 			IO::Path:D :$!test-root = 'xt'.IO,
 			Int:D :$!close-delay = 3,
 			Int:D :$!debug = 0
@@ -32,24 +32,25 @@ class Local
 	method test {
 		my IO::Path:D $html-file = $!test-root.add: <content frame-alert-root-doc.html>;
 		#				.add: 'test.html' with $*CWD.add: 'content';
-		$!driver-provider.driver.set-window-rect( 1200, 750, 8, 8 ) if $.browser eq 'safari';
-		$!driver-provider.driver.navigate: 'file://' ~ $html-file.absolute;
+		$!session.set-window-rect( 1200, 750, 8, 8 )
+			if $!session.browser eq 'safari';
+		$!session.navigate: 'file://' ~ $html-file.absolute;
 		
 		.frame.switch-to with self.element-by-tag: 'iframe';
 		.click with self.element-by-tag: 'h2';
-		$!driver-provider.driver.accept-alert;
+		$!session.accept-alert;
 		ok self.element-by-id( 'inner-form' ), 'still in iframe';
 		.click with self.element-by-tag: 'p';
-		$!driver-provider.driver.accept-alert;
-		$!driver-provider.driver.top;
+		$!session.accept-alert;
+		$!session.top;
 		ok self.element-by-id( 'form' ), 'root page';
 	}
 	method element-by-tag( Str $tag-name ) {
-		$!driver-provider.driver.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
+		$!session.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
 	}
 	
 	method element-by-id( Str $id ) {
-		$!driver-provider.driver.element( WebDriver2::Command::Element::Locator::ID.new: $id )
+		$!session.element( WebDriver2::Command::Element::Locator::ID.new: $id )
 	}
 }
 

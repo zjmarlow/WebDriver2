@@ -25,7 +25,7 @@ class Local does WebDriver2::Test::Template {
 	#   and instantiates the corresponding driver
 	
 	submethod BUILD (
-			WebDriver2::Driver::Provider:D :$!driver-provider,
+			WebDriver2::Driver-Actions:D :$!driver,
 			IO::Path:D :$!test-root = 'xt'.IO,
 			Int:D :$!close-delay = 3,
 			Int:D :$!debug = 0
@@ -35,7 +35,7 @@ class Local does WebDriver2::Test::Template {
 	method post-test { }
 	method test {
 		self.skip: 'mac-only tests', 4 unless $*DISTRO.name ~~ /MacOS/;
-		$!driver-provider.driver.navigate: $page.Str;
+		$!driver.driver.navigate: $page.Str;
 
 		self.is: 'at page', 'test', .text with self.element-by-tag: 'h2';
 #		is $.driver.title, 'test', 'page title';
@@ -47,16 +47,16 @@ class Local does WebDriver2::Test::Template {
 		$el.frame.switch-to;
 		$el = self.element-by-tag: 'h2';
 		self.is: 'in deepest frame', 'internal frame', $el.text;
-		$!driver-provider.driver.switch-to-parent;
+		$!driver.driver.switch-to-parent;
 		$el = self.element-by-tag: 'h2';
 		self.is: 'up one frame', 'list frame test', $el.text;
 	}
 	method element-by-tag( Str $tag-name ) {
-		$!driver-provider.driver.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
+		$!driver.driver.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
 	}
 
 	method element-by-id( Str $id ) {
-		$!driver-provider.driver.element( WebDriver2::Command::Element::Locator::ID.new: $id )
+		$!driver.driver.element( WebDriver2::Command::Element::Locator::ID.new: $id )
 	}
 }
 
