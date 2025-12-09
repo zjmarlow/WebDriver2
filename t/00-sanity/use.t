@@ -2,7 +2,7 @@ use lib <lib t/lib>;
 
 use Test;
 
-plan 46;
+plan 44;
 
 use-ok "WebDriver2";
 use-ok "WebDriver2::Command";
@@ -43,8 +43,6 @@ use-ok "WebDriver2::Test::Config-From-File";
 use-ok "WebDriver2::Test::Debugging";
 use-ok "WebDriver2::Test::Locating-Test";
 use-ok "WebDriver2::Test::PO-Test";
-use-ok "WebDriver2::Test::Service-Test";
-use-ok "WebDriver2::Test::Skeleton";
 use-ok "WebDriver2::Test::Template";
 use-ok "WebDriver2::Until";
 use-ok "WebDriver2::Until-C";
