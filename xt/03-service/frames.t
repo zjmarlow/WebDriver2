@@ -10,7 +10,7 @@ use WebDriver2::SUT::Tree;
 use WebDriver2::SUT::Build;
 use WebDriver2::SUT::Service;
 
-use WebDriver2::Test::Service-Test;
+use WebDriver2::Test::PO-Test;
 use WebDriver2::Test::Config-From-File;
 
 my IO::Path $html-file =
@@ -19,11 +19,9 @@ my IO::Path $html-file =
 class Frames-Test-Service does WebDriver2::SUT::Service {
 	has Str:D $.name = 'frames';
 	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver, WebDriver2::SUT::Tree::SUT:D :$!sut ) { }
-
 	method nav {
 		my $url = WebDriver2::SUT::Tree::URL.new: 'file://' ~ $html-file;
-		$!driver.navigate: $url.Str;
+		$!session.navigate: $url.Str;
 	}
 
 	method page {
@@ -31,7 +29,7 @@ class Frames-Test-Service does WebDriver2::SUT::Service {
 	}
 
 	method page-frame {
-		 self.get: 'page-frame';
+		self.get: 'page-frame';
 	}
 
 	method page-h2 {
@@ -39,23 +37,23 @@ class Frames-Test-Service does WebDriver2::SUT::Service {
 	}
 
 	method frame-h2 {
-		 self.get: 'frame-h2';
+		self.get: 'frame-h2';
 	}
 
 	method basic-nesting {
-		 self.get: 'basic';
+		self.get: 'basic';
 	}
 
 	method basic-item {
-		 self.get: 'basic-item';
+		self.get: 'basic-item';
 	}
 
 	method outer-item {
-		 self.get: 'outer-item';
+		self.get: 'outer-item';
 	}
 
 	method inner-item {
-		 self.get: 'inner-item';
+		self.get: 'inner-item';
 	}
 
 	method each-basic ( &action ) {
@@ -81,7 +79,7 @@ class Frames-Test-Service does WebDriver2::SUT::Service {
 	}
 
 	method iframe-h2 {
-		 self.get: 'iframe-h2';
+		self.get: 'iframe-h2';
 	}
 
 	method iframe-item {
@@ -89,15 +87,15 @@ class Frames-Test-Service does WebDriver2::SUT::Service {
 	}
 
 	method iframe-list-h2 {
-		 self.get: 'iframe-list-h2';
+		self.get: 'iframe-list-h2';
 	}
 
 	method iframe-item-h2 {
-		 self.get: 'iframe-list-h2';
+		self.get: 'iframe-list-h2';
 	}
 
 	method iframe-item-p {
-		 self.get: 'iframe-list-p';
+		self.get: 'iframe-list-p';
 	}
 
 	method each-iframe-item ( &action ) {
@@ -107,105 +105,100 @@ class Frames-Test-Service does WebDriver2::SUT::Service {
 	}
 }
 
-class Frames-Test does WebDriver2::Test::Service-Test {
+class Frames-Test does WebDriver2::Test::PO-Test {
 	has Str:D $.sut-name = 'frames';
 	has Int:D $.plan = 35;
 	has Str:D $.name = 'frames';
 	has Str:D $.description = 'tests nesting frames';
 	
-	has Frames-Test-Service $!service;
+	has Frames-Test-Service $!fs = Frames-Test-Service;
 	has Str @!expected = <hey hi bye oye hola adios 喂 你好 再見>;
 	
 	method services {
-		$.loader.load-elements: $!service = Frames-Test-Service.new: :$.driver, :$.sut;
+		$!fs, \( :$!browser, :$!debug )
 	}
 	
 	method pre-test { }
 	method post-test { }
 	
 	method test {
-		$!service.nav;
+		$!fs.nav;
 
 		self.is:
 				'mainline content parent frame is page and context is body element',
 #				$!service.page,
 				'body',
-				$!service.page-h2.parent-frame.resolve.tag-name.lc;
+				$!fs.page-h2.parent-frame.resolve.tag-name.lc;
 		self.is:
 				'page match',
-				$!service.page.raku,
-				$!service.page-h2.parent-frame.raku;
+				$!fs.page.raku,
+				$!fs.page-h2.parent-frame.raku;
 		self.is:
 				'basic content parent frame is page and context is body element',
-				$!service.page.raku,
+				$!fs.page.raku,
 #				'body',
-				$!service.basic-item.parent-frame.raku; # .resolve.tag-name;
+				$!fs.basic-item.parent-frame.raku; # .resolve.tag-name;
 		
 		self.is:
 				'internal node parent frame is page',
-				$!service.page.raku,
+				$!fs.page.raku,
 #				'body',
-				$!service.basic-nesting.parent-frame.raku; # .resolve.tag-name;
+				$!fs.basic-nesting.parent-frame.raku; # .resolve.tag-name;
 		
-		$!service.each-basic: {
+		$!fs.each-basic: {
 			self.is:
 					'basic items',
-					$!service.page.raku,
+					$!fs.page.raku,
 					.basic-item.parent-frame.raku;
 		};
 		
-		$!service.each-outer: {
-			$!service.each-inner: {
+		$!fs.each-outer: {
+			$!fs.each-inner: {
 				self.is:
 						'inner frame content correct',
 						@!expected.shift,
 						.inner-item.resolve.text;
 				self.is:
 						'inner item parent frame is page',
-						$!service.page.raku,
+						$!fs.page.raku,
 						.inner-item.parent-frame.raku; # .resolve;
 
 			}
 		}
 		self.is:
 				'basic frame content parent frame is page',
-				$!service.page.raku,
-				$!service.page-frame.parent-frame.raku; # .resolve;
+				$!fs.page.raku,
+				$!fs.page-frame.parent-frame.raku; # .resolve;
 		self.is:
 				'subframe content parent is frame',
-				$!service.page-frame.raku,
-				$!service.frame-h2.parent-frame.raku;
+				$!fs.page-frame.raku,
+				$!fs.frame-h2.parent-frame.raku;
 		self.is:
 				'iframe beneath frame parent frame is frame',
-				$!service.page-frame.raku,
-				$!service.iframe.parent-frame.raku;
+				$!fs.page-frame.raku,
+				$!fs.iframe.parent-frame.raku;
 		self.is:
 				'iframe h2 parent frame is iframe',
-				$!service.iframe.raku,
-				$!service.iframe-h2.parent-frame.raku;
-#		$!service.iframe.resolve.element:
+				$!fs.iframe.raku,
+				$!fs.iframe-h2.parent-frame.raku;
+#		$!fs.iframe.resolve.element:
 #				WebDriver2::Command::Element::Locator::Tag-Name.new: 'body';
 		
-		$!service.each-iframe-item: {
+		$!fs.each-iframe-item: {
 			self.is:
 					'iframe list item parent frame is iframe',
-					$!service.iframe.raku,
+					$!fs.iframe.raku,
 					.iframe-item.parent-frame.raku;
 			self.is:
 					'iframe list item h2 parent frame is iframe',
-					$!service.iframe.raku,
+					$!fs.iframe.raku,
 					.iframe-item-h2.parent-frame.raku;
 			self.is:
 					'iframe list item p parent frame is iframe',
-					$!service.iframe.raku,
+					$!fs.iframe.raku,
 					.iframe-item-p.parent-frame.raku;
 		};
 	}
 }
 
-sub MAIN(
-		Str $browser?,
-		Int:D :$debug = 0
-) {
-	.execute with Frames-Test.new: $browser, :$debug, test-root => 'xt'.IO;
-}
+constant &MAIN = po-test Frames-Test;

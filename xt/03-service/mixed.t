@@ -7,7 +7,7 @@ use WebDriver2;
 use WebDriver2::SUT::Build;
 use WebDriver2::SUT::Navigator;
 use WebDriver2::SUT::Service;
-use WebDriver2::Test::Service-Test;
+use WebDriver2::Test::PO-Test;
 
 class Mixed-Content {
 	has Str $.content1;
@@ -22,17 +22,15 @@ my IO::Path $html-file =
 class Mixed does WebDriver2::SUT::Service {
 	has Mixed-Content @!content;
 	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
-
 	method name ( --> Str:D ) { 'mixed' }
 
 	method navigate {
 		my $url = WebDriver2::SUT::Tree::URL.new: 'file://' ~ $html-file;
-		$!driver.navigate: $url.Str;
+		$!session.navigate: $url.Str;
 	}
 
 	method title {
-		$!driver.title;
+		$!session.title;
 	}
 	
 	method h2-text {
@@ -68,7 +66,7 @@ class Mixed does WebDriver2::SUT::Service {
 
 }
 
-class Mixed-Test does WebDriver2::Test::Service-Test {
+class Mixed-Test does WebDriver2::Test::PO-Test {
 	has Str:D $.sut-name = 'mixed';
 	has Int:D $.plan = 22;
 	has Str:D $.name = 'mixed';
@@ -77,7 +75,7 @@ class Mixed-Test does WebDriver2::Test::Service-Test {
 	has Mixed $!mixed;
 	
 	method services {
-		$.loader.load-elements: $!mixed = Mixed.new: :$.driver;
+		$!mixed, \( :$!browser, :$!debug ),
 	}
 
 #	method new ( Str $browser? is copy, Int :$debug is copy ) {
@@ -129,9 +127,4 @@ class Mixed-Test does WebDriver2::Test::Service-Test {
 	}
 }
 
-sub MAIN(
-		Str $browser?,
-		Int:D :$debug = 0
-) {
-	.execute with Mixed-Test.new: $browser, :$debug, test-root => 'xt'.IO;
-}
+constant &MAIN = po-test Mixed-Test;

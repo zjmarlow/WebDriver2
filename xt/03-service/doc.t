@@ -3,7 +3,7 @@ use Test;
 use lib <lib t/lib>;
 
 #use WebDriver2::Test::Template;
-use WebDriver2::Test::Service-Test;
+use WebDriver2::Test::PO-Test;
 #use WebDriver2::SUT::Service::Loader;
 use WebDriver2::SUT::Service;
 use WebDriver2::SUT::Tree;
@@ -11,15 +11,13 @@ use WebDriver2::SUT::Tree;
 class Login-Service does WebDriver2::SUT::Service {
 	has Str:D $.name = 'doc-login';
 	
-	my IO::Path $html-file = $*CWD.add: <xt content doc-login.html>;
+	my IO::Path:D $html-file = $*CWD.add: <xt content doc-login.html>;
 	
-	my WebDriver2::SUT::Tree::URL $url =
+	has WebDriver2::SUT::Tree::URL:D $.root-url =
 			WebDriver2::SUT::Tree::URL.new: 'file://' ~ $html-file.Str;
-	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
-	
+	method page { $!sut.get: self.name }
 	method log-in ( Str:D $username, Str:D $password ) {
-		$!driver.navigate: $url.Str;
+		$!session.navigate: $!root-url.Str;
 		.resolve.send-keys: $username with self.get: 'username';
 		.resolve.send-keys: $password with self.get: 'password';
 		.resolve.click with self.get: 'login-button';
@@ -28,8 +26,6 @@ class Login-Service does WebDriver2::SUT::Service {
 
 class Main-Service does WebDriver2::SUT::Service {
 	has Str:D $.name = 'doc-main';
-	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
 	
 	method question ( --> Str:D ) {
 		.resolve.text with self.get: 'question';
@@ -47,8 +43,6 @@ class Main-Service does WebDriver2::SUT::Service {
 
 class Form-Service does WebDriver2::SUT::Service {
 	has Str:D $.name = 'doc-form';
-	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver, Str:D :$!prefix = '' ) {}
 	
 	method value ( --> Str:D ) {
 		.resolve.value with self.get: 'input';
@@ -69,8 +63,6 @@ class Form-Service does WebDriver2::SUT::Service {
 class Frame-Service does WebDriver2::SUT::Service {
 	has Str:D $.name = 'doc-frame';
 	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
-	
 	method each-outer ( &cb ) {
 		for self.get( 'outer' ).iterator {
 			&cb( self );
@@ -88,37 +80,37 @@ class Frame-Service does WebDriver2::SUT::Service {
 	}
 }
 
-class Readme-Test does WebDriver2::Test::Service-Test {
+class Readme-Test does WebDriver2::Test::PO-Test {
 	has Str:D $.sut-name = 'doc-site';
-	has Int:D $.plan = 26;
+	has Int:D $.plan = 27;
 	has Str:D $.name = 'readme example';
 	has Str:D $.description = 'service / page object test example';
 #	has IO::Path:D $.test-root = $*CWD.add: 'xt';
-	has Login-Service $!ls;
-	has Main-Service $!ms;
-	has Form-Service $!fs-main;
-	has Form-Service $!fs-div;
-	has Form-Service $!fs-frame;
+	has Login-Service $!ls = Login-Service;
+	has Main-Service $!ms = Main-Service;
+	has Form-Service $!fs-main = Form-Service;
+	has Form-Service $!fs-frame = Form-Service;
+	has Form-Service $!fs-div = Form-Service;
 	has Frame-Service $!frs;
 	
 	method services {
-		$.loader.load-elements: $!ls = Login-Service.new: :$.driver;
-		$.loader.load-elements: $!ms = Main-Service.new: :$.driver;
-		
-		$.loader.load-elements: $!fs-main = Form-Service.new: :$.driver, prefix => '';
-		$.loader.load-elements: $!fs-frame = Form-Service.new: :$.driver, prefix => '/iframe';
-		$.loader.load-elements: $!fs-div = Form-Service.new: :$.driver, prefix => '/iframe/div';
-		
-		$.loader.load-elements: $!frs = Frame-Service.new: :$.driver;
+		$!ls, \( :$!browser, :$!debug ),
+		$!ms, \( :$!browser, :$!debug ),
+		$!fs-main, \( :$!browser, prefix => '', :$!debug ),
+		$!fs-frame, \( :$!browser, prefix => '/iframe', :$!debug ),
+		$!fs-div, \( :$!browser, prefix => '/iframe/div', :$!debug ),
+		$!frs, \( :$!browser, :$!debug )
 	}
 	
-	method pre-test { }
-	method post-test { }
-	
 	method test {
+		self.ok: 'page defined', $!ls.page;
 		$!ls.log-in: 'user', 'pass';
 		
-		self.is: 'sub xpath', 'subelement test', .resolve.text with $!ms.get: 'subelement';
+		self.is:
+				'sub xpath',
+				'subelement test',
+				.resolve.text
+		with $!ms.get: 'subelement';
 		
 		my Int:D $i = 3;
 		self.is:
@@ -173,9 +165,4 @@ class Readme-Test does WebDriver2::Test::Service-Test {
 	}
 }
 
-sub MAIN (
-		Str $browser? is copy,
-		Int :$debug = 0
-) {
-	.execute with Readme-Test.new: $browser, test-root => 'xt'.IO, :$debug;
-}
+constant &MAIN = po-test Readme-Test;

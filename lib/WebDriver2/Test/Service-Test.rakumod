@@ -16,7 +16,7 @@ method loader ( --> WebDriver2::SUT::Service::Loader:D ) {
 			:$.test-root,
 			sut =>
 				WebDriver2::SUT::Build.page:
-						{ $.driver.top },
+						{ $!session.top },
 						$.sut-name,
 						:$.debug;
 }
@@ -26,5 +26,7 @@ method loader ( --> WebDriver2::SUT::Service::Loader:D ) {
 #	$self.services;
 #	$self;
 #}
+
+method sut-name ( --> Str:D ) { ... }
 
 method services ( Str:D $browser ) { ... }

@@ -9,7 +9,7 @@ use WebDriver2::Test::Config-From-File;
 use WebDriver2::SUT::Build;
 use WebDriver2::SUT::Navigator;
 use WebDriver2::SUT::Service;
-use WebDriver2::Test::Service-Test;
+use WebDriver2::Test::PO-Test;
 use WebDriver2::Until;
 use WebDriver2::Until::SUT;
 use WebDriver2::Until::Command;
@@ -20,7 +20,9 @@ class ML does WebDriver2::SUT::Service {
     my IO::Path $html-file =
             .add: 'ml.html' with $*PROGRAM.parent.parent.add: 'content';
 
-    submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
+    method title ( --> Str:D ) { $!session.title }
+    
+    method refresh { $!session.refresh; }
 
     method name (--> Str:D) {
         'ml'
@@ -28,7 +30,7 @@ class ML does WebDriver2::SUT::Service {
 
     method li {
         my $url = WebDriver2::SUT::Tree::URL.new: 'file://' ~ $html-file;
-        $!driver.navigate: $url.Str;
+        $!session.navigate: $url.Str;
         my WebDriver2::Until $stale =
                 WebDriver2::Until::Command::Stale.new:
                         duration => 3,
@@ -40,8 +42,6 @@ class ML does WebDriver2::SUT::Service {
 }
 
 class L does WebDriver2::SUT::Service {
-    
-    submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
     
     method name (--> Str:D) {
         'l'
@@ -65,8 +65,6 @@ class L does WebDriver2::SUT::Service {
 
 class R does WebDriver2::SUT::Service {
     
-    submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
-
     method name (--> Str:D) {
         'r'
     }
@@ -95,7 +93,7 @@ class R does WebDriver2::SUT::Service {
     }
 }
 
-class LR does WebDriver2::Test::Service-Test {
+class LR does WebDriver2::Test::PO-Test {
     has Str:D $.sut-name = 'lr';
     has Int:D $.plan = 3;
     has Str:D $.name = 'lr';
@@ -106,9 +104,9 @@ class LR does WebDriver2::Test::Service-Test {
     has R $!rs;
     
     method services {
-        $.loader.load-elements: $!mls = ML.new: :$.driver;
-        $.loader.load-elements: $!ls = L.new: :$.driver;
-        $.loader.load-elements: $!rs = R.new: :$.driver;
+        $!mls, \( :$!browser, :$!debug ),
+        $!ls, \( :$!browser, :$!debug ),
+        $!rs, \( :$!browser, :$!debug ),
     }
 
     method pre-test { }
@@ -116,9 +114,9 @@ class LR does WebDriver2::Test::Service-Test {
 
     method test {
         $!mls.li;
-        self.is: 'main title', 'lr root', $.driver.title;
+        self.is: 'main title', 'lr root', $!mls.title;
 
-        $.driver.refresh;
+        $!mls.refresh;
         $!ls.i: 'l';
         $!rs.loaded;
         $!rs.i: 'r';
@@ -127,10 +125,5 @@ class LR does WebDriver2::Test::Service-Test {
     }
 }
 
-sub MAIN(
-        Str $browser?,
-        Int:D :$debug = 0
-) {
-    .execute with LR.new: $browser, :$debug, test-root => 'xt'.IO;
-}
+constant &MAIN = po-test LR;
 

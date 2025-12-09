@@ -35,7 +35,7 @@ class Local does WebDriver2::Test::Template {
 	method post-test { }
 	method test {
 		self.skip: 'mac-only tests', 4 unless $*DISTRO.name ~~ /MacOS/;
-		$!driver.driver.navigate: $page.Str;
+		$!session.navigate: $page.Str;
 
 		self.is: 'at page', 'test', .text with self.element-by-tag: 'h2';
 #		is $.driver.title, 'test', 'page title';
@@ -47,16 +47,16 @@ class Local does WebDriver2::Test::Template {
 		$el.frame.switch-to;
 		$el = self.element-by-tag: 'h2';
 		self.is: 'in deepest frame', 'internal frame', $el.text;
-		$!driver.driver.switch-to-parent;
+		$!session.switch-to-parent;
 		$el = self.element-by-tag: 'h2';
 		self.is: 'up one frame', 'list frame test', $el.text;
 	}
 	method element-by-tag( Str $tag-name ) {
-		$!driver.driver.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
+		$!session.element( WebDriver2::Command::Element::Locator::Tag-Name.new: $tag-name )
 	}
 
 	method element-by-id( Str $id ) {
-		$!driver.driver.element( WebDriver2::Command::Element::Locator::ID.new: $id )
+		$!session.element( WebDriver2::Command::Element::Locator::ID.new: $id )
 	}
 }
 

@@ -14,15 +14,15 @@ role WebDriver2::Driver-Actions {
 	has Str:D $.browser is required;
 #	method browser ( --> Str:D ) { ... }
 	
-	method start { ... }
+	method start { }
 	
 	method session { ... }
 	method status { ... }
 	
-	method stop { ... }
+	method stop { }
 }
 
-role WebDriver2::Session-Actions {
+role WebDriver2::Session-Actions does WebDriver2::Model::Context {
 #	method start { ... }
 	
 #	method session { ... }

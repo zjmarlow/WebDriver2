@@ -630,9 +630,11 @@ class WebDriver2::SUT::Tree::SUT {
 		%!page{ $id } = $page;
 		$page.accept: WebDriver2::SUT::Tree::Frame-Visitor.new;
 		$page.accept: WebDriver2::SUT::Tree::Fragile-Visitor.new;
+		die "missing page $id" unless %!page{ $id };
 	}
 	method get ( WebDriver2::SUT::Tree::SUT:D: Str:D $id --> WebDriver2::SUT::Tree::APage:D ) {
 		die "no page with id $id" unless %!page{ $id }:exists;
+		warn "bad id $id" if %!page{ $id } eq '/' or not %!page{ $id };
 		%!page{ $id }
 	}
 	method page-resolver ( &resolver ) {

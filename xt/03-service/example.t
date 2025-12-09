@@ -9,7 +9,7 @@ use WebDriver2::Test::Config-From-File;
 use WebDriver2::SUT::Build;
 use WebDriver2::SUT::Navigator;
 use WebDriver2::SUT::Service;
-use WebDriver2::Test::Service-Test;
+use WebDriver2::Test::PO-Test;
 use WebDriver2::Until;
 use WebDriver2::Until::SUT;
 use WebDriver2::Until::Command;
@@ -21,7 +21,9 @@ class Root-Content does WebDriver2::SUT::Service {
 	my IO::Path $html-file =
 			$*CWD.add: <xt content example.html>;
 	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
+	method title ( --> Str:D ) { $!session.title }
+	
+	method refresh { $!session.refresh; }
 
 	method heading ( --> Str:D ) {
 		.resolve.text with self.get: 'the-h2';
@@ -41,11 +43,11 @@ class Root-Content does WebDriver2::SUT::Service {
 			my $url =
 					WebDriver2::SUT::Tree::URL.new:
 							'file://' ~ $html-file;
-			$!driver.navigate: $url.Str;
+			$!session.navigate: $url.Str;
 	}
 
 	method open-other-frame {
-		$!driver.top;
+		$!session.top;
 		.resolve.click with self.get: 'the-button';
 	}
 }
@@ -55,8 +57,6 @@ class Root-Content does WebDriver2::SUT::Service {
 class Original-Frame does WebDriver2::SUT::Service {
 	has Str:D $.name = 'example-original-frame';
 	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
-
 	method heading ( --> Str:D ) {
 		.resolve.text with self.get: 'orig-h2';
 	}
@@ -75,8 +75,6 @@ class Original-Frame does WebDriver2::SUT::Service {
 class Replacement-Frame does WebDriver2::SUT::Service {
 	has Str:D $.name = 'example-replacement-frame';
 	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
-
 	method heading ( --> Str:D ) {
 		.resolve.text with self.get: 'rep-h2';
 	}
@@ -103,8 +101,6 @@ class Replacement-Frame does WebDriver2::SUT::Service {
 class Nested-Frame does WebDriver2::SUT::Service {
 	has Str:D $.name = 'example-nested-frame';
 	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
-
 	method heading ( --> Str:D ) {
 		.resolve.text with self.get: 'nested-h2';
 	}
@@ -120,7 +116,7 @@ class Nested-Frame does WebDriver2::SUT::Service {
 	}
 }
 
-class Example-Test does WebDriver2::Test::Service-Test {
+class Example-Test does WebDriver2::Test::PO-Test {
 	has Str:D $.sut-name = 'example';
 	has Int:D $.plan = 18;
 	has Str:D $.name = 'example test name';
@@ -132,15 +128,12 @@ class Example-Test does WebDriver2::Test::Service-Test {
 	has Nested-Frame $!nf;
 	
 	method services {
-		$.loader.load-elements: $!mls = Root-Content.new: :$.driver;
-		$.loader.load-elements: $!of = Original-Frame.new: :$.driver;
-		$.loader.load-elements: $!rf = Replacement-Frame.new: :$.driver;
-		$.loader.load-elements: $!nf = Nested-Frame.new: :$.driver;
+		$!mls, \( :$!browser, :$!debug ),
+		$!of, \( :$!browser, :$!debug ),
+		$!rf, \( :$!browser, :$!debug ),
+		$!nf, \( :$!browser, :$!debug )
 	}
 	
-	method pre-test { }
-	method post-test { }
-
 	method test {
 		my Str:D @results =
 				'main - uno',
@@ -157,7 +150,7 @@ class Example-Test does WebDriver2::Test::Service-Test {
 				'nested-frame - tre',
 				;
 		$!mls.open;
-		self.is: 'main title', 'ml test', $.driver.title;
+		self.is: 'main title', 'ml test', $!mls.title;
 		self.is: 'main heading', 'example', $!mls.heading;
 		$!mls.each-list-item: -> Root-Content $frame {
 			self.is: 'main li', @results.shift, $frame.li.text;
@@ -182,13 +175,8 @@ class Example-Test does WebDriver2::Test::Service-Test {
 
 		self.nok: 'all items found', @results.elems;
 
-		$.driver.refresh;
+		$!mls.refresh;
 	}
 }
 
-sub MAIN(
-	Str $browser?,
-	Int:D :$debug = 0
-) {
-	.execute with Example-Test.new: $browser, :$debug, test-root => 'xt'.IO;
-}
+constant &MAIN = po-test Example-Test;

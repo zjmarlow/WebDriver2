@@ -89,12 +89,12 @@ method skip ( Str $reason, Int $count? ) {
 }
 
 method flunk ( Str:D $descr ) {
-	self.handle-test-failure: $descr;
+#	self.handle-test-failure: $descr;
 	flunk $descr;
 }
 
 method bail ( Str:D $descr ) {
-	self.handle-test-failure: $descr;
+#	self.handle-test-failure: $descr;
 	bail-out $descr;
 }
 

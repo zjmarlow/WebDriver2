@@ -38,7 +38,7 @@ class WebDriver2::SUT::Navigator {
 	has Int $!debug;
 
 	submethod BUILD ( WebDriver2::SUT::Tree::ANode:D :$!tree, Int :$!debug = 0 ) {
-		say $!tree.name if $!debug > 1;
+		say 'tree built ', $!tree.name if $!debug > 1;
 		$!curr = $!tree;
 	}
 

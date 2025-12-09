@@ -11,8 +11,14 @@ use WebDriver2::Command::Param;
 use WebDriver2::Command::Result;
 use WebDriver2::Command::Param::Factory;
 use WebDriver2::Command::Param::Factory::Chrome;
+use WebDriver2::Command::Param::Factory::Edge;
+use WebDriver2::Command::Param::Factory::Firefox;
+use WebDriver2::Command::Param::Factory::Safari;
 use WebDriver2::Command::Result::Factory;
 use WebDriver2::Command::Result::Factory::Chrome;
+use WebDriver2::Command::Result::Factory::Edge;
+use WebDriver2::Command::Result::Factory::Firefox;
+use WebDriver2::Command::Result::Factory::Safari;
 
 use WebDriver2::Constants;
 
@@ -239,6 +245,7 @@ class WebDriver2::Driver
 		}
 		
 		multi method screenshot( WebDriver2::Session-Actions: --> Str:D ) {
+			return unless $!session-id;
 			my WebDriver2::Command::Result::Screenshot $screenshot =
 					WebDriver2::Command::Screenshot.new
 					.execute-with: self, $!session-id;
@@ -248,6 +255,7 @@ class WebDriver2::Driver
 		}
 		
 		method !screenshot( Str:D $element --> Str:D ) {
+			return unless $!session-id;
 			my WebDriver2::Command::Result::Element-Screenshot $screenshot =
 					WebDriver2::Command::Element-Screenshot.new( :$element )
 					.execute-with: self, $!session-id;
@@ -687,6 +695,7 @@ class WebDriver2::Driver
 		
 		
 		method delete-session {
+			return without $!session-id;
 			my WebDriver2::Command::Result::Delete-Session $delete-session =
 					WebDriver2::Command::Delete-Session.new
 						.execute-with: self, $!session-id;

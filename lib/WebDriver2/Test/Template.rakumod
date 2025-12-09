@@ -59,7 +59,9 @@ method !close {
 	$!session.delete-session;
 }
 #method !done-testing { done-testing }
-method cleanup { }
+method cleanup {
+	self!close;
+}
 
 method execute {
 	try {
@@ -82,7 +84,7 @@ method execute {
 			}
 		}
 	}
-	done-testing without $.plan;
+	done-testing unless $.plan;
 }
 
 method handle-test-failure ( Str $descr ) {

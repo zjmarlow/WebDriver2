@@ -9,7 +9,7 @@ use WebDriver2::Test::Config-From-File;
 use WebDriver2::SUT::Build;
 use WebDriver2::SUT::Navigator;
 use WebDriver2::SUT::Service;
-use WebDriver2::Test::Service-Test;
+use WebDriver2::Test::PO-Test;
 use WebDriver2::Until;
 use WebDriver2::Until::SUT;
 
@@ -18,17 +18,15 @@ my IO::Path $html-file =
 
 class Multi-Outer does WebDriver2::SUT::Service {
 	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
-	
 	method name ( --> Str:D ) { 'multi-outer' }
 
 	method navigate {
 		my $url = WebDriver2::SUT::Tree::URL.new: 'file://' ~ $html-file;
-		$!driver.navigate: $url.Str;
+		$!session.navigate: $url.Str;
 	}
 
 	method title {
-		$!driver.title;
+		$!session.title;
 	}
 
 	method inner-first {
@@ -37,8 +35,6 @@ class Multi-Outer does WebDriver2::SUT::Service {
 }
 
 class Multi-Form does WebDriver2::SUT::Service {
-	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
 	
 	method name ( --> Str:D ) { 'multi-form' }
 	
@@ -50,7 +46,7 @@ class Multi-Form does WebDriver2::SUT::Service {
 	}
 }
 
-class Multi-Service-Test does WebDriver2::Test::Service-Test {
+class Multi-Service-Test does WebDriver2::Test::PO-Test {
 	has Str:D $.sut-name = 'multi-service';
 	has Int:D $.plan = 4;
 	has Str:D $.name = 'multi-service';
@@ -60,8 +56,8 @@ class Multi-Service-Test does WebDriver2::Test::Service-Test {
 	has Multi-Form $!form-service;
 	
 	method services {
-		$.loader.load-elements: $!outer-service = Multi-Outer.new: :$.driver;
-		$.loader.load-elements: $!form-service = Multi-Form.new: :$.driver;
+		$!outer-service, \( :$!browser, :$!debug ),
+		$!form-service, \( :$!browser, :$!debug ),
 	}
 	
 	method pre-test { }
@@ -165,9 +161,4 @@ class Multi-Service-Test does WebDriver2::Test::Service-Test {
 	}
 }
 
-sub MAIN(
-		Str $browser?,
-		Int:D :$debug = 0
-) {
-	.execute with Multi-Service-Test.new: $browser, :$debug, test-root => 'xt'.IO;
-}
+constant &MAIN = po-test Multi-Service-Test;
