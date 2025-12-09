@@ -2,7 +2,7 @@ use lib <lib t/lib>;
 
 use Test;
 
-plan 44;
+plan 52;
 
 use-ok "WebDriver2";
 use-ok "WebDriver2::Command";
@@ -48,5 +48,91 @@ use-ok "WebDriver2::Until";
 use-ok "WebDriver2::Until-C";
 use-ok "WebDriver2::Until::Command";
 use-ok "WebDriver2::Until::SUT";
+
+throws-like
+		q{
+			use WebDriver2::Driver;
+			Session.raku;
+		},
+		X::Undeclared::Symbols,
+		'Session is private',
+		message =>
+		q:to/END/
+		Undeclared name:
+		    Session used at line 3. Did you mean 'Version'?
+		END
+		;
+throws-like
+		{
+			use WebDriver2::Driver;
+			WebDriver2::Driver::Session.raku;
+		},
+		X::AdHoc,
+		'Session is private',
+		message => q|Could not find symbol '&Session' in 'WebDriver2::Driver'|
+		;
+throws-like
+		q{
+			use WebDriver2::Driver;
+			Internal-Element.raku;
+		},
+		X::Undeclared::Symbols,
+		'Internal-Element is private',
+		message =>
+		q:to/END/
+		Undeclared name:
+		    Internal-Element used at line 3
+		END
+		;
+throws-like
+		{
+			use WebDriver2::Driver;
+			Session::Internal-Element.raku;
+		},
+		X::AdHoc,
+		'Internal-Element is private',
+		message =>
+		q|Could not find symbol '&Internal-Element' in 'GLOBAL::Session'|
+		;
+throws-like
+		{
+			use WebDriver2::Driver;
+			WebDriver2::Driver::Session::Internal-Element.raku;
+		},
+		X::AdHoc,
+		'Internal-Element is private',
+		message =>
+		q|Could not find symbol '&Internal-Element' in 'WebDriver2::Driver::Session'|
+		;
+throws-like
+		q{
+			use WebDriver2::Driver;
+			Session::Internal-Frame.raku;
+		},
+		X::AdHoc,
+		'Internal-Frame is private',
+		message =>
+		q|Could not find symbol '&Internal-Frame' in 'GLOBAL::Session'|
+		;
+throws-like
+		{
+			use WebDriver2::Driver;
+			Session::Internal-Frame.raku;
+		},
+		X::AdHoc,
+		'Internal-Frame is private',
+		message =>
+		q|Could not find symbol '&Internal-Frame' in 'GLOBAL::Session'|
+		;
+throws-like
+		{
+			use WebDriver2::Driver;
+			WebDriver2::Driver::Session::Internal-Frame.raku;
+		},
+		X::AdHoc,
+		'Internal-Frame is private',
+		message =>
+		q|Could not find symbol '&Internal-Frame' in 'WebDriver2::Driver::Session'|
+		;
 
 done-testing;
