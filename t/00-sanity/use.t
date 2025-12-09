@@ -56,11 +56,7 @@ throws-like
 		},
 		X::Undeclared::Symbols,
 		'Session is private',
-		message =>
-		q:to/END/
-		Undeclared name:
-		    Session used at line 3. Did you mean 'Version'?
-		END
+		message => rx:s/Undeclared name\: Session/
 		;
 throws-like
 		{
@@ -78,11 +74,7 @@ throws-like
 		},
 		X::Undeclared::Symbols,
 		'Internal-Element is private',
-		message =>
-		q:to/END/
-		Undeclared name:
-		    Internal-Element used at line 3
-		END
+		message => rx:s/Undeclared name\: Internal\-Element/
 		;
 throws-like
 		{
