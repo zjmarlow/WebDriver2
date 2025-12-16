@@ -1,5 +1,6 @@
 use v6;
 
+use WebDriver2::Test::Debugging;
 use WebDriver2;
 use WebDriver2::Until;
 use WebDriver2::Command::Execution-Status;
@@ -14,7 +15,7 @@ role WebDriver2::Until::Command::Throwable #`( [::T] is T ) {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug
+			Int :$debug-level
 	) {
 		callwith
 				:&operation,
@@ -24,7 +25,7 @@ role WebDriver2::Until::Command::Throwable #`( [::T] is T ) {
 				:$duration,
 				:$interval,
 				:$soft,
-				:$debug;
+				:$debug-level;
 	}
 }
 
@@ -62,14 +63,14 @@ class WebDriver2::Until::Command::Displayed is WebDriver2::Until {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug
+			Int :$debug-level
 	) {
 		callwith
 				operation => { $element.displayed; },
 				:$duration,
 				:$interval,
 				:$soft,
-				:$debug;
+				:$debug-level;
 	}
 }
 
@@ -79,14 +80,14 @@ class WebDriver2::Until::Command::Not-Displayed is WebDriver2::Until {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug
+			Int :$debug-level
 	) {
 		callwith
 				operation => { not $element.displayed; },
 				:$duration,
 				:$interval,
 				:$soft,
-				:$debug;
+				:$debug-level;
 	}
 }
 
@@ -96,14 +97,14 @@ class WebDriver2::Until::Command::Value-Not-Empty is WebDriver2::Until {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug
+			Int :$debug-level
 	) {
 		callwith
 				operation => { $element.value; },
 				:$duration,
 				:$interval,
 				:$soft,
-				:$debug;
+				:$debug-level;
 	}
 }
 
@@ -113,14 +114,14 @@ class WebDriver2::Until::Command::Value-To-Be is WebDriver2::Until {
 			Str :$value,
 			Real :$duration,
 			Real :$interval,
-			Int :$debug
+			Int :$debug-level
 	) {
 		callwith
 				operation => { $element.value eq $value },
 				:$duration,
 				:$interval,
 				:!soft,
-				:$debug;
+				:$debug-level;
 	}
 }
 
@@ -130,14 +131,14 @@ class WebDriver2::Until::Command::Text-To-Be is WebDriver2::Until {
 			Str :$value,
 			Real :$duration,
 			Real :$interval,
-			Int :$debug
+			Int :$debug-level
 	) {
 		callwith
 				operation => { $element.text eq $value },
 				:$duration,
 				:$interval,
 				:!soft,
-				:$debug;
+				:$debug-level;
 	}
 }
 
@@ -147,14 +148,14 @@ class WebDriver2::Until::Command::Stale is WebDriver2::Until {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug = 0
+			Int :$debug-level = Level::WARN
 	) {
 		callwith
 				operation => { $element.stale; },
 				:$duration,
 				:$interval,
 				:$soft,
-				:$debug;
+				:$debug-level;
 	}
 }
 
@@ -164,14 +165,14 @@ class WebDriver2::Until::Command::Title-Is is WebDriver2::Until {
 			Str:D :$title!,
 			Real:D :$duration = 5,
 			Real:D :$interval = 1 / 10,
-			Int:D :$debug = 0,
+			Int:D :$debug-level = Level::WARN,
 			Bool:D :$soft = False
 	) {
 		callwith
 				operation => { $session.title eq $title },
 				:$duration,
 				:$interval,
-				:$debug,
+				:$debug-level,
 	}
 }
 
@@ -182,13 +183,13 @@ class WebDriver2::Until::Command::Title-Is is WebDriver2::Until {
 #			Real :$duration,
 #			Real :$interval,
 #			Bool :$soft,
-#			Int :$debug
+#			Int :$debug-level
 #	) {
 #		callwith
 #				operation => { not $context.element( $locator ).stale; },
 #				:$duration,
 #				:$interval,
 #				:$soft,
-#				:$debug;
+#				:$debug-level;
 #	}
 #}

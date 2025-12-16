@@ -49,7 +49,16 @@ class Root-Content does WebDriver2::SUT::Service {
 	method open-other-frame {
 		$!session.top;
 		.resolve.click with self.get: 'the-button';
+		self.switch-to-replacement-frame;
 	}
+	
+	method switch-to-original-frame {
+        .resolve.switch-to with self.get: 'the-original-frame';
+    }
+    
+    method switch-to-replacement-frame {
+        .resolve.switch-to with self.get: 'the-replacement-frame';
+    }
 }
 
 
@@ -70,6 +79,10 @@ class Original-Frame does WebDriver2::SUT::Service {
 	method li {
 		.resolve with self.get: 'a-fli';
 	}
+	
+	method return-to-parent {
+        $!session.switch-to-parent;
+    }
 }
 
 class Replacement-Frame does WebDriver2::SUT::Service {
@@ -96,6 +109,14 @@ class Replacement-Frame does WebDriver2::SUT::Service {
 							element => self.get: 'rep-li';
 			$input-present.retry;
 	}
+	
+	method switch-to-nested-frame {
+		.resolve.switch-to with self.get: 'nested-frame';
+	}
+	
+	method return-to-parent {
+        $!session.switch-to-parent;
+    }
 }
 
 class Nested-Frame does WebDriver2::SUT::Service {
@@ -114,11 +135,15 @@ class Nested-Frame does WebDriver2::SUT::Service {
 	method li ( --> WebDriver2::Model::Element:D ) {
 		.resolve with self.get: 'nested-li';
 	}
+	
+	method return-to-parent {
+        $!session.switch-to-parent;
+    }
 }
 
 class Example-Test does WebDriver2::Test::PO-Test {
 	has Str:D $.sut-name = 'example';
-	has Int:D $.plan = 18;
+	has Int:D $.plan = 20;
 	has Str:D $.name = 'example test name';
 	has Str:D $.description = 'example test description';
 	
@@ -128,10 +153,10 @@ class Example-Test does WebDriver2::Test::PO-Test {
 	has Nested-Frame $!nf;
 	
 	method services {
-		$!mls, \( :$!browser, :$!debug ),
-		$!of, \( :$!browser, :$!debug ),
-		$!rf, \( :$!browser, :$!debug ),
-		$!nf, \( :$!browser, :$!debug )
+		$!mls, \( :$!browser, :$!debug-level ),
+		$!of, \( :$!browser, :$!debug-level ),
+		$!rf, \( :$!browser, :$!debug-level ),
+		$!nf, \( :$!browser, :$!debug-level )
 	}
 	
 	method test {
@@ -155,11 +180,15 @@ class Example-Test does WebDriver2::Test::PO-Test {
 		$!mls.each-list-item: -> Root-Content $frame {
 			self.is: 'main li', @results.shift, $frame.li.text;
 		};
+		
+		$!mls.switch-to-original-frame;
 
 		self.is: 'original frame heading', 'example frame', $!of.heading;
 		$!of.each-list-item: -> Original-Frame $frame {
 			self.is: 'original frame li', @results.shift, $frame.li.text;
 		};
+		
+		$!of.return-to-parent;
 
 		$!mls.open-other-frame;
 
@@ -167,13 +196,20 @@ class Example-Test does WebDriver2::Test::PO-Test {
 		$!rf.each-list-item: -> Replacement-Frame $frame {
 			self.is: 'replacement frame li', @results.shift, $frame.li.text;
 		};
-
+		
+		$!rf.switch-to-nested-frame;
+		
 		self.is: 'nested frame heading', 'nested frame', $!nf.heading;
 		$!nf.each-list-item: -> Nested-Frame $frame {
 			self.is: 'nested frame li', @results.shift, $frame.li.text;
 		};
 
-		self.nok: 'all items found', @results.elems;
+		self.is: 'all items found', 0, +@results;
+		
+		$!nf.return-to-parent;
+		self.is: 'replacement frame heading', 'navigated frame', $!rf.heading;
+		$!rf.return-to-parent;
+		self.is: 'main heading', 'example', $!mls.heading;
 
 		$!mls.refresh;
 	}

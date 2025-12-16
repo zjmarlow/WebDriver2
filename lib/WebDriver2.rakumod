@@ -3,14 +3,16 @@ use WebDriver2::HTTP::UserAgent;
 use WebDriver2::Command::Element::Locator;
 use WebDriver2::Command::Param;
 
+use WebDriver2::Test::Debugging;
+
 role WebDriver2 { ... }
 role WebDriver2::Model::Context { ... }
 role WebDriver2::Model::Element does WebDriver2::Model::Context { ... }
-role WebDriver2::Model::Frame does WebDriver2::Model::Element { ... }
+role WebDriver2::Model::Frame does WebDriver2::Model::Context { ... }
 
 role WebDriver2::Driver-Actions {
 #	has WebDriver2::HTTP::UserAgent $!ua;
-#	has Int $.debug is rw;
+#	has Level $.debug is rw;
 	has Str:D $.browser is required;
 #	method browser ( --> Str:D ) { ... }
 	
@@ -50,11 +52,12 @@ role WebDriver2::Session-Actions does WebDriver2::Model::Context {
 	
 	method execute-script( Str:D, Str @ ) { ... }
 	
+	multi method switch-to( WebDriver2::Model::Frame:D $frame ) { ... }
 	multi method switch-to( Int:D $frame ) { ... }
 	method timeouts( Int :$script, Int :$pageLoad, Int :$implicit ) { ... }
 	method switch-to-parent { ... }
 	method top { ... }
-	method curr-frame( --> WebDriver2::Command::Param::ID-or-Index ) { ... }
+# 	method curr-frame( --> WebDriver2::Command::Param::ID-or-Index ) { ... }
 
 	method active( --> WebDriver2::Model::Element:D ) { ... }
 
@@ -124,7 +127,7 @@ role WebDriver2
 #	has Str $.session-id is rw;
 #	has Str:D $.browser is required;
 	has WebDriver2::HTTP::UserAgent $.ua;
-	has Int $.debug is rw;
+#	has Level $.debug is rw;
 	
 	method browser ( --> Str:D ) { ... }
 }
@@ -138,7 +141,10 @@ role WebDriver2::Model::Context {
 	) { ... }
 }
 
-role WebDriver2::Model::Element does WebDriver2::Model::Context {
+role WebDriver2::Model::Element
+		does WebDriver2::Model::Context
+		does WebDriver2::Test::Debugging
+{
 #	has Str:D $!internal-id is required;
 	method !internal-id( --> Str:D ) { ... }
 	method frame( --> WebDriver2::Model::Frame:D ) { ... }
@@ -157,14 +163,15 @@ role WebDriver2::Model::Element does WebDriver2::Model::Context {
 	method send-keys( Str:D ) { ... }
 	method clear( --> WebDriver2::Model::Element:D ) { ... }
 	method click( --> WebDriver2::Model::Element:D ) { ... }
-	method debug ( --> Str:D ) { ... }
 	multi method ACCEPTS( WebDriver2::Model::Element:D: $other ) {
 		self!internal-id eq $other!internal-id;
 	}
 }
 
-role WebDriver2::Model::Frame does WebDriver2::Model::Element {
+role WebDriver2::Model::Frame does WebDriver2::Model::Context {
 	method is-curr-frame( --> Bool:D ) { ... }
 	method switch-to( --> WebDriver2::Model::Frame:D ) { ... }
 	method context( --> WebDriver2::Model::Context:D ) { ... }
+	method tag-name ( --> Str:D ) { ... }
+	method !internal-id ( --> Str:D ) { ... }
 }

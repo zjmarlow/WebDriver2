@@ -25,7 +25,7 @@ class ML does WebDriver2::SUT::Service {
     method refresh { $!session.refresh; }
 
     method name (--> Str:D) {
-        'ml'
+        'lr'
     }
 
     method li {
@@ -39,6 +39,32 @@ class ML does WebDriver2::SUT::Service {
         .resolve.click with self.get: 'button';
         $stale.retry;
     }
+	
+	method switch-to-l {
+		.resolve.switch-to with self.get: 'lf';
+	}
+	method switch-to-r {
+        .resolve.switch-to with self.get: 'rf';
+    }
+}
+
+class LR does WebDriver2::SUT::Service {
+	my IO::Path $html-file =
+                .add: 'lr-root.html'
+                with $*PROGRAM.parent.parent.add: 'content';
+    
+        method title ( --> Str:D ) { $!session.title }
+        
+        method refresh { $!session.refresh; }
+    
+        method name (--> Str:D) { 'lr-root' }
+    	
+    	method switch-to-l {
+    		.resolve.switch-to with self.get: 'lf';
+    	}
+    	method switch-to-r {
+            .resolve.switch-to with self.get: 'rf';
+        }
 }
 
 class L does WebDriver2::SUT::Service {
@@ -48,18 +74,16 @@ class L does WebDriver2::SUT::Service {
     }
 
     multi method i ( --> Str:D ) {
-        my $f = self.get: 'l';
-        $f.resolve;
-        $f.present.switch-to;
         .resolve.value with self.get: 'li';
     }
 
     multi method i ( Str:D $i ) {
-        my $f = self.get: 'l';
-        $f.resolve;
-        $f.present.switch-to;
         my $input = .resolve with self.get: 'li';
         $input.send-keys: $i;
+    }
+    
+    method return-to-parent {
+        $!session.switch-to-parent;
     }
 }
 
@@ -70,19 +94,18 @@ class R does WebDriver2::SUT::Service {
     }
 
     multi method i ( --> Str:D ) {
-        my $f = self.get: 'r';
-        $f.resolve;
-        $f.present.switch-to;
         .resolve.value with self.get: 'ri';
     }
 
     multi method i ( Str:D $i ) {
-        my $el = self.get: 'r';
-        $el.resolve;
-        $el.present.switch-to;
         my $input = .resolve with self.get: 'ri';
         $input.send-keys: $i;
     }
+    
+    method return-to-parent {
+        $!session.switch-to-parent;
+    }
+    
     method loaded {
         my WebDriver2::Until $input-present =
                 WebDriver2::Until::SUT::Present.new:
@@ -93,20 +116,22 @@ class R does WebDriver2::SUT::Service {
     }
 }
 
-class LR does WebDriver2::Test::PO-Test {
+class LR-Test does WebDriver2::Test::PO-Test {
     has Str:D $.sut-name = 'lr';
     has Int:D $.plan = 3;
     has Str:D $.name = 'lr';
     has Str:D $.description = 'lr service and frames test';
-
+	
     has ML $!mls;
+    has LR $!lrs;
     has L $!ls;
     has R $!rs;
     
     method services {
-        $!mls, \( :$!browser, :$!debug ),
-        $!ls, \( :$!browser, :$!debug ),
-        $!rs, \( :$!browser, :$!debug ),
+        $!mls, \( :$!browser, :$!debug-level ),
+        $!lrs, \( :$!browser, :$!debug-level ),
+        $!ls, \( :$!browser, :$!debug-level ),
+        $!rs, \( :$!browser, :$!debug-level ),
     }
 
     method pre-test { }
@@ -117,13 +142,19 @@ class LR does WebDriver2::Test::PO-Test {
         self.is: 'main title', 'lr root', $!mls.title;
 
         $!mls.refresh;
-        $!ls.i: 'l';
-        $!rs.loaded;
-        $!rs.i: 'r';
-        self.is: 'l', 'l', $!ls.i;
-        self.is: 'r', 'r', $!rs.i;
+        $!lrs.switch-to-l;
+        $!ls.i: 'li';
+		$!ls.return-to-parent;
+		$!lrs.switch-to-r;
+        $!rs.i: 'ri';
+		$!ls.return-to-parent;
+		$!lrs.switch-to-l;
+        self.is: 'li', 'li', $!ls.i;
+		$!ls.return-to-parent;
+		$!lrs.switch-to-r;
+        self.is: 'ri', 'ri', $!rs.i;
     }
 }
 
-constant &MAIN = po-test LR;
+constant &MAIN = po-test LR-Test;
 

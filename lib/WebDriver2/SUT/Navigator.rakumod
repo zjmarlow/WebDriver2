@@ -1,3 +1,4 @@
+use WebDriver2::Test::Debugging;
 use WebDriver2::SUT::Tree;
 
 class WebDriver2::SUT::Navigator::Path does Iterable {
@@ -35,10 +36,10 @@ class WebDriver2::SUT::Navigator::Path does Iterable {
 class WebDriver2::SUT::Navigator {
 	has WebDriver2::SUT::Tree::ANode $!tree is required;
 	has WebDriver2::SUT::Tree::ANode $!curr;
-	has Int $!debug;
+	has Int $!debug-level;
 
-	submethod BUILD ( WebDriver2::SUT::Tree::ANode:D :$!tree, Int :$!debug = 0 ) {
-		say 'tree built ', $!tree.name if $!debug > 1;
+	submethod BUILD ( WebDriver2::SUT::Tree::ANode:D :$!tree, Int :$!debug-level = Level::WARN ) {
+		say 'tree built ', $!tree.name if $!debug-level > 1;
 		$!curr = $!tree;
 	}
 
@@ -52,22 +53,22 @@ class WebDriver2::SUT::Navigator {
 
 	multi method traverse ( Str $path --> WebDriver2::SUT::Tree::ANode:D ) {
 		my WebDriver2::SUT::Navigator::Path $nav-path = WebDriver2::SUT::Navigator::Path.new: $path;
-		if $!debug > 1 {
+		if $!debug-level > 1 {
 			.say for $nav-path.flat;
 		}
 #		self.traverse if $nav-path.abs;
 		if $nav-path.abs {
 			my WebDriver2::SUT::Tree::ANode $n = self.traverse;
-			$n.children>>.name>>.say if $!debug > 1;
+			$n.children>>.name>>.say if $!debug-level > 1;
 		}
 		for $nav-path.flat -> Str $part {
 			if $part eq '..' {
 				return $!curr if $!curr === $!tree;
-				say 'ascending' if $!debug > 1;
+				say 'ascending' if $!debug-level > 1;
 				$!curr .= parent;
 				$!curr.notify;
 			} else {
-				say "getting $part" if $!debug > 1;
+				say "getting $part" if $!debug-level > 1;
 				$!curr .= get: $part;
 				$!curr.notify;
 			}

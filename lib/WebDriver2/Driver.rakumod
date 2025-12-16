@@ -5,6 +5,7 @@ use JSON::Fast;
 use URI::Encode;
 use WebDriver2::Driver::Server;
 use WebDriver2;
+use WebDriver2::Test::Debugging;
 
 use WebDriver2::Command;
 use WebDriver2::Command::Param;
@@ -19,25 +20,28 @@ use WebDriver2::Command::Result::Factory::Chrome;
 use WebDriver2::Command::Result::Factory::Edge;
 use WebDriver2::Command::Result::Factory::Firefox;
 use WebDriver2::Command::Result::Factory::Safari;
+use WebDriver2::Command::Element::Locator::Tag-Name;
 
 use WebDriver2::Constants;
 
+use WebDriver2::Test::Debugging;
 use WebDriver2::Test::Config-From-File;
 
 class WebDriver2::Driver
 		does WebDriver2::Driver-Actions
+		does WebDriver2::Test::Debugging
 		does WebDriver2::Test::Config-From-File
 {
 	my WebDriver2::HTTP::UserAgent $ua;
 	has WebDriver2::Driver::Server:D $.server is required;
-	has Int:D $.debug is required is rw;
+#	has Level:D $.debug-level is required;
 	
 	has WebDriver2::Command::Param::Factory $.param = self.param-factory;
 	has WebDriver2::Command::Result::Factory $.result = self.factory;
 	
 	my class Session { ... }
 	my class Session::Internal-Element { ... }
-	my role Session::Internal-Frame { ... }
+	my class Session::Internal-Frame { ... }
 	
 	class Chrome { ... }
 	class Edge { ... }
@@ -52,37 +56,37 @@ class WebDriver2::Driver
 	);
 	method new (
 			Str:D $browser is copy,
-			Int:D :$debug = 0
+			Level:D :$debug-level = Level::WARN
 			--> WebDriver2::Driver-Actions:D
 	) {
 		return %driver{ $browser } if %driver{ $browser };
-		self.set-from-file: $browser, #`[ $.debug ];
-		$ua ||= WebDriver2::HTTP::UserAgent.new: :$debug;
-		%driver{ $browser } .=new: :$debug;
+		self.set-from-file: $browser, #`[ $.debug-level ];
+		$ua ||= WebDriver2::HTTP::UserAgent.new: :$debug-level;
+		%driver{ $browser } .=new: :$debug-level;
 	}
 #	method browser ( --> Str:D ) { ... }
 	method ua ( --> WebDriver2::HTTP::UserAgent:D ) { $ua }
 	
-	multi method debug {
-		$!debug;
-	}
+#	multi method debug {
+#		$!debug-level;
+#	}
 #
-#	multi method debug ( Int:D $debug ) {
-#		$!debug = $debug;
+#	multi method debug ( Level:D $debug-level ) {
+#		$!debug-level = $debug-level;
 #	}
 	
 	method param-factory( --> WebDriver2::Command::Param::Factory ) {...}
 	
 	method factory( --> WebDriver2::Command::Result::Factory ) {...}
 	
-	multi method debug( WebDriver2::Command::PreResult $result, *@data ) {
-		say $result.Str if $!debug >= 1;
-		if $!debug { .say for @data };
+	multi method debug ( WebDriver2::Command::PreResult $result, *@data ) {
+		self.debug: Level::trace, $result.Str;
+		self.debug: Level::trace, .self.Str for @data;
 	}
 	
-	multi method debug( WebDriver2::Command::Result $result, *@data ) {
+	multi method debug ( WebDriver2::Command::Result $result, *@data ) {
 		callsame;
-		say $result.execution-status if $!debug;
+		self.debug: $result.execution-status.raku;
 	}
 	
 	method !ready( --> Bool ) {
@@ -101,8 +105,9 @@ class WebDriver2::Driver
 				my WebDriver2::Command::Result::Session $session =
 						WebDriver2::Command::Session.new
 						.execute-with: self;
-				self.debug: $session, $session.value;
-				say 'SESSION RESULT ', $session.raku if $!debug;
+				self.debug: $session.value;
+				self.debug: Level::trace, $session.Str;
+				self.debug: Level::trace, 'SESSION RESULT', $session.raku;
 				
 				my Str:D $session-id = $session.value;
 #				$!original-window = self.window-handle;
@@ -110,7 +115,8 @@ class WebDriver2::Driver
 				return Session.new:
 						driver => self,
 						:$session-id,
-						:$!debug;
+						:$!debug-level
+						;
 #				return $!session-id;
 			}
 		}
@@ -133,47 +139,31 @@ class WebDriver2::Driver
 	class Session
 			does WebDriver2::Session-Actions
 			does WebDriver2::Element-Actions
+			does WebDriver2::Test::Debugging
 	{
 		trusts Internal-Element;
+# 		trusts ::WebDriver2::Driver::Session::Internal-Frame;
 		trusts Internal-Frame;
 		
-		has Str:D $!session-id is required;
+		has Str:D $!session-id is built is required;
 		has Str $!original-window;
 		has SetHash[Str:D] $!window-handles = SetHash[Str:D].new;
 		
-		has Int:D $!debug is required;
-		
-		has WebDriver2::Driver:D $.driver is required;
+		has WebDriver2::Driver:D $.driver is built is required;
 #		has WebDriver2::Command::Param::Factory:D $.param = self.param-factory;
 #		has WebDriver2::Command::Result::Factory:D $.result = self.factory;
-		has WebDriver2::Command::Param::ID-or-Index @.frames;
+		has WebDriver2::Model::Frame @!frames;
 		# FIXME : make private
-		
-		submethod BUILD(
-				WebDriver2::Driver:D :$!driver,
-#				WebDriver2::Driver::Server:D :$!server,
-				Str:D :$!session-id,
-				Int:D :$!debug = 0
-		) {
-			my Bool $throw-exceptions = ( $!debug >= 4 );
-#			$!ua = (
-#					$!debug
-#							?? WebDriver2::HTTP::UserAgent.new(
-#							#`( :$throw-exceptions, )
-#							:$!debug )
-#							!! WebDriver2::HTTP::UserAgent.new
-#			);
-		}
 		
 		method new (
 				WebDriver2::Driver:D :$driver,
 				Str:D :$session-id,
-				Int:D :$debug = 0
+				Level:D :$debug-level = Level::WARN
 		) {
 			my $self = self.bless:
 				:$driver,
 				:$session-id,
-				:$debug
+				:$debug-level
 			;
 			$self.window-handle;
 			$self;
@@ -181,25 +171,31 @@ class WebDriver2::Driver
 		
 		method browser ( --> Str:D ) { $!driver.browser }
 		
-		multi method debug( WebDriver2::Command::PreResult $result, *@data ) {
-			say $result.Str if $!debug >= 1;
-			if $!debug { .say for @data };
+		multi method debug ( WebDriver2::Command::PreResult $result, *@data ) {
+			self.debug: Level::trace, $result.Str;
+			self.debug: Level::trace, .self.Str for @data;
 		}
 		
-		multi method debug( WebDriver2::Command::Result $result, *@data ) {
+		multi method debug ( WebDriver2::Command::Result $result, *@data ) {
 			callsame;
-			say $result.execution-status if $!debug;
+			self.debug: Level::trace, $result.execution-status.raku
 		}
 		
 		method start {}
 		
-		method curr-frame( --> WebDriver2::Command::Param::ID-or-Index ) {
-			@!frames ?? @!frames[*- 1] !! WebDriver2::Command::Param::ID-or-Index
+		method !curr-frame( --> WebDriver2::Model::Frame ) {
+			@!frames ?? @!frames[*- 1] !! WebDriver2::Model::Frame
 		}
 		
-		method push-frame ( WebDriver2::Command::Param::ID-or-Index:D $frame ) {
-			say "pushing $frame onto", @!frames.join: '\n' if $!debug;
+		method !push-frame ( WebDriver2::Model::Frame:D $frame ) {
+			self.debug: "pushing $frame onto", @!frames>>.raku.join: "\n";
 			@!frames.push: $frame;
+		}
+		method !pop-frame ( --> WebDriver2::Model::Frame ) {
+			@!frames.pop;
+		}
+		method !clear-frames {
+			@!frames = Empty;
 		}
 		
 		method maximize-window {
@@ -216,7 +212,7 @@ class WebDriver2::Driver
 		}
 		
 		method navigate( Str:D $url ) {
-			@!frames = Empty;
+			self!clear-frames;
 			my WebDriver2::Command::Result::Navigate:D $navigate =
 					WebDriver2::Command::Navigate.new( :$url )
 					.execute-with: self, $!session-id;
@@ -245,21 +241,25 @@ class WebDriver2::Driver
 		}
 		
 		multi method screenshot( WebDriver2::Session-Actions: --> Str:D ) {
+			self.debug: 'session screenshot';
 			return unless $!session-id;
+			self.debug: 'taking session screenshot';
 			my WebDriver2::Command::Result::Screenshot $screenshot =
 					WebDriver2::Command::Screenshot.new
 					.execute-with: self, $!session-id;
-			self.debug: $screenshot;
+			self.debug: Level::extra, $screenshot.value;
 			# , $screenshot.value;
 			return $screenshot.value;
 		}
 		
 		method !screenshot( Str:D $element --> Str:D ) {
+			self.debug: 'element screenshot';
 			return unless $!session-id;
+			self.debug: 'taking element screenshot';
 			my WebDriver2::Command::Result::Element-Screenshot $screenshot =
 					WebDriver2::Command::Element-Screenshot.new( :$element )
 					.execute-with: self, $!session-id;
-			self.debug: $screenshot;
+			self.debug: Level::extra, $screenshot.value;
 			# , $screenshot.value;
 			return $screenshot.value;
 		}
@@ -312,6 +312,7 @@ class WebDriver2::Driver
 				WebDriver2::Command::Element::Locator:D $locator
 				--> WebDriver2::Model::Element:D
 		) {
+			self.debug: 'session element';
 			my WebDriver2::Command::Result::Element $element =
 					WebDriver2::Command::Element.new( :$locator )
 					.execute-with: self, $!session-id;
@@ -320,7 +321,7 @@ class WebDriver2::Driver
 			return Internal-Element.new:
 					session => self,
 					internal-id => $element.value,
-					:$!debug
+					:$!debug-level
 					;
 		}
 		
@@ -328,7 +329,8 @@ class WebDriver2::Driver
 				Str:D $context,
 				WebDriver2::Command::Element::Locator:D $locator
 				--> WebDriver2::Model::Element:D
-		                ) {
+		) {
+			self.debug: 'sub-element';
 			my WebDriver2::Command::Result::SubElement $element =
 					WebDriver2::Command::SubElement.new( :$context, :$locator )
 					.execute-with: self, $!session-id;
@@ -336,7 +338,7 @@ class WebDriver2::Driver
 			return Internal-Element.new(
 					session => self,
 					internal-id => $element.value
-					);
+			);
 		}
 		
 		multi method element(
@@ -350,7 +352,8 @@ class WebDriver2::Driver
 		multi method elements(
 				WebDriver2::Command::Element::Locator:D $locator
 				--> Array of WebDriver2::Model::Element
-		                      ) {
+		) {
+			self.debug: 'session elements';
 			my WebDriver2::Command::Result::Elements $element =
 					WebDriver2::Command::Elements.new( :$locator )
 					.execute-with: self, $!session-id;
@@ -367,7 +370,8 @@ class WebDriver2::Driver
 				Str:D $context,
 				WebDriver2::Command::Element::Locator:D $locator
 				--> Array of WebDriver2::Model::Element
-		                 ) {
+		) {
+			self.debug: 'sub-elements';
 			my WebDriver2::Command::Result::SubElements $element =
 					WebDriver2::Command::SubElements.new( :$context, :$locator )
 					.execute-with: self, $!session-id;
@@ -423,12 +427,13 @@ class WebDriver2::Driver
 		}
 		
 #		method !frame ( Str:D $element --> WebDriver2::Model::Frame:D ) {
-#			Internal-Frame.new: self, $element, $!debug;
+#			Internal-Frame.new: self, $element, $!debug-level;
 #		}
 		
 		method frame( WebDriver2::Model::Element:D $element --> WebDriver2::Model::Frame ) {
+			self.debug: Level::WARN, 'CALLING FRAME FROM SESSION';
 			if $element.tag-name.lc eq 'frame' | 'iframe' {
-#				return Internal-Frame.new: $element, $!debug;
+#				return Internal-Frame.new: $element, $!debug-level;
 				return $element.frame;
 			}
 			note 'no conversion to frame';
@@ -436,16 +441,17 @@ class WebDriver2::Driver
 		}
 		
 		method !tag-name( Str:D $element --> Str:D ) {
-			say "getting tag name for $element" if $!debug;
+			self.debug: "getting tag name for $element";
 			my WebDriver2::Command::Result::Tag-Name $tag-name =
 					WebDriver2::Command::Tag-Name.new( :$element )
 					.execute-with: self, $!session-id;
-			self.debug: $tag-name, $tag-name.value;
-			return $tag-name.value;
+			self.debug: $tag-name, $tag-name.value.lc;
+			self.debug: $tag-name.value.lc;
+			return $tag-name.value.lc;
 		}
 		
 		method tag-name( WebDriver2::Model::Element:D $element --> Str:D ) {
-			$element.tag-name.lc
+			$element.tag-name
 		}
 		
 		method !property(
@@ -593,14 +599,17 @@ class WebDriver2::Driver
 			$element.click
 		}
 		
-		method !switch-to( WebDriver2::Command::Param::ID-or-Index $frame ) {
-			say 'SWITCH TO  ' ~ $frame.gist if $!debug;
-			( @!frames.say, ( .say for @!frames)) if $!debug;
+		method !switch-to(
+				WebDriver2::Model::Frame $the-frame,
+				WebDriver2::Command::Param::ID-or-Index:D $frame
+		) {
+			self.debug: 'SWITCH TO', $the-frame.gist, "\n", |@!frames>>.raku;
+			
 			my WebDriver2::Command::Result::Switch-To $switch =
 					WebDriver2::Command::Switch-To.new( :$frame )
 					.execute-with: self, $!session-id;
-			self.push-frame: $frame;
-			say 'PUSH ' ~ @!frames.gist if $!debug;
+			self!push-frame: $the-frame;
+			self.debug: 'PUSH', @!frames.gist;
 			self.debug: $switch;
 		}
 		
@@ -608,9 +617,15 @@ class WebDriver2::Driver
 			$frame.switch-to
 		}
 		
+		# FIXME : how to handle frame by index
 		multi method switch-to( Int:D $frame ) {
-			warn "JUMPING TO FRAME $frame" if $!debug;
-			self!switch-to: $frame
+			self.debug: 'JUMPING TO FRAME', $frame;
+			my WebDriver2::Model::Frame $the-frame =
+				.[ $frame ].frame with
+				self.elements:
+						WebDriver2::Command::Element::Locator::Tag-Name.new:
+								'iframe';
+			self!switch-to: $the-frame, $frame
 		}
 		
 		method switch-to-parent {
@@ -619,18 +634,18 @@ class WebDriver2::Driver
 					.execute-with: self, $!session-id;
 			if @!frames {
 				@!frames.pop;
-				say 'POP ' ~ @!frames if $!debug;
+				self.debug: 'POP', @!frames.raku;
 				self.debug: $switch;
 				return self;
 			} else {
-				warn 'no parent frame' if $!debug;
+				self.debug: 'no parent frame';
 				return WebDriver2::Model::Frame;
 			}
 		}
 		
 		method top {
-			say 'TOP' if $!debug;
-			@!frames = Empty;
+			self.debug: 'TOP';
+			self!clear-frames;
 			my WebDriver2::Command::Result::Switch-To $switch =
 					WebDriver2::Command::Switch-To.new( frame => Str )
 					.execute-with: self, $!session-id;
@@ -710,32 +725,27 @@ class WebDriver2::Driver
 		
 		class Internal-Element
 				does WebDriver2::Model::Element
-				does WebDriver2::Model::Frame
+				does WebDriver2::Test::Debugging
+#				does WebDriver2::Model::Frame
 		{
 			
 			trusts ::WebDriver2::Driver::Session::Internal-Frame;
+			trusts Session::Internal-Frame;
 			
-			
-			
-			has Session $!session;
-			has Str:D $!internal-id is required;
-			has Str $!tag-name;
-			has Int $.debug = 0;
+			has Session $!session is built;
+			has Str:D $!internal-id is required is built;
+			has Str $!tag-name is built;
+#			has Level $.debug-level is built  = Level::WARN;
 			
 			method !internal-id ( --> Str:D ) { $!internal-id }
 			
 			method !session( --> Session:D ) {
 				$!session
 			}
-#			method internal-id( --> Str ) {
-#				$!internal-id
-#			}
 			
-			submethod BUILD(
-					WebDriver2::Session-Actions:D :$!session,
-					Str:D :$!internal-id,
-					Int:D :$!debug = 0
-			) { }
+			method !is-frame ( --> Bool:D ) {
+				so self.tag-name eq 'iframe' | 'frame'
+			}
 			
 			method screenshot( --> Str:D ) {
 				$!session!Session::screenshot: $!internal-id
@@ -759,8 +769,8 @@ class WebDriver2::Driver
 				);
 				so ( ( $t eq 'frame' | 'iframe' )
 						and (
-								not $!session.curr-frame
-								or $!session.curr-frame !~~ $!internal-id
+								not $!session!Session::curr-frame
+								or $!session!Session::curr-frame !~~ $!internal-id
 						)
 				);
 #				so ( $! and $!.execution-status.type ~~ WebDriver2::Command::Execution-Status::Type::Stale)
@@ -769,21 +779,26 @@ class WebDriver2::Driver
 			method element(
 					WebDriver2::Command::Element::Locator:D $locator
 					--> WebDriver2::Model::Element:D
-			               ) {
-				$!session!Session::element( $!internal-id, $locator )
+			) {
+				self!is-frame
+						?? $!session!Session::element: $locator
+						!! $!session!Session::element: $!internal-id, $locator
 			}
 			method elements(
 					WebDriver2::Command::Element::Locator:D $locator
 					--> Array of WebDriver2::Model::Element
-			                ) {
-				$!session!Session::elements: $!internal-id, $locator;
+			) {
+				self!is-frame
+						?? $!session!Session::elements: $locator
+						!! $!session!Session::elements: $!internal-id, $locator
 			}
 			method rect( --> Hash of Int ) {
 				$!session!Session::element-rect: $!internal-id;
 			}
 			method tag-name( --> Str:D ) {
+# 				return $!session!Session::tag-name: $!internal-id if True;
 				$!tag-name //= $!session!Session::tag-name: $!internal-id;
-				say "TAG NAME $!tag-name" if $!debug;
+				self.debug: 'TAG NAME', $!tag-name;
 				return $!tag-name;
 				#		return (
 				#				$!tag-name
@@ -794,12 +809,18 @@ class WebDriver2::Driver
 			}
 			method top( WebDriver2::Model::Context:D ) {
 				$!session.top;
-				$!session
 			}
 			method frame( --> WebDriver2::Model::Frame:D ) {
-				die 'self not a frame' unless self.tag-name.lc eq 'iframe' | 'frame';
-#				Session::Internal-Frame.new: $!session, $!internal-id, $!debug;
-				self;
+				die 'self not a frame' unless self!is-frame;
+#				Session::Internal-Frame.new: $!session, $!internal-id, $!debug-level;
+#				self does Session::Internal-Frame[$!session, $!internal-id];
+				Session::Internal-Frame.new:
+						:$!session,
+						base-element => self,
+						:$!internal-id,
+						:$!debug-level,
+						:$.tag-name
+						;
 			}
 			method property( Str:D $property --> WebDriver2::Command::Result::Property::Prop-Val ) {
 				$!session!Session::property: $!internal-id, $property
@@ -856,113 +877,126 @@ class WebDriver2::Driver
 			}
 			
 			method switch-to {
-				my Str $iid = $!internal-id;
-				if self.debug {
-					my Str $msg = 'switch to ' ~ $iid.gist;
-					$msg ~= " from { $!session.curr-frame }"
-					if $!session.curr-frame;
-					$msg.say;
-				}
-				
-				#		$driver!switch-to( $iid )
-				if (
-						$!session.curr-frame.defined
-								and $iid
-								and $!session.curr-frame ne $iid
-						or not $!session.curr-frame.defined
-				# and $iid
-				#				or not $iid and $driver.curr-frame.defined;
-				) {
-					$!session!Session::switch-to: $iid;
-				};
-				self;
-			}
-			method is-curr-frame( --> Bool:D ) {
-				$!session.curr-frame ~~
-						$!internal-id
-						and not self.stale
-			}
-			method context( --> WebDriver2::Model::Context:D ) {
-				self.switch-to unless self.is-curr-frame;
-				$!session;
-			}
-		}
-		
-		role Internal-Frame[Session:D $session, Str:D $internal-id]
-#				is Session::Internal-Element
-				does WebDriver2::Model::Frame
-		{
-			has Session:D $!session = $session;
-			has Str:D $!internal-id = $internal-id;
-#			multi method new(
-#					WebDriver2::Model::Element:D $element,
-#					Int:D $debug = 0
-#			) {
-#				self.bless: :$element, internal-id => Str, :$debug
-#			}
-			
-#			multi method new(
-#					WebDriver2::Session-Actions:D $session,
-#					Str:D $internal-id,
-#					Int:D $debug = 0
-#			) {
-#				self.bless:
-#						:$session,
-#						:$internal-id,
-#						:$debug;
-#			}
-			
-			method is-curr-frame( --> Bool:D ) {
-#				self!session.curr-frame ~~
-				$session.curr-frame ~~
-						$internal-id
-						and not self.stale
-			}
-			
-			method stale ( --> Bool:D ) {
-#				my WebDriver2::Driver $driver =
-#						self!session;
-#				return True if not $driver.curr-frame
-#						or $driver.curr-frame !~~ self.internal-id;
-#				#		callsame
-#				False;
-				return True if not $session.curr-frame
-					or $session.curr-frame !~~ $internal-id;
-				False;
-			}
-			
-			method switch-to( --> WebDriver2::Model::Frame ) {
-say $!session.^name, ' Driver 904';
-say .^name for $!session.^trusts;
-				$!session!switch-to: $!internal-id;
-##				my Session $session = self!session;
-#				my Str $iid = $internal-id;
+#				my Str $iid = $!internal-id;
 #				if self.debug {
 #					my Str $msg = 'switch to ' ~ $iid.gist;
-#					$msg ~= " from { $session.curr-frame }"
-#						if $session.curr-frame;
+#					$msg ~= " from { $!session!curr-frame }"
+#					if $!session!curr-frame;
 #					$msg.say;
 #				}
 #				
 #				#		$driver!switch-to( $iid )
 #				if (
-#				$session.curr-frame.defined and $iid and $session.curr-frame ne $iid
-#						or not $session.curr-frame.defined
+#						$!session!curr-frame.defined
+#								and $iid
+#								and $!session!curr-frame ne $iid
+#						or not $!session!curr-frame.defined
 #				# and $iid
-#				#				or not $iid and $driver.curr-frame.defined;
+#				#				or not $iid and $driver!curr-frame.defined;
+#				) {
+#					$!session!Session::switch-to: $iid;
+#				};
+				self.debug: 'element switch-to';
+				self;
+			}
+#			method is-curr-frame( --> Bool:D ) {
+#				False
+#			}
+			method context( --> WebDriver2::Model::Context:D ) {
+#				self.switch-to unless self.is-curr-frame;
+#				$!session;
+				self;
+			}
+		}
+		
+		class Internal-Frame
+#				is Session::Internal-Element
+				does WebDriver2::Model::Frame
+				does WebDriver2::Test::Debugging
+		{
+			has Session $!session is built;
+			has WebDriver2::Model::Element:D $.base-element is required;
+			has Str:D $!internal-id is required is built;
+			has Str $.tag-name is built;
+			
+			method is-curr-frame( --> Bool:D ) {
+#				self!session!curr-frame ~~
+				$!session!Session::curr-frame ~~ self
+			}
+			
+			method stale ( --> Bool:D ) {
+#				my WebDriver2::Driver $driver =
+#						self!session;
+#				return True if not $driver!curr-frame
+#						or $driver!curr-frame !~~ self.internal-id;
+#				#		callsame
+#				False;
+				not self.is-curr-frame
+			}
+			
+			method switch-to( --> WebDriver2::Model::Frame ) {
+#				$session!Session::switch-to: $internal-id;
+#				callsame;
+self.debug: 'switching to frame ',
+		$!internal-id,
+		' for session ',
+		$!session.^name,
+		;
+self.debug: 'current frame' if self.is-curr-frame;
+				return self if self.is-curr-frame;
+				$!session!Session::switch-to: self, $!internal-id;
+				self;
+##				my Session $session = self!session;
+#				my Str $iid = $internal-id;
+#				if self.debug {
+#					my Str $msg = 'switch to ' ~ $iid.gist;
+#					$msg ~= " from { $session!curr-frame }"
+#						if $session!curr-frame;
+#					$msg.say;
+#				}
+#				
+#				#		$driver!switch-to( $iid )
+#				if (
+#				$session!curr-frame.defined and $iid and $session!curr-frame ne $iid
+#						or not $session!curr-frame.defined
+#				# and $iid
+#				#				or not $iid and $driver!curr-frame.defined;
 #				) {
 #					$session!Session::switch-to: $iid;
 #				};
 #				self;
 #				#		$driver;
 			}
+			method top { $!session.top }
+			method element(
+					WebDriver2::Command::Element::Locator:D $locator
+					--> WebDriver2::Model::Element:D
+			) {
+				self.debug: 'frame element';
+				$!session.element: $locator;
+			}
+			method elements(
+					WebDriver2::Command::Element::Locator:D $locator
+					--> Array of WebDriver2::Model::Element
+			) {
+				self.debug: 'frame elements';
+				$!session.elements: $locator;
+			}
+			method tag-name ( --> Str:D ) { $!tag-name }
 			
 			method context( --> WebDriver2::Model::Context:D ) {
 				self.switch-to unless self.is-curr-frame;
 				#		self!Internal-Element::driver
 				#		self;
 #				self!session
-				$session;
+#				$session;
+				self;
+			}
+			
+			method !internal-id ( --> Str:D ) { $!internal-id }
+			
+			method ACCEPTS ( WebDriver2::Model::Frame $frame ) {
+				$frame and $!internal-id ~~ $frame!internal-id
 			}
 		}
 	}
@@ -972,16 +1006,16 @@ say .^name for $!session.^trusts;
 
 class WebDriver2::Driver::Chrome is WebDriver2::Driver {
 	
-	#submethod BUILD( :$!browser = 'chrome', :$!debug ) { }
+	#submethod BUILD( :$!browser = 'chrome', :$!debug-level ) { }
 	
 	method new(
-			:$debug = 0,
+			:$debug-level = Level::WARN,
 			:$server = WebDriver2::Driver::Server.new: host => '127.0.0.1', port => 9515
 	) {
 		self.bless:
 				browser => 'chrome',
 				:$server,
-				:$debug;
+				:$debug-level;
 	}
 	
 #	method browser ( --> Str:D ) {
@@ -1002,12 +1036,12 @@ class WebDriver2::Driver::Edge is WebDriver2::Driver {
 	
 	method new(
 			:$server = WebDriver2::Driver::Server.new( host => 'localhost', port => 9515 ),
-			:$debug = 0
+			:$debug-level = Level::WARN
 	) {
 		self.bless:
 				browser => 'edge',
 				:$server,
-				:$debug
+				:$debug-level
 	}
 	
 	method param-factory( --> WebDriver2::Command::Param::Factory ) {
@@ -1024,12 +1058,12 @@ class WebDriver2::Driver::Firefox is WebDriver2::Driver {
 	
 	method new(
 			:$server = WebDriver2::Driver::Server.new( host => '127.0.0.1', port => 4444 ),
-			:$debug = 0
+			:$debug-level = Level::WARN
 	) {
 		self.bless:
 				browser => 'firefox',
 				:$server,
-				:$debug
+				:$debug-level
 	}
 	
 	method param-factory( --> WebDriver2::Command::Param::Factory ) {
@@ -1046,12 +1080,12 @@ class WebDriver2::Driver::Safari is WebDriver2::Driver {
 	
 	method new(
 			:$server = WebDriver2::Driver::Server.new( host => 'localhost', port => 7055 ),
-			:$debug = 0
+			:$debug-level = Level::WARN
 	) {
 		self.bless:
 				browser => 'safari',
 				:$server,
-				:$debug
+				:$debug-level
 	}
 	
 	method param-factory( --> WebDriver2::Command::Param::Factory ) {

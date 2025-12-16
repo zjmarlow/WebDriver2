@@ -11,7 +11,7 @@ my class TA does WebDriver2::Test {
 	has Str $.description = 'test timeouts';
 	has Str $.sut-name = 'test';
 #
-	submethod BUILD ( IO::Path:D :$!test-root = 't'.IO, WebDriver2::Driver:D :$!driver, Int:D :$!close-delay, Int:D :$!debug = 0 ) {  }
+	submethod BUILD ( IO::Path:D :$!test-root = 't'.IO, WebDriver2::Driver:D :$!driver, Int:D :$!close-delay, Int:D :$!debug-level = 0 ) {  }
 	multi method new ( TA:U: Str $browser is copy, IO::Path:D :$test-root = 't'.IO, Int:D :$debug is copy = 0 ) {
 		my $self = callsame;
 		$self.services;

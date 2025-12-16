@@ -7,14 +7,14 @@ class WebDriver2::Until::SUT::Present is WebDriver2::Until {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug
+			Int :$debug-level
 	) {
 		callwith
 				operation => { $element.present },
 				:$duration,
 				:$interval,
 				:$soft,
-				:$debug;
+				:$debug-level;
 	}
 }
 
@@ -24,14 +24,14 @@ class WebDriver2::Until::SUT::Not-Present is WebDriver2::Until {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug
+			Int :$debug-level
 			   ) {
 		callwith
 				operation => { not $element.present },
 				:$duration,
 				:$interval,
 				:$soft,
-				:$debug;
+				:$debug-level;
 	}
 }
 
@@ -41,13 +41,13 @@ class WebDriver2::Until::SUT::Resolve is WebDriver2::Until {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug = 0
+			Int :$debug-level = Level::WARN
 			   ) {
 		callwith
 				operation => { not $element.resolve; },
 				:$duration,
 				:$interval,
 				:$soft,
-				:$debug;
+				:$debug-level;
 	}
 }

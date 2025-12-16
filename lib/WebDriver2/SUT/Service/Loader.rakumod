@@ -21,16 +21,16 @@ method new (
 #		Str:D :$sut-name,
 		WebDriver2::SUT::Tree::SUT :$sut,
 		IO::Path:D :$test-root = 'xt'.IO,
-		Int:D :$debug = 0
+		Int:D :$debug-level = Level::WARN
 ) {
 	if $instance {
 		note 'service loader instance exists; ignoring args.  ';
-		#				~ "updating debug to $debug";
-		#		$instance.debug = $debug;
+		#				~ "updating debug to $debug-level";
+		#		$instance.debug = $debug-level;
 		return $instance;
 	}
 	my IO::Path $def-dir = $test-root.add: 'def';
-	$instance = self.bless: :$sut, :$test-root, :$def-dir, :$debug;
+	$instance = self.bless: :$sut, :$test-root, :$def-dir, :$debug-level;
 }
 
 method load-elements ( WebDriver2::SUT::Service:D @svc ) {
@@ -43,11 +43,11 @@ method load-elements ( WebDriver2::SUT::Service:D @svc ) {
 		my WebDriver2::SUT::Tree::ANode %elements;
 		
 		my Str $svc-fn = .[*-1].lc with $svc.name.split: '::';
-		say 'LOADING ', $svc-fn if $!debug;
+		self.debug: 'LOADING', $svc-fn;
 		for $!def-dir.add( "$svc-fn.service" ).lines -> Str $line {
 			if $line ~~ /^\s*\#page\:\s*\S+/ {
 				$page = $!sut.get: .[1].trim with $line.split: /\:/, 2;
-				$nav = WebDriver2::SUT::Navigator.new: tree => $page, :$!debug;
+				$nav = WebDriver2::SUT::Navigator.new: tree => $page, :$!debug-level;
 				next;
 			}
 			next if $line ~~ /^\s*[\#.*]?\s*$/;

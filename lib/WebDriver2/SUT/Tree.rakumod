@@ -354,8 +354,8 @@ class WebDriver2::SUT::Tree::Fragile
 	method click ( --> WebDriver2::Model::Element:D ) {
 		self.attempt: { self.resolve.internal-element.click; self }
 	}
-	method debug ( --> Str:D ) {
-		$!internal-element.debug
+	method debug-level ( --> Str:D ) {
+		$!internal-element.debug-level
 	}
 }
 
@@ -531,17 +531,14 @@ class WebDriver2::SUT::Tree::Frame
 		}
 		$v.visit-depth-frame: self;
 	}
-	method resolve ( --> WebDriver2::Model::Context:D ) {
-		if not $!frame or not $!frame.is-curr-frame or $!frame.stale {
-			$!frame = ( $!parent.resolve.element: $!locator ).frame;
-			$!frame.switch-to;
+	method resolve ( --> WebDriver2::Model::Frame:D ) {
+		if not $!frame or $!frame.stale {
+			return $!frame = .frame with $!parent.resolve.element: $!locator;
 		}
-#		$!frame.switch-to;
-		$!frame.context.element: WebDriver2::Command::Element::Locator::Tag-Name.new: 'body';
+		$!frame;
 	}
-	method present ( --> WebDriver2::Model::Element ) {
-		return $!frame if $!frame and not $!frame.stale;
-		WebDriver2::Model::Frame
+	method present ( --> WebDriver2::Model::Frame ) {
+		( $!frame and not $!frame.stale ) ?? $!frame !! WebDriver2::Model::Frame
 	}
 }
 
@@ -609,8 +606,9 @@ class WebDriver2::SUT::Tree::Page
 		$v.visit-depth-page: self;
 	}
 	method resolve ( --> WebDriver2::Model::Context:D ) {
-		&!resolver().element:
-				WebDriver2::Command::Element::Locator::Tag-Name.new: 'body';
+		&!resolver();
+# 		&!resolver().element:
+# 				WebDriver2::Command::Element::Locator::Tag-Name.new: 'body';
 	}
 	method resolver ( &resolver ) {
 		&!resolver = &resolver;

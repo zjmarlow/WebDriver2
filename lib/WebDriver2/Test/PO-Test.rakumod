@@ -14,11 +14,11 @@ role WebDriver2::Test::PO-Test
 		does WebDriver2::Test::Debugging
 		does WebDriver2::Test::Config-From-File
 {
-	my class Bootstrap-Service {
+	my class PO-Test-Service {
 		has WebDriver2::Session-Actions:D $!session
 				is required
 				is built
-				handles <browser frames delete-session>;
+				handles <browser frames delete-session top>;
 		multi method screenshot {
 			$!session.screenshot;
 		}
@@ -41,7 +41,7 @@ role WebDriver2::Test::PO-Test
 	}
 	my constant $PLAN = 2;
 	
-	has Bootstrap-Service $!service
+	has PO-Test-Service $!service
 			handles <browser screenshot frames delete-session>;
 	
 	has Str $!browser;
@@ -52,13 +52,14 @@ role WebDriver2::Test::PO-Test
 			Str $browser is copy,
 			IO::Path(Str:D) :$test-root = 'xt'.IO,
 			Int:D :$close-delay = 3,
-			Int:D :$debug = 0
+			Level:D :$debug-level is copy = Level::WARN,
+			*%_
 	) {
 		plan $PLAN;
 		try $browser ||= browser-from-file;
 		self.bail: $!.message without $browser;
 		my WebDriver2::Driver-Actions $driver;
-		try $driver = WebDriver2::Driver.new: $browser, :$debug;
+		try $driver = WebDriver2::Driver.new: $browser, :$debug-level;
 		self.bail: $!.message without $driver;
 		my WebDriver2::Session-Actions $session;
 		self.lives-ok: 'session created', { $session = $driver.session };
@@ -76,7 +77,8 @@ role WebDriver2::Test::PO-Test
 					:$browser,
 					:$test-root,
 					:$close-delay,
-					:$debug
+					:$debug-level,
+					|%_,
 					;
 			$self!init: $session;
 		}
@@ -85,16 +87,16 @@ role WebDriver2::Test::PO-Test
 	method !init ( WebDriver2::Session-Actions:D $session ) {
 		$session.set-window-rect: 1200, 750, 8, 8
 			if $session.browser eq 'chrome' | 'safari';
-		$!service = Bootstrap-Service.new: :$session;
+		$!service = PO-Test-Service.new: :$session;
 		my WebDriver2::SUT::Tree::SUT $sut =
 				WebDriver2::SUT::Build.page:
 						{ $session.top },
 						$.sut-name,
-						:$.debug
+						:$.debug-level
 				;
 		my WebDriver2::SUT::Service::Loader:D $loader =
 				WebDriver2::SUT::Service::Loader.new:
-						:$.debug,
+						:$.debug-level,
 						:$!test-root,
 						:$sut
 				;
@@ -121,6 +123,7 @@ role WebDriver2::Test::PO-Test
 		say "\nclosing in";
 		.say, sleep 1 for [R,] 1 .. $!close-delay;
 		self.delete-session;
+		.DateTime.Str.say with DateTime.now;
 	}
 	method cleanup {
 		self!close;
@@ -149,7 +152,7 @@ role WebDriver2::Test::PO-Test
 		self.screenshot: $descr;
 	}
 	method handle-error ( Exception $x ) {
-		.raku.say for self.frames;
+# 		.raku.say for self.frames;
 		self.screenshot: $x.WHAT.Str;
 	}
 }
@@ -159,7 +162,7 @@ our sub po-test ( WebDriver2::Test::PO-Test:U $test-class ) {
 			Str $browser? is copy,
 			IO::Path(Str:D) :$test-root = 'xt'.IO,
 			Int:D :$close-delay = 3,
-			Int:D :$debug = 0
+			Str:D :debug(:$debug-level) = 'WARN'
 	) {
 		$browser ||= browser-from-file;
 		.execute
@@ -167,7 +170,7 @@ our sub po-test ( WebDriver2::Test::PO-Test:U $test-class ) {
 				 $browser,
 				:$close-delay,
 				:$test-root,
-				:$debug
+				 debug-level => Level::{ $debug-level }
 				;
 	}
 }

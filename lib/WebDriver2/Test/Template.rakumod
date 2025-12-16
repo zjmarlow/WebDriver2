@@ -7,107 +7,131 @@ use WebDriver2;
 use WebDriver2::Driver;
 use WebDriver2::Test::Config-From-File;
 
-unit role WebDriver2::Test::Template
+role WebDriver2::Test::Template
 		does WebDriver2::Test::Adapter
 		does WebDriver2::Test::Debugging
-		does WebDriver2::Test::Config-From-File;
-
-my constant $PLAN = 2;
-has IO::Path:D $.test-root is required;
-has Int:D $.close-delay is rw is required;
-has WebDriver2::Driver-Actions:D $!driver is required;
-has WebDriver2::Session-Actions $!session;
-
-#method browser ( --> Str:D ) { $!driver-provider.browser }
-
-method plan ( --> Int ) { Int; }
-method name ( --> Str:D ) { ... }
-method description ( --> Str:D ) { ... }
-
-multi method new (
-		Str $browser is copy,
-		IO::Path:D :$test-root = 't'.IO,
-		Int:D :$close-delay = 3,
-		Int:D :$debug is copy = 0,
-		*%_
-) {
-	self.set-from-file: $browser, :$test-root, :$debug;
-	my WebDriver2::Driver-Actions $driver =
-			WebDriver2::Driver.new: $browser, :$debug;
-	self.bless:
-			:$driver,
-			:$test-root,
-			:$debug,
-			:$close-delay,
-			|%_,
-#			driver-provider => WebDriver2::Driver::Provider.new: $browser, :$debug
-	;
-}
-
-method !init {
-	self.lives-ok: 'session created', { $!session = $!driver.session };
-	$!session.set-window-rect: 1200, 750, 8, 8
-		if $!session.browser eq 'chrome' | 'safari';
-}
-method pre-test { ... }
-method test { ... }
-method post-test { ... }
-method !close {
-	say "\nclosing in";
-	.say, sleep 1 for ( 1 .. $.close-delay ).reverse;
+		does WebDriver2::Test::Config-From-File
+{
+	my constant $PLAN = 2;
+	has IO::Path:D $.test-root is required;
+	has Int:D $.close-delay is rw is required;
+	has WebDriver2::Driver-Actions:D $!driver is built is required;
+	has WebDriver2::Session-Actions $!session is built;
 	
-	$!session.delete-session;
-}
-#method !done-testing { done-testing }
-method cleanup {
-	self!close;
-}
-
-method execute {
-	try {
-		plan $PLAN;
-		self!init;
-		
-		self.subtest: Pair.new: $.name, {
-			plan $.plan with $.plan;
-			self.pre-test;
-			self.test;
-			self.post-test;
-		};
-		
+	#method browser ( --> Str:D ) { $!driver-provider.browser }
+	
+	method plan ( --> Int ) { Int; }
+	method name ( --> Str:D ) { ... }
+	method description ( --> Str:D ) { ... }
+	
+	multi method new (
+			Str $browser is copy,
+			IO::Path:D :$test-root = 't'.IO,
+			Int:D :$close-delay = 3,
+			Level:D :$debug-level is copy = Level::WARN,
+			*%_
+	) {
+		self.set-from-file: $browser, :$test-root, :$debug-level;
+		my WebDriver2::Driver-Actions $driver =
+				WebDriver2::Driver.new: $browser, :$debug-level;
+		self.bless:
+				:$driver,
+				:$test-root,
+				:$close-delay,
+				:$debug-level,
+				|%_,
+	#			driver-provider => WebDriver2::Driver::Provider.new: $browser, :$debug-level
+		;
+	}
+	
+	method !init {
+		self.lives-ok: 'session created', { $!session = $!driver.session };
+		$!session.set-window-rect: 1200, 750, 8, 8
+			if $!session.browser eq 'chrome' | 'safari';
+	}
+	method pre-test { ... }
+	method test { ... }
+	method post-test { ... }
+	method !close {
+		say "\nclosing in";
+		.say, sleep 1 for [R,] 1 .. $.close-delay;
+		$!session.delete-session;
+		.DateTime.Str.say with DateTime.now;
+	}
+	#method !done-testing { done-testing }
+	method cleanup {
 		self!close;
-		CATCH {
-			default {
-				.note;
-				self.handle-error: $_;
-				self.cleanup;
+	}
+	
+	method execute {
+		try {
+			plan $PLAN;
+			self!init;
+			
+			self.subtest: Pair.new: $.name, {
+				plan $.plan with $.plan;
+				self.pre-test;
+				self.test;
+				self.post-test;
+			};
+			
+			self!close;
+			CATCH {
+				default {
+					.note;
+					self.handle-error: $_;
+					self.cleanup;
+				}
 			}
 		}
+		done-testing unless $.plan;
 	}
-	done-testing unless $.plan;
-}
-
-method handle-test-failure ( Str $descr ) {
-	self.screenshot: $descr;
-}
-
-method handle-error ( Exception $x ) {
-	.raku.say for $!session.frames;
-	self.screenshot: $x.WHAT.Str;
-}
-
-multi method screenshot {
-	$!session.screenshot; #  if $!driver-provider.driver.session-id;
-}
-
-multi method screenshot ( Str:D $name ) {
-	my $screenshot = self.screenshot;
-	unless $screenshot {
-		warn "no screenshot for $name";
-		return;
+	
+	method handle-test-failure ( Str $descr ) {
+		self.screenshot: $descr;
 	}
-	my Instant $now = now;
-	my Str:D $fn = join '-', $name, $now.to-posix[0] ~ '.png';
-	IO::Path.new( $fn.subst: /<-[.a..zA..Z0..9_-]>+/, '-', :g )
-			.spurt: MIME::Base64.decode: $screenshot;
+	
+	method handle-error ( Exception $x ) {
+# 		.raku.say for $!session.frames;
+		self.screenshot: $x.WHAT.Str;
+	}
+	
+	multi method screenshot {
+		$!session.screenshot; #  if $!driver-provider.driver.session-id;
+	}
+	
+	multi method screenshot ( Str:D $name ) {
+		my Instant $now = now;
+		my $screenshot = self.screenshot;
+		unless $screenshot {
+			warn "no screenshot for $name";
+			return;
+		}
+		my Str:D $test-name = .[*-1] with self.^name.split: /\:\:/;
+		my Str:D $fn =
+				join '-',
+						$name,
+						$test-name,
+						$now.to-posix[0] ~ '.png';
+		.spurt: MIME::Base64.decode: $screenshot
+			with IO::Path.new: $fn.subst: /<-[.a..zA..Z0..9_-]>+/, '-', :g;
+	}
+}
+
+our sub driver-test ( WebDriver2::Test::Template:U $test-class ) {
+	sub (
+			Str $browser? is copy,
+			IO::Path(Str:D) :$test-root = 'xt'.IO,
+			Int:D :$close-delay = 3,
+			Str:D :debug(:$debug-level) = 'WARN'
+	) {
+		$browser ||= browser-from-file;
+		.execute
+		with $test-class.new:
+				$browser,
+				:$close-delay,
+				:$test-root,
+				debug-level => Level::{ $debug-level }
+				;
+	}
 }

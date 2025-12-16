@@ -3,10 +3,17 @@
 		<title>iframe test</title>
 		<script src="jquery-3.6.4.js"></script>
 		<script>
-			async function nav() {
-				await new Promise ( r => setTimeout ( r, 3000 ) );
+			async function anav(event) {
+<!--				await new Promise ( r => setTimeout ( r, 3000 ) );-->
+				await new Promise (
+					(resolve) => { setTimeout ( () => { resolve ( "r" ) }, 2000 ) }
+				);
 				window.location.href = 'page-to.html';
-				preventDefault();
+				event.preventDefault();
+			}
+			function nav(e) {
+				window.location.href = 'page-to.html';
+				e.preventDefault();
 			}
 			function add() {
 				if ( $( "h2" ).siblings( "#added" ).length ) {
@@ -35,6 +42,6 @@
 			<input type="text" id="text" />
 			<input type="checkbox" id="iframe-cb" />
 		</form>
-		<p><a href="#" id="link-to-page" onclick="nav();">to page</a></p>
+		<p><a href="#" id="link-to-page" onclick="anav(event);">to page</a></p>
 	</body>
 </html>

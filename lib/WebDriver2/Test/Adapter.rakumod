@@ -85,7 +85,7 @@ method diag ( Str:D $msg ) {
 }
 
 method skip ( Str $reason, Int $count? ) {
-	skip ( !$count.defined ?? $reason !! $reason, $count );
+	skip ( !$count.defined ?? $reason !! ( $reason, $count ) );
 }
 
 method flunk ( Str:D $descr ) {

@@ -4,7 +4,7 @@ page frames 'file://xt/content/lists.html' {
 	    list of elemt basic-item tag-name 'li';
 	}
 	elgrp nesting id 'nesting' {
-		list of elgrp outer-item xpath './li' {
+		list of elgrp outer-item xpath 'li' {
 			list of elemt inner-item tag-name 'li';
 		}
 	}

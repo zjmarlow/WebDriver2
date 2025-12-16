@@ -16,20 +16,22 @@ my WebDriver2::SUT::Tree::URL:D $page =
 class Local does WebDriver2::Test::Template {
 	has Bool $!screenshot;
 	
-	has Int:D $.plan = 42;
+	has Int:D $.plan = 44;
 	has Str:D $.name = 'local';
 	has Str:D $.description = 'local test';
+	
+	my Str:D @main-outer = Array[Str:D].new: <one two>;
+	@main-outer.push: "three\nthree - one\nthree - two";
+	my Str:D @main-inner = Array[Str:D].new: 'three - one', 'three - two';
+	my Str:D @main = |@main-outer, |@main-inner;
+	my Str:D @iframe-outer = Array[Str:D].new: <uno due>;
+	@iframe-outer.push: "tre\ntre - uno\ntre - due";
+    my Str:D @iframe-inner = Array[Str:D].new: 'tre - uno', 'tre - due';
+    my Str:D @iframe = |@iframe-outer, |@iframe-inner;
 	
 	# WebDriver2::Test::Template provides method new, which
 	#   sets the browser / loads from file if not passed
 	#   and instantiates the corresponding driver
-	
-	submethod BUILD (
-			WebDriver2::Driver-Actions:D :$!driver,
-			IO::Path:D :$!test-root = 'xt'.IO,
-			Int:D :$!close-delay = 3,
-			Int:D :$!debug = 0
-	) { }
 	
 	method pre-test { }
 	method post-test { }
@@ -170,13 +172,16 @@ class Local does WebDriver2::Test::Template {
 
 		is @el.elems, 5, 'all lis';
 
-		is .tag-name.lc, 'li', 'li is li' for @el[*];
+		is .text, @main.shift, 'main li content' for @el[*];
+		
+		is 0, +@main, 'all main li seen';
 
 		@el = self.element-by-id( 'inner' ).elements: $locator;
 
 		is @el.elems, 2, 'inner lis';
 
-		is .tag-name.lc, 'li', 'li is li' for @el[*];
+		is .text, @main-inner.shift, 'main inner li content' for @el[*];
+		is 0, +@main-inner, 'all main inner li seen';
 		if $!screenshot {
 			my $screenshot = $!session.screenshot;
 
@@ -213,9 +218,4 @@ class Local does WebDriver2::Test::Template {
 	}
 }
 
-sub MAIN(
-		Str $browser?,
-		Int:D :$debug = 0
-) {
-	.execute with Local.new: $browser, :$debug, test-root => 'xt'.IO;
-}
+constant &MAIN = driver-test Local;

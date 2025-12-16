@@ -32,6 +32,10 @@ class Multi-Outer does WebDriver2::SUT::Service {
 	method inner-first {
 		.resove.text with self.get: 'inner-first';
 	}
+	
+	method switch-to-frame {
+		.resolve.switch-to with self.get: 'iframe';
+	}
 }
 
 class Multi-Form does WebDriver2::SUT::Service {
@@ -56,8 +60,8 @@ class Multi-Service-Test does WebDriver2::Test::PO-Test {
 	has Multi-Form $!form-service;
 	
 	method services {
-		$!outer-service, \( :$!browser, :$!debug ),
-		$!form-service, \( :$!browser, :$!debug ),
+		$!outer-service, \( :$!browser, :$!debug-level ),
+		$!form-service, \( :$!browser, :$!debug-level ),
 	}
 	
 	method pre-test { }
@@ -97,8 +101,8 @@ class Multi-Service-Test does WebDriver2::Test::PO-Test {
 				:soft;
 		$present.retry;
 		
+		$!outer-service.switch-to-frame;
 		
-
 		# test get inner element, outside frame - retry before access
 		$present = WebDriver2::Until::SUT::Present.new:
 				element => $!form-service.get( 'iframe-three-one' ),

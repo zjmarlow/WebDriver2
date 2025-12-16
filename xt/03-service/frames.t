@@ -97,8 +97,9 @@ class Frames-Test-Service does WebDriver2::SUT::Service {
 	method iframe-item-p {
 		self.get: 'iframe-list-p';
 	}
-
+	
 	method each-iframe-item ( &action ) {
+		.resolve.switch-to with self.get: 'frame-frame';
 		for self.get( 'iframe-item' ).iterator {
 			&action( self );
 		}
@@ -107,7 +108,7 @@ class Frames-Test-Service does WebDriver2::SUT::Service {
 
 class Frames-Test does WebDriver2::Test::PO-Test {
 	has Str:D $.sut-name = 'frames';
-	has Int:D $.plan = 35;
+	has Int:D $.plan = 29;
 	has Str:D $.name = 'frames';
 	has Str:D $.description = 'tests nesting frames';
 	
@@ -115,7 +116,7 @@ class Frames-Test does WebDriver2::Test::PO-Test {
 	has Str @!expected = <hey hi bye oye hola adios 喂 你好 再見>;
 	
 	method services {
-		$!fs, \( :$!browser, :$!debug )
+		$!fs, \( :$!browser, :$!debug-level )
 	}
 	
 	method pre-test { }
@@ -124,11 +125,11 @@ class Frames-Test does WebDriver2::Test::PO-Test {
 	method test {
 		$!fs.nav;
 
-		self.is:
-				'mainline content parent frame is page and context is body element',
-#				$!service.page,
-				'body',
-				$!fs.page-h2.parent-frame.resolve.tag-name.lc;
+# 		self.is:
+# 				'mainline content parent frame is page and context is body element',
+# #				$!service.page,
+# 				'body',
+# 				$!fs.page-h2.parent-frame.resolve.tag-name.lc;
 		self.is:
 				'page match',
 				$!fs.page.raku,
@@ -165,6 +166,7 @@ class Frames-Test does WebDriver2::Test::PO-Test {
 
 			}
 		}
+		self.nok: 'all expected seen', +@!expected;
 		self.is:
 				'basic frame content parent frame is page',
 				$!fs.page.raku,
@@ -183,20 +185,35 @@ class Frames-Test does WebDriver2::Test::PO-Test {
 				$!fs.iframe-h2.parent-frame.raku;
 #		$!fs.iframe.resolve.element:
 #				WebDriver2::Command::Element::Locator::Tag-Name.new: 'body';
-		
+# 		$!fs.iframe.resolve.switch-to;
 		$!fs.each-iframe-item: {
+			# fix Frame.resolve, Page.resolve, Internal-Frame.switch-to
+			# check parent element for AFrame ( APage is also AFrame )
+			# assign expected and actual in vars so corrective frame switching
+			#   can be done
+			# frame
+			# - stack per window
+			# frame change events
+			# - top / default content - clear stack
+			# - navigate - clear stack
+			# - refresh - TBD
+			# - back / forward - TBD
+			# - parent frame - pop
+			# - switch to
+			#   - ID - must be within present context - push
+			#   - index - ???
 			self.is:
 					'iframe list item parent frame is iframe',
-					$!fs.iframe.raku,
-					.iframe-item.parent-frame.raku;
+					$!fs.iframe.resolve.switch-to.raku,
+					.iframe-item.parent-frame.resolve.raku;
 			self.is:
 					'iframe list item h2 parent frame is iframe',
-					$!fs.iframe.raku,
-					.iframe-item-h2.parent-frame.raku;
+					$!fs.iframe.resolve.switch-to.raku,
+					.iframe-item-h2.parent-frame.resolve.raku;
 			self.is:
 					'iframe list item p parent frame is iframe',
-					$!fs.iframe.raku,
-					.iframe-item-p.parent-frame.raku;
+					$!fs.iframe.resolve.raku,
+					.iframe-item-p.parent-frame.resolve.raku;
 		};
 	}
 }

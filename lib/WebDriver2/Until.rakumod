@@ -1,4 +1,5 @@
 use WebDriver2;
+use WebDriver2::Test::Debugging;
 
 use WebDriver2::Command::Result;
 
@@ -18,30 +19,20 @@ class WebDriver2::Until {
 	my Real $_interval = 1/10;
 	my Int $_debug = 0;
 
-	has &!operation is required;
-	has &!matcher;
-	has &!cleanup;
-	has Duration $.duration is required;
-	has Duration $!interval = $_interval;
-	has Bool $!soft = False;
-	has Int $!debug = 0;
+	has &!operation is required is built;
+	has &!matcher is built;
+	has &!cleanup is built;
+	has Duration $.duration is required is built;
+	has Duration $!interval is built = $_interval;
+	has Bool $!soft is built = False;
+	has Level:D $!debug-level is built  = Level::WARN;
 
 	method interval ( WebDriver2::Until:U: Real $val ) {
 		$_interval = $val;
 	}
-	method debug ( WebDriver2::Until:U: Int $val ) {
+	method debug-level ( WebDriver2::Until:U: Level:D $val ) {
 		$_debug = $val;
 	}
-
-	submethod BUILD (
-			:&!operation,
-			:&!matcher,
-			:&!cleanup,
-			Duration :$!duration,
-			Duration :$!interval,
-			Bool :$!soft,
-			Int :$!debug
-	) { }
 
 	method new (
 			:&operation,
@@ -50,7 +41,7 @@ class WebDriver2::Until {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug
+			Int :$debug-level
 	) {
 		self.bless:
 				:&operation,
@@ -59,16 +50,16 @@ class WebDriver2::Until {
 				duration => ( ( DateTime.now.later: seconds => $duration ) - DateTime.now ),
 				interval => Duration.new( $interval // $_interval ),
 				:$soft,
-				debug => $debug // $_debug;
+				debug => $debug-level // $_debug;
 	}
 
 	method retry {
 		my Instant $start = now;
-		say "\n\nSTARTING TRIALS " ~ $start.DateTime ~ "\n\n" if $!debug;
+		say "\n\nSTARTING TRIALS " ~ $start.DateTime ~ "\n\n" if $!debug-level;
 		repeat {
-			say "\n\nTRYING " ~ $start.DateTime ~ "\n\n" if $!debug;
+			say "\n\nTRYING " ~ $start.DateTime ~ "\n\n" if $!debug-level;
 			my $return = &!operation();
-			say "\n\nOP VAL ", $return.raku, "\n\n" if $!debug;
+			say "\n\nOP VAL ", $return.raku, "\n\n" if $!debug-level;
 			return $return
 				if &!matcher and &!matcher( $return )
 				or not &!matcher and $return;
@@ -88,13 +79,13 @@ class WebDriver2::Until::Throwable is WebDriver2::Until {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug
+			Int :$debug-level
 	) {
 		callwith operation => sub {
 			my $val;
 			try $val = &operation();
 			$! or $val;
-		}, :&matcher, :&cleanup, :$duration, :$interval, :$soft, :$debug;
+		}, :&matcher, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	}
 }
 
@@ -107,12 +98,12 @@ class WebDriver2::Until::Throws is WebDriver2::Until::Throwable {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug
+			Int :$debug-level
 	) {
 		callwith :&operation, :$exception,
 		matcher => sub ( $ret ) {
 			$ret ~~ $exception and ! &matcher || &matcher( $ret );
-		}, :&cleanup, :$duration, :$interval, :$soft, :$debug;
+		}, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	}
 }
 
@@ -126,7 +117,7 @@ class WebDriver2::Until::No-Throw is WebDriver2::Until::Throwable {
 			Real :$duration,
 			Real :$interval,
 			Bool :$soft,
-			Int :$debug
+			Int :$debug-level
 	) {
 		callwith :&operation,
 		matcher => sub ( $ret ) {
@@ -137,6 +128,6 @@ class WebDriver2::Until::No-Throw is WebDriver2::Until::Throwable {
 				$ret.rethrow;
 			}
 			return $ret;
-		}, :&cleanup, :$duration, :$interval, :$soft, :$debug;
+		}, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	}
 }

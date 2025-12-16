@@ -8,7 +8,7 @@ use WebDriver2::Command::Element::Locator::ID;
 use WebDriver2::Command::Element::Locator::Tag-Name;
 use WebDriver2::Command::Element::Locator::CSS;
 
-unit role WebDriver2::SUT::Service; # does WebDriver2;
+unit role WebDriver2::SUT::Service does WebDriver2::Test::Debugging;
 
 #has WebDriver2::Browser-Actions:D $!browser-actions is required handles <
 #		start session maximize-window set-window-rect refresh title
@@ -28,7 +28,7 @@ has Str:D $.key-prefix = '';
 #		WebDriver2::SUT::Service:U:
 #		Str:D $browser,
 #		WebDriver2::SUT::Tree::APage :$page,
-#		Int:D :$debug = 0,
+#		Int:D :$debug-level = Level::WARN,
 #		*%rest
 #) {
 #say 'new service Service 33';
@@ -36,7 +36,7 @@ has Str:D $.key-prefix = '';
 #			:$browser,
 #			:$page,
 #			|%rest,
-#			driver => WebDriver2::Driver.new: $browser, :$debug;
+#			driver => WebDriver2::Driver.new: $browser, :$debug-level;
 #}
 
 method name ( --> Str:D ) { ... }

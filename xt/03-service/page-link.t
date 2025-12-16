@@ -3,6 +3,7 @@ use Test;
 use lib <lib t/lib>;
 
 use WebDriver2;
+use WebDriver2::Test::Debugging;
 use WebDriver2::Until;
 use WebDriver2::Until::Command;
 use WebDriver2::Command::Element::Locator::ID;
@@ -12,7 +13,7 @@ use WebDriver2::SUT::Build;
 use WebDriver2::SUT::Service;
 use WebDriver2::SUT::Tree;
 
-use WebDriver2::Test::Service-Test;
+use WebDriver2::Test::PO-Test;
 use WebDriver2::Test::Config-From-File;
 
 
@@ -21,9 +22,9 @@ class Page-Link-From-Service does WebDriver2::SUT::Service {
 	my IO::Path $html-file =
 			.add: 'page-from.html' with $*PROGRAM.parent.parent.add: 'content';
 	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
-	
 	method html-file ( --> IO::Path ) { $html-file }
+	
+	method title ( --> Str:D ) { $!session.title }
 	
 	method name ( --> Str:D ) { 'page-from' } # lists
 	
@@ -36,12 +37,14 @@ class Page-Link-From-Service does WebDriver2::SUT::Service {
 	}
 	method nav {
 		my $url = WebDriver2::SUT::Tree::URL.new: 'file://' ~ $html-file;
-		$!driver.navigate: $url.Str;
+		$!session.navigate: $url.Str;
 	}
 	method page-h2-text {
 		.resolve.text with self.get: 'h2';
 	}
-	
+	method page-input {
+		.resolve with self.get: 'text';
+	}
 	method page-link {
 		.resolve with self.get: 'a';
 	}
@@ -49,54 +52,46 @@ class Page-Link-From-Service does WebDriver2::SUT::Service {
 
 class Page-Link-To-Service does WebDriver2::SUT::Service {
 	
-	submethod BUILD ( WebDriver2::Driver:D :$!driver ) { }
-	
 	method name ( --> Str:D ) { 'page-to' } # lists
+	
+	method title ( --> Str:D ) { $!session.title }
 	
 	method top-retry {
 		WebDriver2::Until::Command::Stale.new:
-			element => self.get( 'h2-page' ).resolve,
+			element => self.get( 'item' ).resolve,
 			duration => 2,
 			interval => 1 / 10,
 			:!soft;
 	}
 	
-	method inner-h2-text {
-		.resolve.text with self.get: 'h2-inner';
+	method iframe {
+		my $f = .resolve.switch-to with self.get: 'iframe'; # 'iframe'
+		self.debug: Level::trace, $f.raku;
+		.tag-name.&self::debug for $f.elements:
+				WebDriver2::Command::Element::Locator::Xpath.new: '//*';
 	}
 	
-	
-	method item {
-		.resolve with self.get: 'item';
+	method para {
+		.resolve.text with self.get: 'p-inner';
 	}
 	
-	method each-repeated ( &action ) {
-		&action( self ) for self.get( 'item' ).iterator;
-	}
-	method first-repeated ( --> Page-Link-From-Service ) {
-		self.repeated: { True }
-	}
-	method repeated ( &selector --> Page-Link-From-Service ) {
-		for self.get( 'content' ).iterator {
-			return self if &selector(self);
-		}
-		return;
+	method each-repeated ( Str:D $list, &action ) {
+		.&&action for do .iterator with self.get: $list;
 	}
 }
 
-class Frames-Test does WebDriver2::Test::Service-Test {
+class Frames-Test does WebDriver2::Test::PO-Test {
 	has Str:D $.sut-name = 'page-to';
-	has Int:D $.plan = 6;
+	has Int $.plan = 14;
 	has Str:D $.name = 'page-to';
 	has Str:D $.description = 'tests nesting frames';
 	
 	has Page-Link-From-Service $!from-service;
 	has Page-Link-To-Service $!to-service;
-	has Str @!expected = 'to page first', 'to page second';
 	
 	method services {
-		$.loader.load-elements: $!from-service = Page-Link-From-Service.new: :$.driver;
-		$.loader.load-elements: $!to-service = Page-Link-To-Service.new: :$.driver;
+		$!from-service, \( :$!browser, :$!debug-level ),
+		$!to-service, \( :$!browser, :$!debug-level ),
 	}
 	
 	method pre-test { }
@@ -104,34 +99,57 @@ class Frames-Test does WebDriver2::Test::Service-Test {
 	
 	method test {
 		$!from-service.nav;
-		self.is: 'page title', 'iframe test', $.driver.title;
-		
+		self.is: 'page title', 'iframe test', $!from-service.title;
 		self.is: 'page h2 test', 'iframe test', $!from-service.page-h2-text;
-		
 		my $stale = $!from-service.page-link;
 		my WebDriver2::Until $until-stale =
 				WebDriver2::Until::Command::Stale.new:
 						element => $stale,
-						duration => 10,
-						interval => 1 / 10;
+						duration => 5,
+						interval => 1 / 10,
+						:soft
+				;
 		$stale.click;
-		$until-stale.retry;
-		
-		self.is: 'content available', 'internal frame', $!to-service.inner-h2-text;
-		
-		$!to-service.each-repeated: {
+		self.ok: 'wait stale', $until-stale.retry;
+		my Exception:D $xx =
+			WebDriver2::Command::Result::X.new:
+					execution-status =>
+						WebDriver2::Command::Execution-Status.new:
+							type => WebDriver2::Command::Execution-Status::Type::Stale,
+							message => ''
+				;
+		self.throws-like:
+				'interact stale',
+				$xx,
+				{ $stale.click },
+				execution-status => { .type === WebDriver2::Command::Execution-Status::Type::Stale }
+				;
+		my Str:D @expected = 'to page first', 'to page second';
+		$!to-service.each-repeated: 'item', {
 			self.is:
-				'deeply nested list',
-				@!expected.shift,
-				.item.text;
-		}
-		self.is: 'all items seen', 0, +@!expected;
+				"new list @expected[0]",
+				@expected.shift,
+				.resolve.text;
+		};
+		self.is: 'all new items seen', 0, +@expected;
+		$!to-service.iframe;
+		@expected = 'internal frame', 'one', 'two';
+		$!to-service.each-repeated: 'h2-inner', {
+			self.is:
+					"inner list @expected[0]",
+					@expected.shift,
+					.resolve.text;
+		};
+		self.is: 'all inner items seen', 0, +@expected;
+		@expected = <first second>;
+		$!to-service.each-repeated: 'p-inner', {
+			self.is:
+					"inner para @expected[0]",
+					@expected.shift,
+					.resolve.text
+		};
+		self.is: 'all inner para seen', 0, +@expected;
 	}
 }
 
-sub MAIN(
-		Str $browser?,
-		Int:D :$debug = 0
-) {
-	.execute with Frames-Test.new: $browser, :$debug, test-root => 'xt'.IO;
-}
+constant &MAIN = po-test Frames-Test;

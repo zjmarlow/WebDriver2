@@ -17,7 +17,7 @@ class Alerts does WebDriver2::Test::Template {
 			WebDriver2::Driver-Actions:D :$!driver,
 			IO::Path:D :$!test-root = 'xt'.IO,
 			Int:D :$!close-delay = 3,
-			Int:D :$!debug = 0
+			Int:D :$!debug-level = 0
 	) { }
 	
 	method pre-test { }

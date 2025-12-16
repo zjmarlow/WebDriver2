@@ -1,6 +1,7 @@
 use JSON::Fast;
 use WebDriver2::HTTP::Response;
 use WebDriver2;
+use WebDriver2::Test::Debugging;
 
 use WebDriver2::Command::Result;
 use WebDriver2::Command::Execution-Status;
@@ -16,7 +17,7 @@ my sub request (
 	my $host = $driver.server.host;
 	my $port = $driver.server.port;
 	my Str:D $url = "http://$host:$port/" ~ @command.join( '/' );
-	say "$method $url" if $driver.debug > 2;
+	$driver.debug: Level::extra, $method, $url;
 	given $method {
 		when 'GET' { return WebDriver2::HTTP::Request.new: GET => $url; }
 		when 'POST' { return WebDriver2::HTTP::Request.new: POST => $url; }
@@ -61,7 +62,7 @@ my sub post-request(
 ) {
 	my WebDriver2::HTTP::Request:D $req =
 			request( $driver, 'POST', @command );
-	say to-json $data if $driver.debug > 2;
+	$driver.debug: Level::extra, to-json $data;
 	$req.add-content( to-json( $data ) );
 	return $driver.ua.request( $req );
 }
@@ -75,7 +76,7 @@ my sub post-session-request(
 ) {
 	my WebDriver2::HTTP::Request:D $req =
 			session-request $driver, $session-id, 'POST', @command;
-	say to-json $data if $driver.debug > 2;
+	$driver.debug: Level::extra, to-json $data;
 	$req.add-content: to-json $data;
 	return $driver.ua.request: $req;
 }

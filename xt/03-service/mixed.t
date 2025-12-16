@@ -75,29 +75,13 @@ class Mixed-Test does WebDriver2::Test::PO-Test {
 	has Mixed $!mixed;
 	
 	method services {
-		$!mixed, \( :$!browser, :$!debug ),
+		$!mixed, \( :$!browser, :$!debug-level ),
 	}
-
-#	method new ( Str $browser? is copy, Int :$debug is copy ) {
-#		self.set-from-file: $browser; # , $debug;
-#		my Mixed-Test:D $self =
-#				callwith
-#						:$browser,
-#						:$debug,
-#						sut-name => 'mixed',
-#						name => 'mixed',
-#						description => 'tests for various feature levels',
-#						plan => 23;
-#		$self.init;
-#		$self.services;
-#		$self;
-#	}
 	
 	method pre-test { }
 	method post-test { }
 	
 	method test {
-#		$!mixed = $.service-loader.load: Mixed;
 		$!mixed.navigate;
 		
 		is $!mixed.title, 'mixed content', 'page title';

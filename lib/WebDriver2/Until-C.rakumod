@@ -1,4 +1,5 @@
 use WebDriver2;
+use WebDriver2::Test::Debugging;
 
 use WebDriver2::Command::Result;
 use WebDriver2::Command::Execution-Status;
@@ -11,16 +12,16 @@ class WebDriver2::Until-C::Timeout::X is Exception {
 
 my Duration $_interval = Duration.new: 1 / 10;
 my Duration $_max-duration = Duration.new: 1 * 60;
-my Int $_debug = 0;
+my Level:D $_debug = Level::WARN;
 
 our sub did (
 		Real :$duration = $_max-duration,
 		Real :$interval = $_interval,
-		Int :$debug = $_debug
+		Level:D :$debug-level = $_debug
 ) {
 	$_max-duration = $duration if $duration;
 	$_interval = $interval if $interval;
-	$_debug = $debug with $debug;
+	$_debug = $debug-level with $debug-level;
 }
 
 our sub basic (
@@ -30,17 +31,17 @@ our sub basic (
 		Duration :$duration = $_max-duration,
 		Duration :$interval = $_interval,
 		Bool :$soft,
-		Int :$debug is copy = $_debug
+		Int :$debug-level is copy = $_debug
 ) {
 	sub {
 		my $return;
-#$debug = 2;
+#$debug-level = 2;
 		my Instant $start = now;
-		say "\n\nSTARTING TRIALS " ~ $start.DateTime ~ "\n\n" if $debug;
+		say "\n\nSTARTING TRIALS " ~ $start.DateTime ~ "\n\n" if $debug-level;
 		repeat {
-			say "\n\nTRYING " ~ $start.DateTime ~ "\n\n" if $debug > 1;
+			say "\n\nTRYING " ~ $start.DateTime ~ "\n\n" if $debug-level > 1;
 			$return = &operation();
-			say "\n\nOP VAL ", $return.raku, "\n\n" if $debug;
+			say "\n\nOP VAL ", $return.raku, "\n\n" if $debug-level;
 			return $return if &expect( $return );
 			sleep $interval;
 		} while (now - $start) < $duration;

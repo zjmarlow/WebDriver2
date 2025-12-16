@@ -39,6 +39,9 @@ class Main-Service does WebDriver2::SUT::Service {
 		@text.join: "\n";
 	}
 	
+	method switch-to-frame {
+		.resolve.switch-to with self.get: 'iframe';
+	}
 }
 
 class Form-Service does WebDriver2::SUT::Service {
@@ -55,7 +58,7 @@ class Form-Service does WebDriver2::SUT::Service {
 	}
 	method each ( &action ) {
 		for self.get( 'form' ).iterator {
-			&action( self );
+			self.&action;
 		}
 	}
 }
@@ -78,6 +81,10 @@ class Frame-Service does WebDriver2::SUT::Service {
 	method item-text ( --> Str:D ) {
 		.resolve.text with self.get: 'inner';
 	}
+	
+	method return-to-parent {
+		$!session.switch-to-parent;
+	}
 }
 
 class Readme-Test does WebDriver2::Test::PO-Test {
@@ -94,12 +101,12 @@ class Readme-Test does WebDriver2::Test::PO-Test {
 	has Frame-Service $!frs;
 	
 	method services {
-		$!ls, \( :$!browser, :$!debug ),
-		$!ms, \( :$!browser, :$!debug ),
-		$!fs-main, \( :$!browser, prefix => '', :$!debug ),
-		$!fs-frame, \( :$!browser, prefix => '/iframe', :$!debug ),
-		$!fs-div, \( :$!browser, prefix => '/iframe/div', :$!debug ),
-		$!frs, \( :$!browser, :$!debug )
+		$!ls, \( :$!browser, :$!debug-level ),
+		$!ms, \( :$!browser, :$!debug-level ),
+		$!fs-main, \( :$!browser, prefix => '', :$!debug-level ),
+		$!fs-frame, \( :$!browser, prefix => '/iframe', :$!debug-level ),
+		$!fs-div, \( :$!browser, prefix => '/iframe/div', :$!debug-level ),
+		$!frs, \( :$!browser, :$!debug-level )
 	}
 	
 	method test {
@@ -128,6 +135,7 @@ class Readme-Test does WebDriver2::Test::PO-Test {
 
 				$!ms.interesting-text;
 		
+		$!ms.switch-to-frame;
 		my Str:D @results =
 				'Mirzakhani',
 				'Noether',
@@ -143,7 +151,7 @@ class Readme-Test does WebDriver2::Test::PO-Test {
 		my Bool:D $list-seen = False;
 		$!frs.each-outer: {
 			$list-seen = True;
-			self.is: "correct number of elements left", $els, @results.elems;
+			self.is: "correct number of elements left", $els, +@results;
 			$!frs.each-inner: {
 				self.is: "correct inner element : @results[0]", @results.shift,
 						.item-text;
@@ -152,15 +160,23 @@ class Readme-Test does WebDriver2::Test::PO-Test {
 		}
 		self.ok: 'outer', $list-seen;
 		self.is: '$els decremented', 0, $els;
-		self.is: '@results empty', 0, @results.elems;
+		self.is: 'main @results empty ' ~ @results.raku, 0, +@results;
 		
+		$!frs.return-to-parent;
 		@results = 'main-1', 'main-2', 'main-3', 'main-4';
 		
-		$!fs-main.each: { self.is: 'correct form element', @results.shift, .value };
-		self.is: '@results empty', 0, @results.elems;
+		$!fs-main.each: {
+			self.is: "correct form element : @results[0]",
+			@results.shift,
+			.value
+		};
+		self.is: 'frame @results empty '~ @results.raku, 0, @results.elems;
 		
+		$!ms.switch-to-frame;
 		self.is: 'first frame form is head', 'head', $!fs-frame.value;
+		$!frs.return-to-parent;
 		self.is: 'main page form', 'main-1', $!fs-main.first({ True; }).value;
+		$!ms.switch-to-frame;
 		self.is: 'final frame form is foot', 'foot', $!fs-div.value;
 	}
 }

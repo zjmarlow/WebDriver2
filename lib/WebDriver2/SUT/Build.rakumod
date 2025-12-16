@@ -1,4 +1,5 @@
 use WebDriver2;
+use WebDriver2::Test::Debugging;
 
 use WebDriver2::SUT::Tree;
 use WebDriver2::SUT::Build::Page;
@@ -11,7 +12,7 @@ method page (
 		Callable:D $page-resolver,
 		Str:D $sut-name,
 		Bool :$check,
-		Int:D :$debug = 0
+		Int:D :$debug-level = Level::WARN
 ) {
 	my IO::Path $page = .IO with $def-dir.add: "$sut-name.sut";
 	my Str $contents = pre-process $page;
@@ -19,7 +20,7 @@ method page (
 			WebDriver2::SUT::Build::Page-Actions.new; # : :$driver;
 	my Match $match = WebDriver2::SUT::Build::Page.parse: $contents, :$actions
 			or die 'failed parse';
-	$match.Str.say if $debug > 1;
+	$match.Str.say if $debug-level > 1;
 	return if $check;
 	my WebDriver2::SUT::Tree::SUT $sut = $match.made;
 	$sut.page-resolver: $page-resolver;
