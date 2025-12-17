@@ -6,21 +6,22 @@ use WebDriver2::SUT::Build::Page;
 
 unit class WebDriver2::SUT::Build;
 
-my IO::Path $def-dir = $*PROGRAM.parent.parent.add: 'def';
+# my IO::Path $def-dir = $*PROGRAM.parent.parent.add: 'def';
 
 method page (
 		Callable:D $page-resolver,
 		Str:D $sut-name,
+		IO::Path:D :$test-root,
 		Bool :$check,
 		Int:D :$debug-level = Level::WARN
 ) {
-	my IO::Path $page = .IO with $def-dir.add: "$sut-name.sut";
+	my IO::Path $page = .IO with $test-root.add: 'def', "$sut-name.sut";
 	my Str $contents = pre-process $page;
 	my WebDriver2::SUT::Build::Page-Actions $actions =
 			WebDriver2::SUT::Build::Page-Actions.new; # : :$driver;
 	my Match $match = WebDriver2::SUT::Build::Page.parse: $contents, :$actions
 			or die 'failed parse';
-	$match.Str.say if $debug-level > 1;
+	$match.Str.say if $debug-level >= Level::Info;
 	return if $check;
 	my WebDriver2::SUT::Tree::SUT $sut = $match.made;
 	$sut.page-resolver: $page-resolver;

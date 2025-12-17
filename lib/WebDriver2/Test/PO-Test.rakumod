@@ -85,6 +85,7 @@ role WebDriver2::Test::PO-Test
 	}
 	
 	method !init ( WebDriver2::Session-Actions:D $session ) {
+self.debug: Level::trace, $!test-root.Str;
 		$session.set-window-rect: 1200, 750, 8, 8
 			if $session.browser eq 'chrome' | 'safari';
 		$!service = PO-Test-Service.new: :$session;
@@ -92,6 +93,7 @@ role WebDriver2::Test::PO-Test
 				WebDriver2::SUT::Build.page:
 						{ $session.top },
 						$.sut-name,
+						:$!test-root,
 						:$.debug-level
 				;
 		my WebDriver2::SUT::Service::Loader:D $loader =

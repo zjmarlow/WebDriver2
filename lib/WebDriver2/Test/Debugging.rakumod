@@ -18,7 +18,7 @@ method !frame ( --> Backtrace::Frame ) {
 method !debug ( Level:D $sev, Str $msg, *@msg ) {
 	return unless $sev <= $!debug-level;
 	say join ' ', .file, .subname, .line with self!frame;
-	say "\t", join ' ', $msg, |@msg;
+	say "\t", $sev.Str, "\t", join ' ', $msg, |@msg;
 }
 
 multi method debug ( Level:D $sev, Str $msg, *@msg ) {
