@@ -16,7 +16,7 @@ grammar WebDriver2::SUT::Build::Page {
 
 	rule list-def {
 		[
-			list of <elgrp> <identifier> <locator> \{
+			list of <branch-type> <identifier> <locator> \{ # was list of elgrp
 				<restricted-component-def>+
 			\}
 		]
@@ -31,7 +31,7 @@ grammar WebDriver2::SUT::Build::Page {
 		| <select-def>
 	}
 	rule restricted-component-def {
-		[ <fragile>? <elgrp> <identifier> <locator>
+		[ <fragile>? <branch-type> <identifier> <locator> # was elgrp
 			\{ <restricted-component-def>+ \}
 		]
 		| <list-def>
@@ -134,10 +134,22 @@ class WebDriver2::SUT::Build::Page-Actions {
 		return make .made with $<element-def>;
 		return make .made with $<select-def>;
 		return make .made with $<list-def>;
-		my WebDriver2::SUT::Tree::ANode $component =
-				WebDriver2::SUT::Tree::Element.new:
-						name => $<identifier>.Str,
-						locator => $<locator>.made;
+# 		my WebDriver2::SUT::Tree::ANode $component =
+# 				WebDriver2::SUT::Tree::Element.new:
+# 						name => $<identifier>.Str,
+# 						locator => $<locator>.made;
+		my WebDriver2::SUT::Tree::ANode $component;
+		given $<branch-type> {
+			when .<frame> {
+				$component = WebDriver2::SUT::Tree::Frame;
+			}
+			when .<elgrp> {
+				$component = WebDriver2::SUT::Tree::Element;
+			}
+			default {
+				die "unrecognized branch type $_";
+			}
+		}
 		$component = WebDriver2::SUT::Tree::Fragile.new: $component
 			if $<fragile>;
 		$component.add: $_ for $<restricted-component-def>>>.made;

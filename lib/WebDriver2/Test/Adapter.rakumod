@@ -101,3 +101,5 @@ method bail ( Str:D $descr ) {
 method done-testing {
 	done-testing;
 }
+
+method handle-test-failure ( Str:D $descr ) { ... }

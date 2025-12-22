@@ -781,7 +781,7 @@ class WebDriver2::Driver
 					--> WebDriver2::Model::Element:D
 			) {
 				self!is-frame
-						?? $!session!Session::element: $locator
+						?? $!session.element: $locator
 						!! $!session!Session::element: $!internal-id, $locator
 			}
 			method elements(
@@ -789,7 +789,7 @@ class WebDriver2::Driver
 					--> Array of WebDriver2::Model::Element
 			) {
 				self!is-frame
-						?? $!session!Session::elements: $locator
+						?? $!session.elements: $locator
 						!! $!session!Session::elements: $!internal-id, $locator
 			}
 			method rect( --> Hash of Int ) {
