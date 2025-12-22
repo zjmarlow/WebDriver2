@@ -6,5 +6,5 @@ page page-to 'file://xt/content/page-to.html' {
 		list of elemt h2 tag-name 'h2';
 		list of elemt p tag-name 'p';
     }
-	elemt h2 tag-name 'h2';
+	elemt link tag-name 'a';
 }

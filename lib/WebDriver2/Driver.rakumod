@@ -395,7 +395,7 @@ class WebDriver2::Driver
 		method !element-rect( Str:D $element --> Hash of Int ) {
 			my WebDriver2::Command::Result::Element-Rect $rect =
 					WebDriver2::Command::Element-Rect.new( :$element ).execute-with: self, $!session-id;
-			self.debug: $rect, $rect.x, $rect.y, $rect.width, $rect.height;
+			self.debug: $rect.raku, $rect.x.raku, $rect.y.raku, $rect.width.raku, $rect.height.raku;
 			my Int %rect;
 			%rect<x> = $rect.x;
 			%rect<y> = $rect.y;
@@ -754,7 +754,7 @@ class WebDriver2::Driver
 			method stale ( --> Bool:D ) {
 				#		try { self.enabled }
 				my $t;
-				try $t = self.tag-name; # self.enabled;
+				try $t = self.selected; # self.tag-name # self.enabled;
 				#		$!id.say;
 				$!.rethrow if $!
 						and (

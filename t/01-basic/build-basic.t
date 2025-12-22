@@ -44,6 +44,7 @@ sub MAIN(
 			WebDriver2::SUT::Build.page:
 					{ WebDriver2::Mock-Driver.new },
 					'test', # $*PROGRAM.parent.parent.add( 'def' ).add( 'test.page' ),
+					test-root => 't'.IO,
 					:!check,
 					:$debug;
 

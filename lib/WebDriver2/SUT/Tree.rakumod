@@ -494,12 +494,12 @@ class WebDriver2::SUT::Tree::Frame
 {
 	has WebDriver2::Model::Frame $!frame;
 	has WebDriver2::SUT::Tree::ANode %!children;
-
+	
 	submethod BUILD (
 			Str:D :$!name,
 			WebDriver2::Command::Element::Locator :$!locator
 	) { }
-
+	
 	method add ( WebDriver2::SUT::Tree::ANode:D $child ) {
 		my Str $name = $child.name;
 		die "child with name $name already exists"

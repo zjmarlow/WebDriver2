@@ -18,7 +18,7 @@ role WebDriver2::Test::PO-Test
 		has WebDriver2::Session-Actions:D $!session
 				is required
 				is built
-				handles <browser frames delete-session top>;
+				handles <browser frames delete-session top refresh>;
 		multi method screenshot {
 			$!session.screenshot;
 		}
@@ -42,7 +42,7 @@ role WebDriver2::Test::PO-Test
 	my constant $PLAN = 2;
 	
 	has PO-Test-Service $!service
-			handles <browser screenshot frames delete-session>;
+			handles <browser screenshot frames delete-session top refresh>;
 	
 	has Str $!browser;
 	has IO::Path:D $!test-root is required is built where .d = 'xt'.IO;

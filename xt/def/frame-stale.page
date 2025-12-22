@@ -1,0 +1,11 @@
+page frame-stale 'file://xt/content/frame-stale.html' {
+	frame iframe-1 xpath 'iframe[1]' {
+		elemt h2-1 tag-name 'h2';
+		list of frame iframes-1 tag-name 'iframe' {
+            elemt h2-i tag-name 'h2';
+        }
+    }
+    frame iframe-2 xpath 'iframe[2]' {
+        elemt h2-2 tag-name 'h2';
+    }
+}

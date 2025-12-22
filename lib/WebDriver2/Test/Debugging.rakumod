@@ -15,13 +15,14 @@ method !frame ( --> Backtrace::Frame ) {
 	$f;
 }
 
-method !debug ( Level:D $sev, Str $msg, *@msg ) {
+method !debug ( Level:D $sev, Str:D $msg, *@msg ) {
 	return unless $sev <= $!debug-level;
 	say join ' ', .file, .subname, .line with self!frame;
-	say "\t", $sev.Str, "\t", join ' ', $msg, |@msg;
+	say "\t", $sev.Str, "\t",
+		join ' ', $msg, |@msg.map: { .defined ?? .Str !! .raku };
 }
 
-multi method debug ( Level:D $sev, Str $msg, *@msg ) {
+multi method debug ( Level:D $sev, Str:D $msg, *@msg ) {
 	self!debug: $sev, $msg, |@msg;
 }
 

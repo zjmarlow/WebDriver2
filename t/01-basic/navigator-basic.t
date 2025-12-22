@@ -17,7 +17,12 @@ sub MAIN(
 	my WebDriver2::Driver-Actions $driver =  WebDriver2::Mock-Driver.new;
 	my IO::Path $page-def = $*PROGRAM.parent.parent.add: 'def';
 	$page-def .= add: 'test.page';
-	WebDriver2::SUT::Build.page: { $driver }, 'test' #`[ $page-def ], :$check, :$debug;
+	WebDriver2::SUT::Build.page:
+			{ $driver },
+			'test' #`[ $page-def ],
+			test-root => 't'.IO,
+			:$check,
+			:$debug;
 
 	my WebDriver2::SUT::Tree::URL $url =
 			WebDriver2::SUT::Tree::URL.new: 'file://t/content/test.html';

@@ -1,0 +1,58 @@
+<html>
+	<head>
+		<title>iframe test</title>
+		<script src="jquery-3.6.4.js"></script>
+		<script>
+			function anav(event) {
+<!--				// await new Promise ( r => setTimeout ( r, 2000 ) );-->
+<!--
+			//	await new Promise (
+			//		(resolve) => {
+				//		setTimeout ( (nave) => {
+				//				console.log ( nave );
+				//				resolve ( event );
+				//		}, 2000, event )
+				//		window.location.href = 'page-to.html';
+			//		}
+			//	).then ( (val) => { console.log ( val ); } );
+-->
+				setTimeout ( () => { window.location.href = 'page-to.html'; }, 1000 );
+			//	window.location.href = 'page-to.html';
+				event.preventDefault();
+			}
+			function nav(e) {
+				setTimeout ( () => { window.location.href = 'page-to.html'; console.log ( "in timeout" ) }, 3000 );
+				console.log ( "in nav" );
+			//	window.location.href = 'page-to.html';
+				e.preventDefault(); 
+			}
+			function add() {
+				if ( $( "h2" ).siblings( "#added" ).length ) {
+					alert ( "already added" );
+					return;
+				}
+				var added = $( "<p>added</p>" );
+				added.attr ( "id", "added" );
+				$( "#outer" ).after ( added );
+			}
+		</script>
+	</head>
+	<body>
+		<h2 onclick="add();">iframe test</h2>
+		<ul id="outer">
+			<li id="li1">uno</li>
+			<li id="li2">due</li>
+			<li id="li3">tre
+				<ul id="inner">
+					<li id="li3-1">tre - uno</li>
+					<li id="li3-2">tre - due</li>
+				</ul>
+			</li>
+		</ul>
+		<form>
+			<input type="text" id="text" />
+			<input type="checkbox" id="iframe-cb" />
+		</form>
+		<p><a href="#" id="link-to-page" onclick="anav(event);">async from page</a></p>
+	</body>
+</html>
