@@ -39,9 +39,9 @@ has Str:D $.key-prefix = '';
 #			driver => WebDriver2::Driver.new: $browser, :$debug-level;
 #}
 
-method name ( --> Str:D ) { ... }
+method name ( --> Str ) { }
 
-method elements-loaded ( --> Bool:D ) { so %!elements<>.elems }
+method elements-loaded ( --> Bool:D ) { so %!elements }
 
 method add-element ( Str $k, WebDriver2::SUT::Tree::ANode:D $v ) {
 	warn "overwriting $k" if %!elements{ $k }:exists;

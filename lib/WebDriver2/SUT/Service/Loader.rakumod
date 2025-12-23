@@ -35,6 +35,7 @@ method new (
 
 method load-elements ( WebDriver2::SUT::Service:D @svc ) {
 	for @svc -> WebDriver2::SUT::Service:D $svc {
+		next unless $svc.name.defined;
 		my Str:D $prefix = $svc.prefix;
 		my Str:D $key-prefix = $svc.key-prefix;
 		my Str ( $k, $v );

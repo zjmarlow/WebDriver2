@@ -141,7 +141,7 @@ our sub no-throw-type ( @types, &operation ) {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
 		$result.rethrow unless $result ~~ WebDriver2::Command::Result::X;
-		$result.rethrow unless [or] ( $result.execution-status.type <<~~<< @types );
+		$result.rethrow unless $result.execution-status.type ~~ @types.any;
 #		return WebDriver2::Command::Result::X; # False;
 		$result;
 	}
