@@ -37,16 +37,16 @@ module WD2P {
 		has Str:D $.using = 'css selector';
 	}
 	class By::ID is By::CSS {
-    	method value ( Str:D $value ) {
-    	    callwith "#$value";
-    	}
-    }
-    class By::Link-Text does By {
-        has Str:D $.using = 'link text';
+		method value ( Str:D $value ) {
+			callwith "#$value";
+		}
+	}
+	class By::Link-Text does By {
+		has Str:D $.using = 'link text';
 	}
 	class By::Partial-Link-Text does By {
-        has Str:D $.using = 'partial link text';
-    }
+		has Str:D $.using = 'partial link text';
+	}
 	class By::XPath does By {
 		has Str:D $.using = 'xpath';
 	}
@@ -61,24 +61,71 @@ module WD2P {
 		method switch-to-parent-frame ( --> Bool:D ) { ... }
 	}
 	
-	role Request-Builder {
+	my role Request-Builder does WebDriver2::Test::Debugging {
+		use JSON::Fast;
 		trusts WD2P::Session;
 		trusts WD2P::Driver;
 		
+		method host ( --> Str:D ) { ... }
+		method port ( --> Int:D ) { ... }
 		
+		method !request (
+				Str:D $method,
+				*@command
+				--> HTTP::Request:D
+		) {
+			my Str:D $url = "http://$.host:$.port/"; ~ @command.join: '/';
+			self.debug: Level::extra, $method, $url;
+			given $method {
+				when 'GET' { return HTTP::Request.new: GET => $url; }
+				when 'POST' { return HTTP::Request.new: POST => $url; }
+				when 'DELETE' { return HTTP::Request.new: DELETE => $url; }
+			}
+		}
+		
+		method !get-request (
+				*@command
+				--> HTTP::Request:D
+		) {
+			self!request: 'GET', @command;
+		}
+		
+		method !post-request (
+				$data,
+				*@command
+				--> HTTP::Request:D
+		) {
+			my HTTP::Request $req = self!request 'POST', @command;
+			my Str:D $json = to-json $data;
+			self.debug: Level::extra, $json;
+			$req.add-content: $json;
+			$req;
+		}
+		
+		method !delete-request (
+				*@command
+				--> HTTP::Request:D
+		) {
+			self!request: 'DELETE', @command;
+		}
 	}
 	
-	role Driver-Param {
+	role Driver-Request does Request-Builder {
 		method status ( --> HTTP::Request:D ) { ... }
 		method new-session ( *%capabilities --> HTTP::Request:D ) { ... }
 	}
 	
-	class Driver-Param::Chromium does Driver-Param {
+	class Driver-Request::Chromium does Driver-Request {
 		use JSON::Fast;
-		method status ( --> HTTP::Request:D ) { { } }
+		method status ( --> HTTP::Request:D ) {
+			self!get-request: 'status'
+		}
 		
 		method new-session ( *%capabilities --> HTTP::Request:D ) {
-			{
+			self!post-session: %capabilities, 'session';
+		}
+		method new-session ( --> HTTP::Request:D ) {
+			self.new-session: {
 				capabilities => {
 					alwaysMatch => {
 						unhandledPromptBehavior => {
@@ -96,7 +143,8 @@ module WD2P {
 		}
 	}
 	
-	role Session-Request {
+	role Session-Request does Request::Builder {
+		has Str:D $!session-id is built is required;
 		
 		method delete-session ( --> HTTP::Request:D ) { ... }
 		method get-timeouts ( --> HTTP::Request:D ) { ... }
@@ -120,12 +168,12 @@ module WD2P {
 		method switch-to-parent-frame ( --> HTTP::Request:D ) { ... }
 		method get-window-rect ( --> HTTP::Request:D ) { ... }
 		method set-window-rect (
-                Int :$width,
-                Int :$height,
-                Int :$x,
-                Int :$y
-                --> HTTP::Request:D
-        ) { ... }
+				Int :$width,
+				Int :$height,
+				Int :$x,
+				Int :$y
+				--> HTTP::Request:D
+		) { ... }
 		method maximize-window ( --> HTTP::Request:D ) { ... }
 		method minimize-window ( --> HTTP::Request:D ) { ... }
 		method fullscreen-window ( --> HTTP::Request:D ) { ... }
@@ -150,11 +198,16 @@ module WD2P {
 		method print-page ( --> HTTP::Request:D ) { ... }
 	}
 	
-	class Session-Param::Default does Session-Param {
+	class Session-Request::Default does Session-Request {
+		method !args { 'session', $!session-id }
 		
-		method delete-session ( --> HTTP::Request:D ) { { } }
+		method delete-session ( --> HTTP::Request:D ) {
+			self!delete-request: self!args;
+		}
 		
-		method get-timeouts ( --> HTTP::Request:D ) { { } }
+		method get-timeouts ( --> HTTP::Request:D ) {
+			self!get-request: self!args, 'timeouts';
+		}
 		
 		method set-timeouts (
 				Int :$script,
@@ -162,26 +215,36 @@ module WD2P {
 				Int :$implicit
 				--> HTTP::Request:D
 		) {
-			{
+			self!post-request: {
 				:$script,
 				:$pageLoad,
 				:$implicit
-			}
+			}, self!args, 'timeouts';
 		}
 		
 		method navigate-to ( Str:D $url --> HTTP::Request:D ) {
-			{ :$url }
+			self!post-request: { :$url }, self!args, 'url';
 		}
 		
-		method get-current-url ( --> HTTP::Request:D ) { { } }
+		method get-current-url ( --> HTTP::Request:D ) {
+			self!get-request: self!args, 'url';
+		}
 		
-		method back ( --> HTTP::Request:D ) { { } }
+		method back ( --> HTTP::Request:D ) {
+			self!post-request: { }, self!args, 'back';
+		}
 		
-		method forward ( --> HTTP::Request:D ) { { } }
+		method forward ( --> HTTP::Request:D ) {
+			self!post-request: { }, self!args, 'forward';
+		}
 		
-		method refresh ( --> HTTP::Request:D ) { { } }
+		method refresh ( --> HTTP::Request:D ) {
+			self!post-request: { }, self!args, 'refresh';
+		}
 		
-		method get-title ( --> HTTP::Request:D ) { { } }
+		method get-title ( --> HTTP::Request:D ) {
+			
+		}
 		
 		method get-window-handle ( --> HTTP::Request:D ) { { } }
 		
@@ -282,15 +345,15 @@ module WD2P {
 		}
 	}
 	
-	role Element-Param {
+	role Element-Request does Request::Builder {
 		method find-sub-element ( Str:D $sid --> HTTP::Request:D ) { ... }
 		method find-sub-elements ( Str:D $sid --> HTTP::Request:D ) { ... }
 		
 		method switch-to-frame ( --> HTTP::Request:D ) { ... }
 		
 		method get-element-shadow-root ( --> HTTP::Request:D ) { ... }
-        
-        method is-element-selected ( Str:D $sid --> HTTP::Request:D ) { ... }
+		
+		method is-element-selected ( Str:D $sid --> HTTP::Request:D ) { ... }
 		method get-element-attribute ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
 		method get-element-property ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
 		method get-element-css-value ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
@@ -305,7 +368,7 @@ module WD2P {
 		method element-send-keys ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
 	}
 	
-	class Element-Param::Default does Element-Param {
+	class Element-Request::Default does Element-Request {
 		
 		method find-element (  ) {
 			self.find-sub-element: ;
@@ -325,8 +388,8 @@ module WD2P {
 		
 		
 		method get-element-shadow-root ( --> HTTP::Request:D ) { { } }
-        		
-        method is-element-selected ( Str:D $sid --> HTTP::Request:D ) {
+				
+		method is-element-selected ( Str:D $sid --> HTTP::Request:D ) {
 			
 		}
 		
@@ -383,7 +446,7 @@ module WD2P {
 		}
 	}
 	
-	role Shadow-Param {
+	role Shadow-Request does Request::Builder {
 		
 		
 		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
@@ -395,16 +458,16 @@ module WD2P {
 		}
 	}
 	
-	class Shadow-Param::Default does Shadow-Param {
+	class Shadow-Request::Default does Shadow-Request {
 		
-    	method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
-            
-        }
-        
-        method find-sub-shadow-elements ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
-            
-        }
-    }
+		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
+			
+		}
+		
+		method find-sub-shadow-elements ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
+			
+		}
+	}
 	
 	role Result {
 		
@@ -513,11 +576,11 @@ module WD2P {
 	}
 	
 	class Convenience {
-        method action-sequence (  ) { ... }
-        #| return Element:U if not found instead of throwing
-        method find-element-soft ( By $locator --> Element ) { ... }
-        method set-zoom ( Rat:D $ratio ) { ... }
-    }
+		method action-sequence (  ) { ... }
+		#| return Element:U if not found instead of throwing
+		method find-element-soft ( By $locator --> Element ) { ... }
+		method set-zoom ( Rat:D $ratio ) { ... }
+	}
 }
 
 class WD2P::Driver::Provider {
