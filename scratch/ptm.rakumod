@@ -516,6 +516,7 @@ module WD2P {
         method action-sequence (  ) { ... }
         #| return Element:U if not found instead of throwing
         method find-element-soft ( By $locator --> Element ) { ... }
+        method set-zoom ( Rat:D $ratio ) { ... }
     }
 }
 
