@@ -1,5 +1,5 @@
 use JSON::Fast;
-use WebDriver2::HTTP::Response;
+use HTTP::Response;
 use WebDriver2;
 use WebDriver2::Test::Debugging;
 
@@ -12,16 +12,16 @@ my sub request (
 		WebDriver2::Driver-Actions:D $driver,
 		Str:D $method,
 		*@command
-		--> WebDriver2::HTTP::Request:D
+		--> HTTP::Request:D
 ) {
 	my $host = $driver.server.host;
 	my $port = $driver.server.port;
 	my Str:D $url = "http://$host:$port/" ~ @command.join( '/' );
 	$driver.debug: Level::extra, $method, $url;
 	given $method {
-		when 'GET' { return WebDriver2::HTTP::Request.new: GET => $url; }
-		when 'POST' { return WebDriver2::HTTP::Request.new: POST => $url; }
-		when 'DELETE' { return WebDriver2::HTTP::Request.new: DELETE => $url; }
+		when 'GET' { return HTTP::Request.new: GET => $url; }
+		when 'POST' { return HTTP::Request.new: POST => $url; }
+		when 'DELETE' { return HTTP::Request.new: DELETE => $url; }
 	}
 }
 
@@ -30,7 +30,7 @@ my sub session-request (
 		Str:D $session-id,
 		Str:D $method,
 		*@command
-		--> WebDriver2::HTTP::Request:D
+		--> HTTP::Request:D
 ) {
 	my Str:D @new-command = 'session', $session-id, |@command;
 	request $driver, $method, @new-command;
@@ -39,7 +39,7 @@ my sub session-request (
 my sub get-request (
 		WebDriver2::Driver-Actions:D $driver,
 		*@command
-		--> WebDriver2::HTTP::Response:D
+		--> HTTP::Response:D
 ) {
 	$driver.ua.request: request $driver, 'GET', @command
 }
@@ -48,7 +48,7 @@ my sub get-session-request(
 		WebDriver2::Driver-Actions:D $driver,
 		Str:D $session-id,
 		*@command
-		--> WebDriver2::HTTP::Response:D
+		--> HTTP::Response:D
 ) {
 	$driver.ua.request:
 			session-request $driver, $session-id, 'GET', @command;
@@ -58,9 +58,9 @@ my sub post-request(
 		WebDriver2::Driver-Actions:D $driver,
 		$data,
 		*@command
-		--> WebDriver2::HTTP::Response:D
+		--> HTTP::Response:D
 ) {
-	my WebDriver2::HTTP::Request:D $req =
+	my HTTP::Request:D $req =
 			request( $driver, 'POST', @command );
 	$driver.debug: Level::extra, to-json $data;
 	$req.add-content( to-json( $data ) );
@@ -72,9 +72,9 @@ my sub post-session-request(
 		Str:D $session-id,
 		$data,
 		*@command
-		--> WebDriver2::HTTP::Response:D
+		--> HTTP::Response:D
 ) {
-	my WebDriver2::HTTP::Request:D $req =
+	my HTTP::Request:D $req =
 			session-request $driver, $session-id, 'POST', @command;
 	$driver.debug: Level::extra, to-json $data;
 	$req.add-content: to-json $data;
@@ -84,7 +84,7 @@ my sub post-session-request(
 my sub delete-request (
 		WebDriver2::Driver-Actions:D $driver,
 		*@command
-		--> WebDriver2::HTTP::Response:D
+		--> HTTP::Response:D
 ) {
 	$driver.ua.request: request $driver, 'DELETE', @command;
 }
@@ -93,7 +93,7 @@ my sub delete-session-request(
 		WebDriver2::Driver-Actions:D $driver,
 		Str:D $session-id,
 		*@command
-		--> WebDriver2::HTTP::Response:D
+		--> HTTP::Response:D
 ) {
 	$driver.ua.request:
 			session-request $driver, $session-id, 'DELETE', @command;

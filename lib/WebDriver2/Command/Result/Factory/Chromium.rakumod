@@ -1,5 +1,6 @@
 use JSON::Fast;
 
+use HTTP::UserAgent;
 #use WebDriver2;
 use WebDriver2::Command::Execution-Status;
 use WebDriver2::Command::Result;
@@ -12,7 +13,7 @@ method new {
 	WebDriver2::Command::Result::Factory::Chromium
 }
 
-method !status-args( WebDriver2::HTTP::Response $response, $type ) { # PRIVATE OKAY
+method !status-args( HTTP::Response $response, $type ) { # PRIVATE OKAY
 	my $data = from-json $response.content;
 	\(
 			code => $data<value><error>,
@@ -21,7 +22,7 @@ method !status-args( WebDriver2::HTTP::Response $response, $type ) { # PRIVATE O
 	)
 }
 
-method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Execution-Status ) {
+method execution-status( HTTP::Response $response --> WebDriver2::Command::Execution-Status ) {
 	my $data = from-json $response.content;
 	return
 			WebDriver2::Command::Execution-Status.new:
@@ -133,7 +134,7 @@ method value( $value ) {
 			!! Str
 }
 
-method basic( WebDriver2::HTTP::Response $response ) {
+method basic( HTTP::Response $response ) {
 #	my $data = from-json( $response.content );
 	\(
 			str => $response.content,
@@ -141,7 +142,7 @@ method basic( WebDriver2::HTTP::Response $response ) {
 	)
 }
 
-method single-value( WebDriver2::HTTP::Response $response ) {
+method single-value( HTTP::Response $response ) {
 	my $data = from-json( $response.content );
 	my WebDriver2::Command::Execution-Status $execution-status = self.execution-status( $response );
 	\(
@@ -154,7 +155,7 @@ method single-value( WebDriver2::HTTP::Response $response ) {
 
 
 
-method status( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Status ) {
+method status( HTTP::Response $response --> WebDriver2::Command::Result::Status ) {
 	my $data = from-json( $response.content );
 	return WebDriver2::Command::Result::Status.new(
 			str => $response.content,
@@ -165,7 +166,7 @@ method status( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Res
 	);
 }
 
-method session( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Session ) {
+method session( HTTP::Response $response --> WebDriver2::Command::Result::Session ) {
 	my $data = from-json( $response.content );
 	return WebDriver2::Command::Result::Session.new(
 			str => $response.content,
@@ -174,7 +175,7 @@ method session( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Re
 	);
 }
 
-method element( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Element ) {
+method element( HTTP::Response $response --> WebDriver2::Command::Result::Element ) {
 	my $data = from-json( $response.content );
 	# FIXME : status 7 for no such element
 	return WebDriver2::Command::Result::Element.new:
@@ -184,7 +185,7 @@ method element( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Re
 	;
 }
 
-method subelement( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::SubElement ) {
+method subelement( HTTP::Response $response --> WebDriver2::Command::Result::SubElement ) {
 	my $data = from-json( $response.content );
 	# FIXME : status 7 for no such element
 	return WebDriver2::Command::Result::SubElement.new(
@@ -194,7 +195,7 @@ method subelement( WebDriver2::HTTP::Response $response --> WebDriver2::Command:
 	);
 }
 
-method elements( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Elements ) {
+method elements( HTTP::Response $response --> WebDriver2::Command::Result::Elements ) {
 	my $data = from-json( $response.content );
 	# FIXME : status 7 for no such element
 	my Str @el;
@@ -207,7 +208,7 @@ method elements( WebDriver2::HTTP::Response $response --> WebDriver2::Command::R
 }
 
 method subelements(
-		WebDriver2::HTTP::Response $response
+		HTTP::Response $response
 		--> WebDriver2::Command::Result::SubElements
 ) {
 	my $data = from-json( $response.content );
@@ -222,7 +223,7 @@ method subelements(
 }
 
 method element-rect(
-		WebDriver2::HTTP::Response $response
+		HTTP::Response $response
 		--> WebDriver2::Command::Result::Element-Rect
 ) {
 	my $data = from-json $response.content;
@@ -234,7 +235,7 @@ method element-rect(
 }
 
 method window-handles (
-		WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Window-Handles
+		HTTP::Response $response --> WebDriver2::Command::Result::Window-Handles
 ) {
 	my $data = from-json $response.content;
 	my Str @wh;
@@ -246,7 +247,7 @@ method window-handles (
 }
 
 method new-window (
-		WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::New-Window
+		HTTP::Response $response --> WebDriver2::Command::Result::New-Window
 ) {
 	#	WebDriver2::Command::Result::New-Window.new: |self.basic: $response;
 	my $data = from-json $response.content;
@@ -257,7 +258,7 @@ method new-window (
 			execution-status => self.execution-status: $response;
 }
 
-method active( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Active ) {
+method active( HTTP::Response $response --> WebDriver2::Command::Result::Active ) {
 	my $data = from-json( $response.content );
 	WebDriver2::Command::Result::Active.new(
 			str => $response.content,

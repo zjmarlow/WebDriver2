@@ -1,4 +1,4 @@
-use WebDriver2::HTTP::UserAgent;
+use HTTP::UserAgent;
 
 use WebDriver2::Command::Element::Locator;
 use WebDriver2::Command::Param;
@@ -11,7 +11,7 @@ role WebDriver2::Model::Element does WebDriver2::Model::Context { ... }
 role WebDriver2::Model::Frame does WebDriver2::Model::Context { ... }
 
 role WebDriver2::Driver-Actions {
-#	has WebDriver2::HTTP::UserAgent $!ua;
+#	has HTTP::UserAgent $!ua;
 #	has Level $.debug is rw;
 	has Str:D $.browser is required;
 #	method browser ( --> Str:D ) { ... }
@@ -126,7 +126,7 @@ role WebDriver2
 {
 #	has Str $.session-id is rw;
 #	has Str:D $.browser is required;
-	has WebDriver2::HTTP::UserAgent $.ua;
+	has HTTP::UserAgent $.ua;
 #	has Level $.debug is rw;
 	
 	method browser ( --> Str:D ) { ... }

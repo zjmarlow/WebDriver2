@@ -1,6 +1,4 @@
-use WebDriver2::HTTP::UserAgent;
-use WebDriver2::HTTP::Message;
-use WebDriver2::HTTP::Request;
+use HTTP::UserAgent;
 use JSON::Fast;
 use URI::Encode;
 use WebDriver2::Driver::Server;
@@ -32,7 +30,7 @@ class WebDriver2::Driver
 		does WebDriver2::Test::Debugging
 		does WebDriver2::Test::Config-From-File
 {
-	my WebDriver2::HTTP::UserAgent $ua;
+	my HTTP::UserAgent $ua;
 	has WebDriver2::Driver::Server:D $.server is required;
 #	has Level:D $.debug-level is required;
 	
@@ -61,11 +59,11 @@ class WebDriver2::Driver
 	) {
 		return %driver{ $browser } if %driver{ $browser };
 		self.set-from-file: $browser, #`[ $.debug-level ];
-		$ua ||= WebDriver2::HTTP::UserAgent.new: :$debug-level;
+		$ua ||= HTTP::UserAgent.new: debug => $debug-level > Level::Info;
 		%driver{ $browser } .=new: :$debug-level;
 	}
 #	method browser ( --> Str:D ) { ... }
-	method ua ( --> WebDriver2::HTTP::UserAgent:D ) { $ua }
+	method ua ( --> HTTP::UserAgent:D ) { $ua }
 	
 #	multi method debug {
 #		$!debug-level;
@@ -767,12 +765,7 @@ class WebDriver2::Driver
 						and $!.execution-status.type
 							~~ WebDriver2::Command::Execution-Status::Type::Stale
 				);
-				so ( ( $t eq 'frame' | 'iframe' )
-						and (
-								not $!session!Session::curr-frame
-								or $!session!Session::curr-frame !~~ $!internal-id
-						)
-				);
+				so ( $t eq 'frame' | 'iframe' ) and not $t.frame.curr-frame;
 #				so ( $! and $!.execution-status.type ~~ WebDriver2::Command::Execution-Status::Type::Stale)
 			}
 			

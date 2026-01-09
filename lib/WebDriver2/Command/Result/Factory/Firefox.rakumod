@@ -1,4 +1,4 @@
-use WebDriver2::HTTP::Response;
+use HTTP::Response;
 use JSON::Fast;
 
 #use WebDriver2;
@@ -8,7 +8,7 @@ use WebDriver2::Command::Result::Factory;
 
 unit class WebDriver2::Command::Result::Factory::Firefox does WebDriver2::Command::Result::Factory;
 
-method status-args( WebDriver2::HTTP::Response $response, $type ) {
+method status-args( HTTP::Response $response, $type ) {
 	\(
 			code => $response.code,
 			:$type,
@@ -17,7 +17,7 @@ method status-args( WebDriver2::HTTP::Response $response, $type ) {
 	)
 }
 
-method execution-status( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Execution-Status ) {
+method execution-status( HTTP::Response $response --> WebDriver2::Command::Execution-Status ) {
 #say 'EXECUTION STATUS DATA ', $response.raku;
 	my $data = from-json( $response.content );
 #say '', $data<>;
@@ -144,7 +144,7 @@ method !hash-val( $data ) {
 	$data.pairs[0].value // Str;
 }
 
-method basic( WebDriver2::HTTP::Response $response ) {
+method basic( HTTP::Response $response ) {
 	my $data = from-json $response.content;
 	\(
 			str => $response.content,
@@ -153,7 +153,7 @@ method basic( WebDriver2::HTTP::Response $response ) {
 	)
 }
 
-method single-value( WebDriver2::HTTP::Response $response ) {
+method single-value( HTTP::Response $response ) {
 	my $data = from-json $response.content;
 	my WebDriver2::Command::Execution-Status $execution-status = self.execution-status( $response );
 #	my WebDriver2::Command::Execution-Status $execution-status = self.execution-status( $data, $response.code );
@@ -165,11 +165,11 @@ method single-value( WebDriver2::HTTP::Response $response ) {
 	)
 }
 
-#method url ( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::URL ) {
+#method url ( HTTP::Response $response --> WebDriver2::Command::Result::URL ) {
 #	WebDriver2::Command::Result::URL.new( |self!single-value( $response ) )
 #}
 #
-method status( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Status ) {
+method status( HTTP::Response $response --> WebDriver2::Command::Result::Status ) {
 	my $data = from-json( $response.content );
 	return WebDriver2::Command::Result::Status.new(
 			str => $response.content,
@@ -180,7 +180,7 @@ method status( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Res
 	);
 }
 
-method session( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Session ) {
+method session( HTTP::Response $response --> WebDriver2::Command::Result::Session ) {
 	my $data = from-json( $response.content );
 #say $data<value><sessionId>;
 #say 'SESSION RESPONSE ', $data.raku;
@@ -194,7 +194,7 @@ method session( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Re
 #
 #
 #method maximize-window (
-#		WebDriver2::HTTP::Response $response
+#		HTTP::Response $response
 #		--> WebDriver2::Command::Result::Maximize-Window
 #) {
 #	WebDriver2::Command::Result::Maximize-Window.new( |self!basic( $response ) )
@@ -202,61 +202,61 @@ method session( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Re
 #
 #
 #method set-window-rect(
-#		WebDriver2::HTTP::Response $response
+#		HTTP::Response $response
 #		--> WebDriver2::Command::Result::Set-Window-Rect
 #) {
 #	WebDriver2::Command::Result::Set-Window-Rect.new( |self!basic( $response ) )
 #}
 #
-#method navigate( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Navigate ) {
+#method navigate( HTTP::Response $response --> WebDriver2::Command::Result::Navigate ) {
 #	WebDriver2::Command::Result::Navigate.new( |self!basic( $response ) )
 #}
 #
-#method refresh( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Refresh ) {
+#method refresh( HTTP::Response $response --> WebDriver2::Command::Result::Refresh ) {
 #	WebDriver2::Command::Result::Refresh.new( |self!basic( $response ) )
 #}
 #
-#method screenshot( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Screenshot ) {
+#method screenshot( HTTP::Response $response --> WebDriver2::Command::Result::Screenshot ) {
 #	WebDriver2::Command::Result::Screenshot.new( |self!single-value( $response ) )
 #}
 #
 #method element-screenshot(
-#		WebDriver2::HTTP::Response $response
+#		HTTP::Response $response
 #		--> WebDriver2::Command::Result::Element-Screenshot
 #) {
 #	WebDriver2::Command::Result::Element-Screenshot.new( |self!single-value( $response ) )
 #}
 #
-#method title( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Title ) {
+#method title( HTTP::Response $response --> WebDriver2::Command::Result::Title ) {
 #	WebDriver2::Command::Result::Title.new( |self!single-value( $response ) )
 #}
 #
-#method alert-text( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Alert-Text ) {
+#method alert-text( HTTP::Response $response --> WebDriver2::Command::Result::Alert-Text ) {
 #	WebDriver2::Command::Result::Alert-Text.new( |self!single-value( $response ) )
 #}
 #
 #method accept-alert(
-#		WebDriver2::HTTP::Response $response
+#		HTTP::Response $response
 #		--> WebDriver2::Command::Result::Accept-Alert
 #) {
 #	WebDriver2::Command::Result::Accept-Alert.new( |self!basic( $response ) )
 #}
 #
 #method dismiss-alert(
-#		WebDriver2::HTTP::Response $response
+#		HTTP::Response $response
 #		--> WebDriver2::Command::Result::Dismiss-Alert
 #) {
 #	WebDriver2::Command::Result::Dismiss-Alert.new( |self!basic( $response ) )
 #}
 #
 #method send-alert-text(
-#		WebDriver2::HTTP::Response $response
+#		HTTP::Response $response
 #		--> WebDriver2::Command::Result::Send-Alert-Text
 #) {
 #	WebDriver2::Command::Result::Send-Alert-Text.new( |self!basic( $response ) )
 #}
 #
-method element( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Element ) {
+method element( HTTP::Response $response --> WebDriver2::Command::Result::Element ) {
 	my $data = from-json( $response.content );
 	# FIXME : status 7 for no such element
 #	my WebDriver2::Command::Execution-Status $status = self.status( $response );
@@ -267,7 +267,7 @@ method element( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Re
 	);
 }
 
-method subelement( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::SubElement ) {
+method subelement( HTTP::Response $response --> WebDriver2::Command::Result::SubElement ) {
 	my $data = from-json( $response.content );
 	# FIXME : status 7 for no such element
 	return WebDriver2::Command::Result::SubElement.new(
@@ -277,7 +277,7 @@ method subelement( WebDriver2::HTTP::Response $response --> WebDriver2::Command:
 	);
 }
 
-method elements( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Elements ) {
+method elements( HTTP::Response $response --> WebDriver2::Command::Result::Elements ) {
 	my $data = from-json( $response.content );
 	# FIXME : status 7 for no such element
 	my Str @el;
@@ -290,7 +290,7 @@ method elements( WebDriver2::HTTP::Response $response --> WebDriver2::Command::R
 }
 
 method subelements(
-		WebDriver2::HTTP::Response $response
+		HTTP::Response $response
 		--> WebDriver2::Command::Result::SubElements
 ) {
 	my $data = from-json( $response.content );
@@ -305,7 +305,7 @@ method subelements(
 }
 #
 method element-rect(
-		WebDriver2::HTTP::Response $response
+		HTTP::Response $response
 		--> WebDriver2::Command::Result::Element-Rect
 ) {
 	my $data = from-json $response.content;
@@ -318,7 +318,7 @@ method element-rect(
 #
 #
 #
-method window-handles ( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Window-Handles ) {
+method window-handles ( HTTP::Response $response --> WebDriver2::Command::Result::Window-Handles ) {
 	my $data = from-json $response.content;
 	my Str @wh;
 	@wh.push: self!hash-val( $_ ) for $data<value>[*];
@@ -329,7 +329,7 @@ method window-handles ( WebDriver2::HTTP::Response $response --> WebDriver2::Com
 }
 
 method new-window (
-		WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::New-Window
+		HTTP::Response $response --> WebDriver2::Command::Result::New-Window
 ) {
 	my $data = from-json $response.content;
 	my Str %values = $data<value><>:kv;
@@ -342,14 +342,14 @@ method new-window (
 
 #
 #method execute-script(
-#		WebDriver2::HTTP::Response $response
+#		HTTP::Response $response
 #		--> WebDriver2::Command::Result::Execute-Script
 #) {
 #	my $data = from-json $response.content;
 #	WebDriver2::Command::Result::Execute-Script.new: |self!single-value: $response;
 #}
 #
-method active( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Active ) {
+method active( HTTP::Response $response --> WebDriver2::Command::Result::Active ) {
 	my $data = from-json( $response.content );
 	WebDriver2::Command::Result::Active.new(
 			str => $response.content,
@@ -358,68 +358,68 @@ method active( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Res
 	)
 }
 #
-#method tag-name( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Tag-Name ) {
+#method tag-name( HTTP::Response $response --> WebDriver2::Command::Result::Tag-Name ) {
 #	WebDriver2::Command::Result::Tag-Name.new( |self!single-value( $response ) )
 #}
 #
-#method switch-to( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Switch-To ) {
+#method switch-to( HTTP::Response $response --> WebDriver2::Command::Result::Switch-To ) {
 #	# FIXME : status 8 for no such frame
 #	WebDriver2::Command::Result::Switch-To.new( |self!basic( $response ) );
 #}
 #
 #method switch-to-parent(
-#		WebDriver2::HTTP::Response $response
+#		HTTP::Response $response
 #		--> WebDriver2::Command::Result::Switch-To-Parent
 #) {
 #	WebDriver2::Command::Result::Switch-To-Parent.new( |self!basic( $response ) )
 #}
 #
-#method property( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Property ) {
+#method property( HTTP::Response $response --> WebDriver2::Command::Result::Property ) {
 #	WebDriver2::Command::Result::Property.new( |self!single-value( $response ) )
 #}
 #
-#method attribute( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Attribute ) {
+#method attribute( HTTP::Response $response --> WebDriver2::Command::Result::Attribute ) {
 #	WebDriver2::Command::Result::Attribute.new( |self!single-value( $response ) )
 #}
 #
-#method text( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Text ) {
+#method text( HTTP::Response $response --> WebDriver2::Command::Result::Text ) {
 #	WebDriver2::Command::Result::Text.new( |self!single-value( $response ) )
 #}
 #
-#method enabled( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Enabled ) {
+#method enabled( HTTP::Response $response --> WebDriver2::Command::Result::Enabled ) {
 #	WebDriver2::Command::Result::Enabled.new( |self!single-value( $response ) )
 #}
 #
-#method displayed( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Displayed ) {
+#method displayed( HTTP::Response $response --> WebDriver2::Command::Result::Displayed ) {
 #	WebDriver2::Command::Result::Displayed.new( |self!single-value( $response ) )
 #}
 #
-#method selected( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Selected ) {
+#method selected( HTTP::Response $response --> WebDriver2::Command::Result::Selected ) {
 #	WebDriver2::Command::Result::Selected.new( |self!single-value( $response ) )
 #}
 #
-#method css-value( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::CSS-Value ) {
+#method css-value( HTTP::Response $response --> WebDriver2::Command::Result::CSS-Value ) {
 #	WebDriver2::Command::Result::CSS-Value.new( |self!single-value( $response ) )
 #}
 #
-#method send-keys( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Send-Keys ) {
+#method send-keys( HTTP::Response $response --> WebDriver2::Command::Result::Send-Keys ) {
 #	WebDriver2::Command::Result::Send-Keys.new( |self!basic( $response ) )
 #}
 #
-#method timeouts( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Timeouts ) {
+#method timeouts( HTTP::Response $response --> WebDriver2::Command::Result::Timeouts ) {
 #	WebDriver2::Command::Result::Timeouts.new( |self!basic( $response ) )
 #}
 #
-#method clear( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Clear ) {
+#method clear( HTTP::Response $response --> WebDriver2::Command::Result::Clear ) {
 #	WebDriver2::Command::Result::Clear.new( |self!basic( $response ) )
 #}
 #
-#method click( WebDriver2::HTTP::Response $response --> WebDriver2::Command::Result::Click ) {
+#method click( HTTP::Response $response --> WebDriver2::Command::Result::Click ) {
 #	WebDriver2::Command::Result::Click.new( |self!basic( $response ) )
 #}
 #
 #method delete-session(
-#		WebDriver2::HTTP::Response $response
+#		HTTP::Response $response
 #		--> WebDriver2::Command::Result::Delete-Session
 #) {
 #	WebDriver2::Command::Result::Delete-Session.new( |self!basic( $response ) )

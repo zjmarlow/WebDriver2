@@ -490,9 +490,9 @@ class WebDriver2::SUT::Tree::Fragile-Visitor does WebDriver2::SUT::Tree::Visitor
 class WebDriver2::SUT::Tree::Frame
 		does WebDriver2::SUT::Tree::AFrame
 		does WebDriver2::SUT::Tree::Locatable
-		does WebDriver2::SUT::Tree::Resolvable[ WebDriver2::Model::Frame ]
+		does WebDriver2::SUT::Tree::Resolvable[ WebDriver2::Model::Element ]
 {
-	has WebDriver2::Model::Frame $!frame;
+	has WebDriver2::Model::Element $!element;
 	has WebDriver2::SUT::Tree::ANode %!children;
 	
 	submethod BUILD (
@@ -531,14 +531,15 @@ class WebDriver2::SUT::Tree::Frame
 		}
 		$v.visit-depth-frame: self;
 	}
-	method resolve ( --> WebDriver2::Model::Frame:D ) {
-		if not $!frame or $!frame.stale {
-			return $!frame = .frame with $!parent.resolve.element: $!locator;
-		}
-		$!frame;
+	method resolve ( --> WebDriver2::Model::Element:D ) {
+		return $!element = $!parent.resolve.element: $!locator
+        	if not $!element or $!element.frame.stale;
+		$!element;
 	}
-	method present ( --> WebDriver2::Model::Frame ) {
-		( $!frame and not $!frame.stale ) ?? $!frame !! WebDriver2::Model::Frame
+	method present ( --> WebDriver2::Model::Element ) {
+		( $!element and not $!element.frame.stale )
+				?? $!element
+				!! WebDriver2::Model::Frame
 	}
 }
 

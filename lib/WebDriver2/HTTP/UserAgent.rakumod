@@ -19,17 +19,12 @@ constant CRLF = Buf.new(13, 10);
 # and enable greater abstraction
 role Connection {
     method send-request(WebDriver2::HTTP::Request $request ) {
-        $request.field(Connection => 'close') unless $request.field('Connection');
         if $request.binary {
             self.print($request.Str(:bin));
             self.write($request.content);
         }
         else {
-            if $request.method.Str eq ( 'POST' | 'PUT' ) {
-		    self.print($request.Str);
-	    } else {
-		    self.print($request.Str ~ "\r\n");
-	    }
+            self.print($request.Str ~ "\r\n");
         }
     }
 }
@@ -266,7 +261,7 @@ method get-chunked-content(Connection $conn, Blob $content is rw ) returns Blob 
 method get-response(WebDriver2::HTTP::Request $request, Connection $conn, Bool :$bin) returns WebDriver2::HTTP::Response {
     my Blob[uint8] $first-chunk = Blob[uint8].new;
     my $msg-body-pos;
-
+say 'getting response UserAgent 269';
     CATCH {
         when X::WebDriver2::HTTP::NoResponse {
             X::WebDriver2::HTTP::Internal.new(rc => 500, reason => "server returned no data").throw;
@@ -279,7 +274,7 @@ method get-response(WebDriver2::HTTP::Request $request, Connection $conn, Bool :
     # Header can be longer than one chunk
     while my $t = $conn.recv( :bin ) {
         $first-chunk ~= $t;
-
+say 'UserAgent 282 first chunk ', $t.decode: 'iso-8859-1';
         # Find the header/body separator in the chunk, which means
         # we can parse the header seperately and are  able to figure
         # out the correct encoding of the body.
@@ -291,9 +286,11 @@ method get-response(WebDriver2::HTTP::Request $request, Connection $conn, Bool :
     # be any content there may not be a \r\n\r\n at
     # the end of the header.
     my $header-chunk = do if $msg-body-pos.defined {
+say 'chunked UserAgent 294';
         $first-chunk.subbuf(0, $msg-body-pos);
     }
     else {
+say 'whole thing UserAgent 298';
         # Assume we have the whole header because if the server
         # didn't send it we're stuffed anyway
         $first-chunk;
@@ -356,7 +353,7 @@ multi method get-connection(WebDriver2::HTTP::Request $request ) returns Connect
 }
 
 my $https_lock = Lock.new;
-multi method get-connection(WebDriver2::HTTP::Request $request, Str $host, Int $port?) returns Connection {
+multi method get-connection(WebDriver2::HTTP::Request $request, Str $host, Int $port? --> Connection:D) {
     my $conn;
     if $request.scheme eq 'https' {
         $https_lock.lock;
@@ -366,6 +363,7 @@ multi method get-connection(WebDriver2::HTTP::Request $request, Str $host, Int $
         $conn = ::('IO::Socket::SSL').new(:$host, :port($port // 443), :timeout($.timeout))
     }
     else {
+say "UserAgent 371 $host $port $.timeout";
         $conn = IO::Socket::INET.new(:$host, :port($port // 80), :timeout($.timeout));
     }
     $conn does Connection;
