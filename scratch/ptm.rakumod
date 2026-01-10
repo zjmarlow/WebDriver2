@@ -1,4 +1,4 @@
-use ptma;
+use WebDriver2::Test::Debugging;
 
 sub methods ( $o ) is export {
 	$o.^methods;
@@ -51,20 +51,22 @@ module WD2P {
 		has Str:D $.using = 'xpath';
 	}
 	
-	role Driver { ... }
-	role Session { ... }
-	role Element { ... }
+	class Return-Value {
+		has Str:D $.str is required;
+		has Str:D $.execution-status is required;
+		has Str $.value is required;
+	}
 	
-	role Context {
-		method find-element ( By:D $locator --> Element:D ) { ... }
-		method find-elements ( By:D $locator --> Array:D[ Element:D ] ) { ... }
-		method switch-to-parent-frame ( --> Bool:D ) { ... }
+	class Status is Return-Value {
+		has Str:D $.version is required;
+		has Bool:D $.ready is required;
+		has Str:D $.message is required;
 	}
 	
 	my role Request-Builder does WebDriver2::Test::Debugging {
 		use JSON::Fast;
-		trusts WD2P::Session;
-		trusts WD2P::Driver;
+		# trusts WD2P::Session;
+		# trusts WD2P::Driver;
 		
 		method host ( --> Str:D ) { ... }
 		method port ( --> Int:D ) { ... }
@@ -74,7 +76,7 @@ module WD2P {
 				*@command
 				--> HTTP::Request:D
 		) {
-			my Str:D $url = "http://$.host:$.port/"; ~ @command.join: '/';
+			my Str:D $url = join '/', "http://$.host:$.port/", |@command;
 			self.debug: Level::extra, $method, $url;
 			given $method {
 				when 'GET' { return HTTP::Request.new: GET => $url; }
@@ -95,7 +97,7 @@ module WD2P {
 				*@command
 				--> HTTP::Request:D
 		) {
-			my HTTP::Request $req = self!request 'POST', @command;
+			my HTTP::Request $req = self!request: 'POST', @command;
 			my Str:D $json = to-json $data;
 			self.debug: Level::extra, $json;
 			$req.add-content: $json;
@@ -111,39 +113,12 @@ module WD2P {
 	}
 	
 	role Driver-Request does Request-Builder {
+		has Str:D $.host = '127.0.0.1';
 		method status ( --> HTTP::Request:D ) { ... }
 		method new-session ( *%capabilities --> HTTP::Request:D ) { ... }
 	}
 	
-	class Driver-Request::Chromium does Driver-Request {
-		use JSON::Fast;
-		method status ( --> HTTP::Request:D ) {
-			self!get-request: 'status'
-		}
-		
-		method new-session ( *%capabilities --> HTTP::Request:D ) {
-			self!post-session: %capabilities, 'session';
-		}
-		method new-session ( --> HTTP::Request:D ) {
-			self.new-session: {
-				capabilities => {
-					alwaysMatch => {
-						unhandledPromptBehavior => {
-							alert => 'ignore',
-							beforeUnload => 'ignore',
-							confirm => 'ignore',
-							default => 'ignore',
-							prompt => 'ignore',
-							defaultPrompt => 'ignore',
-							:!notify
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	role Session-Request does Request::Builder {
+	role Session-Request does Request-Builder {
 		has Str:D $!session-id is built is required;
 		
 		method delete-session ( --> HTTP::Request:D ) { ... }
@@ -198,7 +173,39 @@ module WD2P {
 		method print-page ( --> HTTP::Request:D ) { ... }
 	}
 	
+	class Driver-Request::Chromium does Driver-Request {
+		has Int:D $.port = 9515;
+		use JSON::Fast;
+		method status ( --> HTTP::Request:D ) {
+			self!get-request: 'status'
+		}
+		
+		multi method new-session ( *%capabilities --> HTTP::Request:D ) {
+			self!post-session: %capabilities, 'session';
+		}
+		multi method new-session ( --> HTTP::Request:D ) {
+			self.new-session: {
+				capabilities => {
+					alwaysMatch => {
+						unhandledPromptBehavior => {
+							alert => 'ignore',
+							beforeUnload => 'ignore',
+							confirm => 'ignore',
+							default => 'ignore',
+							prompt => 'ignore',
+							defaultPrompt => 'ignore',
+							:!notify
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	class Session-Request::Default does Session-Request {
+		has Str:D $.host is required;
+		has Int:D $.port is required;
+
 		method !args { 'session', $!session-id }
 		
 		method delete-session ( --> HTTP::Request:D ) {
@@ -243,21 +250,27 @@ module WD2P {
 		}
 		
 		method get-title ( --> HTTP::Request:D ) {
-			
+			self!get-request: self!args, 'title';
 		}
 		
-		method get-window-handle ( --> HTTP::Request:D ) { { } }
+		method get-window-handle ( --> HTTP::Request:D ) {
+			self!get-request: self!args, 'window';
+		}
 		
-		method close-window ( --> HTTP::Request:D ) { { } }
+		method close-window ( --> HTTP::Request:D ) {
+			self!delete-request: self!args, 'window';
+		}
 		
 		method switch-to-window ( Str:D $handle --> HTTP::Request:D ) {
-			{ :$handle }
+			self!post-request: { :$handle }, self!args, 'window';
 		}
 		
-		method get-window-handles ( --> HTTP::Request:D ) { { } }
+		method get-window-handles ( --> HTTP::Request:D ) {
+			self!get-request: self!args, <window handles>;
+		}
 		
 		method new-window ( --> HTTP::Request:D ) {
-			{ 'type hint' => 'tab' }
+			self!post-request: { 'type hint' => 'tab' }, self!args, <window new>;
 		}
 		
 		method switch-to-parent-frame ( --> HTTP::Request:D ) { { } }
@@ -298,7 +311,7 @@ module WD2P {
 			{ :$script, :@args }
 		}
 		
-		method execute-async-script ( --> HTTP::Request:D ) {
+		method execute-async-script ( Str:D $script, *@args --> HTTP::Request:D ) {
 			{ :$script, :@args }
 		}
 		
@@ -345,7 +358,7 @@ module WD2P {
 		}
 	}
 	
-	role Element-Request does Request::Builder {
+	role Element-Request does Request-Builder {
 		method find-sub-element ( Str:D $sid --> HTTP::Request:D ) { ... }
 		method find-sub-elements ( Str:D $sid --> HTTP::Request:D ) { ... }
 		
@@ -369,6 +382,8 @@ module WD2P {
 	}
 	
 	class Element-Request::Default does Element-Request {
+		has Str:D $.host is required;
+		has Int:D $.port is required;
 		
 		method find-element (  ) {
 			self.find-sub-element: ;
@@ -444,9 +459,13 @@ module WD2P {
 		method element-send-keys ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
 			
 		}
+
+		method switch-to-frame {
+			
+		}
 	}
 	
-	role Shadow-Request does Request::Builder {
+	role Shadow-Request does Request-Builder {
 		
 		
 		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
@@ -459,6 +478,8 @@ module WD2P {
 	}
 	
 	class Shadow-Request::Default does Shadow-Request {
+		has Str:D $.host is required;
+		has Int:D $.port is required;
 		
 		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
 			
@@ -469,14 +490,41 @@ module WD2P {
 		}
 	}
 	
-	role Result {
+	class Element { ... }
+	
+	use WebDriver2::Command::Execution-Status;
+	
+	role Result does WebDriver2::Test::Debugging {
+		method !status-args( HTTP::Response $response, $type ) { # PRIVATE OKAY
+			my $data = from-json $response.content;
+			\(
+					code => $data<value><error>,
+					:$type,
+					message => $data<value><message>
+			)
+		}
 		
-		
-		
+		method find-element (
+				HTTP::Response:D $response
+				--> Element:D
+		) { ... }
+		method find-elements (
+				HTTP::Response:D $response
+				--> Array:D[ Element:D ]
+		) { ... }
 	}
 	
 	class Result::Chromium does Result {
-		
+		method find-element (
+				HTTP::Response:D $response
+				--> Element:D
+		) {
+			
+		}
+		method find-elements (
+				HTTP::Response:D $response
+				--> Array:D[ Element:D ]
+		) { ... }
 	}
 	
 	class Result::Chrome is Result::Chromium {
@@ -487,24 +535,44 @@ module WD2P {
 		
 	}
 	
-	class Return-Value {
-		has Str:D $.str is required;
-		has Str:D $.execution-status is required;
-		has Str $.value is required;
+	role Context {
+		method find-element ( By:D $locator --> Element:D ) { ... }
+		method find-elements ( By:D $locator --> Array:D[ Element:D ] ) { ... }
+		method switch-to-parent-frame ( --> Bool:D ) { ... }
 	}
 	
-	class Status is Return-Value {
-		has Str:D $.version is required;
-		has Bool:D $.ready is required;
-		has Str:D $.message is required;
+	class Element does Context {
+		has Str:D $!session-id is built is required;
+		has Str:D $!element-id is built is required;
+		has Str:D $.browser is required;
+		has Element-Request:D $!request is built is required;
+		
+		method find-element ( By:D $locator --> Element:D ) {
+			
+		}
+		method find-elements ( By:D $locator --> Array:D[ Element:D ] ) { ... }
+		method switch-to-parent-frame ( --> Bool:D ) { ... }
 	}
 	
-	class Session { ... }
+	class Frame is Element {
+		
+	}
+	
+	class Page is Frame {
+		
+	}
+	
+	class Session does Context {
+		has Str:D $!id is built is required;
+		has Str:D $.browser is required;
+		
+		
+	}
 	
 	role Driver {
-		trusts WD2P::Session;
+		# trusts WD2P::Session;
 		
-		has Param $!param is built is required;
+		has Driver-Request $!request is built is required;
 		has Result $!result is built is required;
 		
 		has HTTP::UserAgent:D $!ua = HTTP::UserAgent.new;
@@ -516,7 +584,7 @@ module WD2P {
 		
 		method start { }
 		
-		method session ( --> WD2P::Session:D ) { ... }
+		method session ( *%capabilities --> WD2P::Session:D ) { ... }
 		method status ( --> WD2P::Status:D ) { ... }
 		
 		method stop { }
@@ -529,15 +597,17 @@ module WD2P {
 		) {
 			self.bless:
 					browser => 'chrome';
-					param => Param::Chrome,
+					request => Driver-Request::Chromium,
 					result => Result::Chrome,
 					:$host,
 					:$port,
 					;
 		}
+		
+		
 	}
 	
-	class WD2P::Driver::Edge does WD2P::Driver {
+	class Driver::Edge does WD2P::Driver {
 		method new (
 				Str:D $host = '127.0.0.1';
 				Int:D $port = 9515,
@@ -550,29 +620,6 @@ module WD2P {
 					:$port,
 					;
 		}
-	}
-	
-	class Session does Context {
-		has Str:D $!id is built is required;
-		has Str:D $.browser is required;
-		
-		
-	}
-	
-	class Element {
-		has Str:D $!session-id is built is required;
-		has Str:D $!element-id is built is required;
-		has Str:D $.browser is required;
-		
-		
-	}
-	
-	class Frame is Element {
-		
-	}
-	
-	class Page is Frame {
-		
 	}
 	
 	class Convenience {
