@@ -1,4 +1,8 @@
-use ptma;
+# use ptma;
+
+# use lib <../http-useragent/lib>; # C:\Users\ZacharyMarlow\vsc\http-useragent\lib
+
+use WebDriver2::Test::Debugging;
 
 sub methods ( $o ) is export {
 	$o.^methods;
@@ -61,15 +65,15 @@ module WD2P {
 		method switch-to-parent-frame ( --> Bool:D ) { ... }
 	}
 	
-	my role Request-Builder does WebDriver2::Test::Debugging {
+	role Request-Builder does WebDriver2::Test::Debugging {
 		use JSON::Fast;
-		trusts WD2P::Session;
-		trusts WD2P::Driver;
+		# trusts WD2P::Session;
+		# trusts WD2P::Driver;
 		
 		method host ( --> Str:D ) { ... }
 		method port ( --> Int:D ) { ... }
 		
-		method !request (
+		method request (
 				Str:D $method,
 				*@command
 				--> HTTP::Request:D
@@ -83,30 +87,30 @@ module WD2P {
 			}
 		}
 		
-		method !get-request (
+		method get-request (
 				*@command
 				--> HTTP::Request:D
 		) {
-			self!request: 'GET', @command;
+			self.request: 'GET', @command;
 		}
 		
-		method !post-request (
+		method post-request (
 				$data,
 				*@command
 				--> HTTP::Request:D
 		) {
-			my HTTP::Request $req = self!request 'POST', @command;
+			my HTTP::Request $req = self.request: 'POST', @command;
 			my Str:D $json = to-json $data;
 			self.debug: Level::extra, $json;
 			$req.add-content: $json;
 			$req;
 		}
 		
-		method !delete-request (
+		method delete-request (
 				*@command
 				--> HTTP::Request:D
 		) {
-			self!request: 'DELETE', @command;
+			self.request: 'DELETE', @command;
 		}
 	}
 	
@@ -117,14 +121,16 @@ module WD2P {
 	
 	class Driver-Request::Chromium does Driver-Request {
 		use JSON::Fast;
+		has Str:D $.host = '127.0.0.1';
+		has Int:D $.port = 9515;
 		method status ( --> HTTP::Request:D ) {
-			self!get-request: 'status'
+			self.get-request: 'status'
 		}
 		
-		method new-session ( *%capabilities --> HTTP::Request:D ) {
-			self!post-session: %capabilities, 'session';
+		multi method new-session ( *%capabilities --> HTTP::Request:D ) {
+			self.post-session: %capabilities, 'session';
 		}
-		method new-session ( --> HTTP::Request:D ) {
+		multi method new-session ( --> HTTP::Request:D ) {
 			self.new-session: {
 				capabilities => {
 					alwaysMatch => {
@@ -143,7 +149,7 @@ module WD2P {
 		}
 	}
 	
-	role Session-Request does Request::Builder {
+	role Session-Request does Request-Builder {
 		has Str:D $!session-id is built is required;
 		
 		method delete-session ( --> HTTP::Request:D ) { ... }
@@ -199,14 +205,16 @@ module WD2P {
 	}
 	
 	class Session-Request::Default does Session-Request {
+		has Str:D $.host is required;
+		has Int:D $.port is required;
 		method !args { 'session', $!session-id }
 		
 		method delete-session ( --> HTTP::Request:D ) {
-			self!delete-request: self!args;
+			self.delete-request: self!args;
 		}
 		
 		method get-timeouts ( --> HTTP::Request:D ) {
-			self!get-request: self!args, 'timeouts';
+			self.get-request: self!args, 'timeouts';
 		}
 		
 		method set-timeouts (
@@ -215,7 +223,7 @@ module WD2P {
 				Int :$implicit
 				--> HTTP::Request:D
 		) {
-			self!post-request: {
+			self.post-request: {
 				:$script,
 				:$pageLoad,
 				:$implicit
@@ -223,46 +231,56 @@ module WD2P {
 		}
 		
 		method navigate-to ( Str:D $url --> HTTP::Request:D ) {
-			self!post-request: { :$url }, self!args, 'url';
+			self.post-request: { :$url }, self!args, 'url';
 		}
 		
 		method get-current-url ( --> HTTP::Request:D ) {
-			self!get-request: self!args, 'url';
+			self.get-request: self!args, 'url';
 		}
 		
 		method back ( --> HTTP::Request:D ) {
-			self!post-request: { }, self!args, 'back';
+			self.post-request: { }, self!args, 'back';
 		}
 		
 		method forward ( --> HTTP::Request:D ) {
-			self!post-request: { }, self!args, 'forward';
+			self.post-request: { }, self!args, 'forward';
 		}
 		
 		method refresh ( --> HTTP::Request:D ) {
-			self!post-request: { }, self!args, 'refresh';
+			self.post-request: { }, self!args, 'refresh';
 		}
 		
 		method get-title ( --> HTTP::Request:D ) {
-			
+			self.get-request: self!args, 'title';
 		}
 		
-		method get-window-handle ( --> HTTP::Request:D ) { { } }
+		method get-window-handle ( --> HTTP::Request:D ) {
+			self.get-request: self!args, 'window';
+		}
 		
-		method close-window ( --> HTTP::Request:D ) { { } }
+		method close-window ( --> HTTP::Request:D ) {
+			self.delete-request: self!args, 'window';
+		}
 		
 		method switch-to-window ( Str:D $handle --> HTTP::Request:D ) {
-			{ :$handle }
+			self.post-request: { :$handle }, self!args, 'window';
 		}
 		
-		method get-window-handles ( --> HTTP::Request:D ) { { } }
-		
-		method new-window ( --> HTTP::Request:D ) {
-			{ 'type hint' => 'tab' }
+		method get-window-handles ( --> HTTP::Request:D ) {
+			self.get-request: self!args, <window handles>;
 		}
 		
-		method switch-to-parent-frame ( --> HTTP::Request:D ) { { } }
+		method new-window ( Str $target = 'tab' --> HTTP::Request:D ) {
+			self.post-request: { 'type hint' => $target }, self!args <window new>;
+		}
 		
-		method get-window-rect ( --> HTTP::Request:D ) { { } }
+		method switch-to-parent-frame ( --> HTTP::Request:D ) {
+			self.post-request: { }, self!args, <frame parent>;
+		}
+		
+		method get-window-rect ( --> HTTP::Request:D ) {
+			self.get-request: self!args, <window rect>
+		}
 		
 		method set-window-rect (
 				Int :$width,
@@ -271,40 +289,54 @@ module WD2P {
 				Int :$y
 				--> HTTP::Request:D
 		) {
-			{ :$width, :$height, :$x, :$y }
+			self.post-request: { :$width, :$height, :$x, :$y }, self!args, <window rect>;
 		}
 		
-		method maximize-window ( --> HTTP::Request:D ) { { } }
+		method maximize-window ( --> HTTP::Request:D ) {
+			self.post-request: { }, self!args, <window maximize>;
+		}
 		
-		method minimize-window ( --> HTTP::Request:D ) { { } }
+		method minimize-window ( --> HTTP::Request:D ) {
+			self.post-request: { }, self!args, <window minimize>;
+		}
 		
-		method fullscreen-window ( --> HTTP::Request:D ) { { } }
+		method fullscreen-window ( --> HTTP::Request:D ) {
+			self.post-request: { }, self!args, <window fullscreen>;
+		}
 		
-		method get-active-element ( --> HTTP::Request:D ) { { } }
+		method get-active-element ( --> HTTP::Request:D ) {
+			self.get-request: self!args, <element active>;
+		}
 		
 		method find-element ( By $locator --> HTTP::Request:D ) {
-			$locator.args;
+			self.post-request: $locator.args, self!args, 'element';
 		}
 		
 		method find-elements ( By $locator --> HTTP::Request:D ) {
-			$locator.args;
+			self.post-request: $locator.args, self!args, 'elements';
 		}
 		
 		
 		
-		method get-page-source ( --> HTTP::Request:D ) { { } }
+		method get-page-source ( --> HTTP::Request:D ) {
+			self.get-request: self!args, 'source';
+		}
 		
 		method execute-script ( Str:D $script, *@args --> HTTP::Request:D ) {
-			{ :$script, :@args }
+			self.post-request: { :$script, :@args }, self!args, <execute sync>;
 		}
 		
-		method execute-async-script ( --> HTTP::Request:D ) {
-			{ :$script, :@args }
+		method execute-async-script ( Str:D $script, *@args --> HTTP::Request:D ) {
+			self.post-request: { :$script, :@args }, self!args, <execute async>;
 		}
 		
-		method get-all-cookies ( --> HTTP::Request:D ) { { } }
+		method get-all-cookies ( --> HTTP::Request:D ) {
+			self.get-request: self!args, 'cookie';
+		}
 		
-		method get-named-cookie ( --> HTTP::Request:D ) { { } }
+		method get-named-cookie ( Str:D $name --> HTTP::Request:D ) {
+			self.get-request: self!args, 'cookie', $name;
+		}
 		
 		method add-cookie ( --> HTTP::Request:D ) {
 			...
@@ -345,7 +377,8 @@ module WD2P {
 		}
 	}
 	
-	role Element-Request does Request::Builder {
+	role Element-Request does Request-Builder {
+		has Str:D $!element-id is built is required;
 		method find-sub-element ( Str:D $sid --> HTTP::Request:D ) { ... }
 		method find-sub-elements ( Str:D $sid --> HTTP::Request:D ) { ... }
 		
@@ -369,7 +402,9 @@ module WD2P {
 	}
 	
 	class Element-Request::Default does Element-Request {
-		
+		has Str:D $.host is required;
+		has Int:D $.port is required;
+
 		method find-element (  ) {
 			self.find-sub-element: ;
 		}
@@ -385,7 +420,9 @@ module WD2P {
 			
 		}
 		
-		
+		method switch-to-frame ( --> HTTP::Request:D ) {
+
+		}
 		
 		method get-element-shadow-root ( --> HTTP::Request:D ) { { } }
 				
@@ -446,7 +483,7 @@ module WD2P {
 		}
 	}
 	
-	role Shadow-Request does Request::Builder {
+	role Shadow-Request does Request-Builder {
 		
 		
 		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
@@ -459,6 +496,8 @@ module WD2P {
 	}
 	
 	class Shadow-Request::Default does Shadow-Request {
+		has Str:D $.host is required;
+		has Int:D $.port is required;
 		
 		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
 			
@@ -499,20 +538,18 @@ module WD2P {
 		has Str:D $.message is required;
 	}
 	
-	class Session { ... }
-	
 	role Driver {
-		trusts WD2P::Session;
-		
-		has Param $!param is built is required;
-		has Result $!result is built is required;
+		has Driver-Request:D $!param is built is required;
+		has Result:D $!result is built is required;
 		
 		has HTTP::UserAgent:D $!ua = HTTP::UserAgent.new;
 		has Str:D $.host is required = '127.0.0.1';
 		has Int:D $.port is required;
 		has Str:D $.browser is required;
 		
-		
+		method request ( HTTP::Request:D $req --> HTTP::Response:D ) {
+			$!ua.request: $req;
+		}
 		
 		method start { }
 		
@@ -559,7 +596,7 @@ module WD2P {
 		
 	}
 	
-	class Element {
+	class Element does Context {
 		has Str:D $!session-id is built is required;
 		has Str:D $!element-id is built is required;
 		has Str:D $.browser is required;
