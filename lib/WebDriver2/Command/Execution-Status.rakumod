@@ -20,14 +20,34 @@ enum WebDriver2::Command::Execution-Status::Type
 	Other>;
 
 class WebDriver2::Command::Execution-Status {
-	
-	has Cool $.code;
+	has Int:D $.status is required;
 	# TODO : implement OS data ?
-	has WebDriver2::Command::Execution-Status::Type:D $.type is required;
+	# has WebDriver2::Command::Execution-Status::Type:D $.type is required;
 	has Str:D $.message is required;
+	has Str:D %.data;
 	
 	method Str( --> Str:D ) {
-		"$!type\n$!message";
+		join "\n",
+			$!message,
+			%!data ?? %!data.Str !! ''
+			;
 	}
 	
+}
+
+class WebDriver::Command::Error
+		is WebDriver2::Command::Execution-Status
+{
+	has Str:D $.error is required;
+	has Str:D $.stacktrace is required;
+	
+	method Str( --> Str:D ) {
+		join "\n",
+			$.status,
+			$!error,
+			$.message,
+			$!stacktrace,
+			%.data ?? %.data.Str !! ''
+			;
+	}
 }
