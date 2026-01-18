@@ -11,6 +11,7 @@
         "JSON::Fast",
         "URI::Encode",
         "HTTP::Status",
+		"HTTP::UserAgent",
         "File::Temp",
         "DateTime::Parse",
         "Encode",

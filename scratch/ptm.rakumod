@@ -17,10 +17,8 @@ sub methods ( $o ) is export {
 # 			Adapter => class { constant  = $r.WHAT.^lookup('m') o $s.WHAT.^lookup('m')};
 # }
 
-
-
 #| TODO : REMOVE ME
-use lib <../http-useragent/lib>;
+# use lib <../http-useragent/lib>;
 
 module WD2P {
 	use HTTP::UserAgent;
@@ -330,11 +328,11 @@ module WD2P {
 			# DRIVER REQUESTS
 			
 			method status ( --> HTTP::Request:D ) {
-				self!get-request: 'status'
+				self.get-request: 'status'
 			}
 			
 			method new-session ( *%capabilities --> HTTP::Request:D ) {
-				self!post-request: %capabilities, 'session';
+				self.post-request: %capabilities, 'session';
 			}
 			
 			# SESSION REQUESTS
@@ -731,22 +729,13 @@ module WD2P {
 										error => $data<value><error>,
 										message => $data<value><message> // '',
 										stacktrace => $data<value><stacktrace> // '',
-										data => $data<value><data>
-												?? $data<value><data>
-												!! Nil
+										data => $data<value><data> // Nil
 										;
 		}
 		
 		# DRIVER RESULTS
 		
-		method status ( HTTP::Response:D $response ) {
-			
-			with self.check-status: $response -> $data {
-				
-			} else {
-				$_;
-			}
-		}
+		method status ( HTTP::Response:D $response ) { ... }
 		method session ( HTTP::Response:D $response --> Session:D ) { ... }
 		
 		# SESSION RESULTS
@@ -842,51 +831,118 @@ module WD2P {
 		method find-sub-shadow-elements ( HTTP::Response:D $response --> List:D[ Element:D ] ) { ... }
 	}
 	
-	class Result::Chromium does Result {
+	class Result::Default does Result {
+		use JSON::Fast;
 		
 		# DRIVER RESULTS
 		
-		method status ( HTTP::Response:D $response --> Bool:D ) { ... }
-		method session ( HTTP::Response:D $response --> Session:D ) { ... }
+		=begin comment
+		
+		my $data = try self.check-status // Nil;
+		
+		with try self.check-status: $response -> $data {
+			
+		} else {
+			$!; # holds exception
+		}
+		
+		=end comment
+		
+		method status ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method session ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
 		
 		# SESSION RESULTS
 		
-		method delete-session ( HTTP::Response:D $response --> Bool:D ) { ... }
-		method get-timeouts ( HTTP::Response:D $response --> Hash:D[ Int:D ] ) { ... }
-		method set-timeouts ( HTTP::Response:D $response --> Session:D ) { ... }
-		method navigate-to ( HTTP::Response:D $response --> Session:D ) { ... }
-		method get-current-url ( HTTP::Response:D $response --> Str:D ) { ... }
-		method back ( HTTP::Response:D $response --> Session:D ) { ... }
-		method forward ( HTTP::Response:D $response --> Session:D ) { ... }
-		method refresh ( HTTP::Response:D $response --> Session:D ) { ... }
-		method get-title ( HTTP::Response:D $response --> Str:D ) { ... }
-		method get-window-handle ( HTTP::Response:D $response --> Str:D ) { ... }
-		method close-window ( HTTP::Response:D $response --> Session:D ) { ... }
-		method switch-to-window ( HTTP::Response:D $response --> Session:D ) { ... }
-		method get-window-handles ( HTTP::Response:D $response --> List:D[ Str:D ] ) { ... }
-		method new-window ( HTTP::Response:D $response --> Hash:D[ Str:D ] ) { ... }
-		method switch-to-frame ( HTTP::Response:D $response --> Session:D ) { ... }
-		method switch-to-parent-frame ( HTTP::Response:D $response --> Session:D ) { ... }
-		method get-window-rect ( HTTP::Response:D $response --> Hash:D[ Int:D ] ) { ... }
-		method set-window-rect ( HTTP::Response:D $response --> Session:D ) { ... }
-		method maxamize-window ( HTTP::Response:D $response --> Session:D ) { ... }
-		method minimize-window ( HTTP::Response:D $response --> Session:D ) { ... }
-		method fullscreen-window ( HTTP::Response:D $response --> Session:D ) { ... }
-		method get-active-element ( HTTP::Response:D $response --> Element:D ) { ... }
-		method find-element (
-				HTTP::Response:D $response
-				--> Element:D
-		) { ... }
-		method find-elements (
-				HTTP::Response:D $response
-				--> List:D[ Element:D ]
-		) { ... }
-		method get-page-source ( HTTP::Response:D $response --> Str:D ) { ... }
+		method delete-session ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-timeouts ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method set-timeouts ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method navigate-to ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-current-url ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method back ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method forward ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method refresh ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-title ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-window-handle ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method close-window ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method switch-to-window ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-window-handles ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method new-window ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method switch-to-frame ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method switch-to-parent-frame ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-window-rect ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method set-window-rect ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method maxamize-window ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method minimize-window ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method fullscreen-window ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-active-element ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method find-element ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method find-elements ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-page-source ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
 		#| multiple return types
-		method execute-script ( HTTP::Response:D $response ) { ... }
+		method execute-script ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
 		#| multiple return types
-		method execute-async-script ( HTTP::Response:D $response ) { ... }
-		method get-all-cookies ( HTTP::Response:D $response --> List:D ) { ... }
+		method execute-async-script ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-all-cookies ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
 
 		=begin table :caption<cookie object structure>
 			RFC 6265 Field   | JSON Key | Attribute Key
@@ -900,48 +956,112 @@ module WD2P {
 			expiry-time      | expiry   | Max-Age
 			samesite         | sameSite | SameSite
 		=end table
-
-		method get-named-cookie ( HTTP::Response:D $response --> Hash:D[ Str:D ] ) { ... }
-		method add-cookie ( HTTP::Response:D $response --> Session:D ) { ... }
-		method delete-cookie ( HTTP::Response:D $response --> Session:D ) { ... }
-		method delete-all-cookies ( HTTP::Response:D $response --> Session:D ) { ... }
-		method perform-actions ( HTTP::Response:D $response --> Session:D ) { ... }
-		method release-actions ( HTTP::Response:D $response --> Session:D ) { ... }
-		method dismiss-alert ( HTTP::Response:D $response --> Session:D ) { ... }
-		method accept-alert ( HTTP::Response:D $response --> Session:D ) { ... }
-		method get-alert-text ( HTTP::Response:D $response --> Str:D ) { ... }
-		method send-alert-text ( HTTP::Response:D $response --> Session:D ) { ... }
-		method take-screenshot ( HTTP::Response:D $response --> Str:D ) { ... }
-		method print-page ( HTTP::Response:D $response --> Str:D ) { ... }
+		method get-named-cookie ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method add-cookie ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method delete-cookie ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method delete-all-cookies ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method perform-actions ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method release-actions ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method dismiss-alert ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method accept-alert ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-alert-text ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method send-alert-text ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method take-screenshot ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method print-page ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
 		
 		# ELEMENT RESULTS
 		
-		method find-sub-element ( HTTP::Response:D $response --> Element:D ) { ... }
-		method find-sub-elements ( HTTP::Response:D $response --> List:D[ Element:D ] ) { ... }
-		method get-element-shadow-root ( HTTP::Response:D $response --> Shadow-Root:D ) { ... }
-		method is-element-selected ( HTTP::Response:D $response --> Bool:D ) { ... }
-		method get-element-attribute ( HTTP::Response:D $response --> Str ) { ... }
+		method find-sub-element ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method find-sub-elements ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-element-shadow-root ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method is-element-selected ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-element-attribute ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
 		#| multiple return types
-		method get-element-property ( HTTP::Response:D $response ) { ... }
+		method get-element-property ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
 		#| generally JSON Strings but check WebDriver spec; can be undef
-		method get-element-css-value ( HTTP::Response:D $response --> Str ) { ... }
-		method get-element-text ( HTTP::Response:D $response --> Str:D ) { ... }
-		method get-element-tag-name ( HTTP::Response:D $response --> Str:D ) { ... }
-		method get-element-rect ( HTTP::Response:D $response --> Hash:D[ Rat:D ] ) { ... }
-		method is-element-enabled ( HTTP::Response:D $response --> Bool:D ) { ... }
-		method get-computed-role ( HTTP::Response:D $response --> Str:D ) { ... }
-		method get-computed-label ( HTTP::Response:D $response --> Str:D) { ... }
-		method element-click ( HTTP::Response:D $response --> Element:D ) { ... }
-		method element-clear ( HTTP::Response:D $response --> Element:D ) { ... }
-		method element-send-keys ( HTTP::Response:D $response --> Element:D ) { ... }
-		method take-element-screenshot ( HTTP::Response:D $response --> Str:D ) { ... }
+		method get-element-css-value ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-element-text ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-element-tag-name ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-element-rect ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method is-element-enabled ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-computed-role ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method get-computed-label ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method element-click ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method element-clear ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method element-send-keys ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method take-element-screenshot ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
 		
 		# SHADOW RESULTS
 		
-		method find-sub-shadow-element ( HTTP::Response:D $response --> Element:D ) { ... }
-		method find-sub-shadow-elements ( HTTP::Response:D $response --> List:D[ Element:D ] ) { ... }
+		method find-sub-shadow-element ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
+		method find-sub-shadow-elements ( HTTP::Response:D $response ) {
+			.<value> with self.check-status: $response;
+		}
 	}
 	
+	class Result::Chromium is Result::Default {
+		
+	}
 	
 	class Result::Chrome is Result::Chromium {
 		
