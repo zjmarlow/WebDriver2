@@ -69,8 +69,6 @@ module WD2P {
 	
 	role Request-Builder does WebDriver2::Test::Debugging {
 		use JSON::Fast;
-		# trusts WD2P::Session;
-		# trusts WD2P::Driver;
 		
 		method host ( --> Str:D ) { ... }
 		method port ( --> Int:D ) { ... }
@@ -116,12 +114,13 @@ module WD2P {
 		}
 	}
 	
-	role Driver-Request does Request-Builder {
+	role Driver-Request {
 		has Str:D $.host = '127.0.0.1';
 		method status ( --> HTTP::Request:D ) { ... }
 		method new-session ( *%capabilities --> HTTP::Request:D ) { ... }
 	}
 	
+=begin comment
 	class Driver-Request::Chromium does Driver-Request {
 		use JSON::Fast;
 		has Str:D $.host = '127.0.0.1';
@@ -151,8 +150,9 @@ module WD2P {
 			}
 		}
 	}
+=end comment
 	
-	role Session-Request does Request-Builder {
+	role Session-Request {
 		has Str:D $!session-id is built is required;
 		
 		method delete-session ( --> HTTP::Request:D ) { ... }
@@ -237,6 +237,7 @@ module WD2P {
 		method print-page ( %args --> HTTP::Request:D ) { ... }
 	}
 	
+=begin comment
 	class Session-Request::Default does Session-Request {
 		has Str:D $.host is required;
 		has Int:D $.port is required;
@@ -304,9 +305,16 @@ module WD2P {
 		}
 		
 		method new-window ( Str $target = 'tab' --> HTTP::Request:D ) {
-			self.post-request: { 'type hint' => $target }, self!args <window new>;
+			self.post-request: { 'type hint' => $target }, self!args, <window new>;
 		}
 		
+		multi method switch-to-frame ( Str:D $id --> HTTP::Request:D ) {
+			self.post-request: { :$id }, self!args, 'frame';
+		}
+		multi method switch-to-frame ( Int $id ) {
+			self.post-request: { :$id }, self!args, 'frame';
+		}
+
 		method switch-to-parent-frame ( --> HTTP::Request:D ) {
 			self.post-request: { }, self!args, <frame parent>;
 		}
@@ -371,93 +379,121 @@ module WD2P {
 			self.get-request: self!args, 'cookie', $name;
 		}
 		
-		method add-cookie ( --> HTTP::Request:D ) {
-			...
+		method add-cookie (
+				Str:D :$name,
+				Str:D :$value,
+				Str:D :$path?,
+				Str:D :$domain?,
+				Bool:D :$secure?,
+				Bool:D :$httpOnly?,
+				Int:D :$expiry?,
+				Bool:D :$sameSite?
+				--> HTTP::Request:D
+		) {
+			my %args = grep *.value.defined,
+				( :$name, :$value, :$path, :$domain, :$secure, :$httpOnly, :$expiry, :$sameSite );
+			self.post-request: cookie => %args, self!args, 'cookie';
 		}
 		
 		method delete-cookie ( Str:D $name --> HTTP::Request:D ) {
-			
+			self.delete-request: self!args, 'cookie', $name;
 		}
 		
-		method delete-all-cookies ( --> HTTP::Request:D ) { { } }
+		method delete-all-cookies ( --> HTTP::Request:D ) {
+			self.delete-request: self!args, 'cookie';
+		}
 		
 		method perform-actions ( --> HTTP::Request:D ) {
-			
+			!!! 'nyi'
 		}
 		
 		method release-actions ( --> HTTP::Request:D ) {
-			
+			!!! 'nyi'
 		}
 		
-		method dismiss-alert ( --> HTTP::Request:D ) { { } }
-		
-		method accept-alert ( --> HTTP::Request:D ) { { } }
-		
-		method get-alert-text ( --> HTTP::Request:D ) { { } }
-		
-		method send-alert-text ( --> HTTP::Request:D ) {
-			
+		method dismiss-alert ( --> HTTP::Request:D ) {
+			self.post-request: { }, self!args, <alert dismiss>;
 		}
 		
-		method take-screenshot ( --> HTTP::Request:D ) { { } }
-		
-		method take-element-screenshot ( --> HTTP::Request:D ) {
-			
+		method accept-alert ( --> HTTP::Request:D ) {
+			self.post-request: { }, self!args, <alert accept>;
 		}
 		
-		method print-page ( --> HTTP::Request:D ) {
-			
+		method get-alert-text ( --> HTTP::Request:D ) {
+			self.get-request: self!args, <alert text>;
+		}
+		
+		method send-alert-text ( Str:D $text --> HTTP::Request:D ) {
+			self.post-request: { :$text }, self!args, <alert text>;
+		}
+		
+		method take-screenshot ( --> HTTP::Request:D ) {
+			self.get-request: self!args, 'screenshot';
+		}
+		
+		# TODO : margins, etc.?
+		method print-page (
+				Str:D $orientation where <portrait landscape>.any = 'portrait'
+				--> HTTP::Request:D
+		) {
+			self.post-request:{ :$orientation }, 'print';
 		}
 	}
+=end comment
 	
-	role Element-Request does Request-Builder {
+	role Element-Request {
+		has Str:D $!session-id is built is required;
 		has Str:D $!element-id is built is required;
-		method find-sub-element ( Str:D $sid --> HTTP::Request:D ) { ... }
-		method find-sub-elements ( Str:D $sid --> HTTP::Request:D ) { ... }
 		
-		method switch-to-frame ( --> HTTP::Request:D ) { ... }
+		method find-sub-element ( By:D $locator --> HTTP::Request:D ) { ... }
+		method find-sub-elements ( By:D $locator --> HTTP::Request:D ) { ... }
 		
 		method get-element-shadow-root ( --> HTTP::Request:D ) { ... }
 		
-		method is-element-selected ( Str:D $sid --> HTTP::Request:D ) { ... }
-		method get-element-attribute ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method get-element-property ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method get-element-css-value ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method get-element-text ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method get-element-tag-name ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method get-element-rect ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method is-element-enabled ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method get-computed-role ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method get-computed-label ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method element-click ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method element-clear ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method element-send-keys ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
-		method take-element-screenshot ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) { ... }
+		method is-element-selected ( --> HTTP::Request:D ) { ... }
+		method get-element-attribute ( Str:D $name --> HTTP::Request:D ) { ... }
+		method get-element-property ( Str:D $name --> HTTP::Request:D ) { ... }
+		method get-element-css-value ( Str:D $name --> HTTP::Request:D ) { ... }
+		method get-element-text ( --> HTTP::Request:D ) { ... }
+		method get-element-tag-name ( --> HTTP::Request:D ) { ... }
+		method get-element-rect ( --> HTTP::Request:D ) { ... }
+		method is-element-enabled ( Str --> HTTP::Request:D ) { ... }
+		method get-computed-role ( --> HTTP::Request:D ) { ... }
+		method get-computed-label ( --> HTTP::Request:D ) { ... }
+		method element-click ( --> HTTP::Request:D ) { ... }
+		method element-clear ( --> HTTP::Request:D ) { ... }
+		method element-send-keys ( Str:D $text --> HTTP::Request:D ) { ... }
+		method take-element-screenshot ( --> HTTP::Request:D ) { ... }
 	}
 	
+=begin comment
 	class Element-Request::Default does Element-Request {
 		has Str:D $.host is required;
 		has Int:D $.port is required;
+		method !args { 'session', $!session-id, 'element', $!element-id }
 
-		method find-element (  ) {
-			self.find-sub-element: ;
+		method find-sub-element ( By:D $locator --> HTTP::Request:D ) {
+			self.post-request: $locator.args, self!args, 'element';
 		}
-		method find-elements (  ) {
-			self.find-sub-elements: ;
+		method find-sub-elements ( By:D $locator --> HTTP::Request:D ) {
+			self.post-request: $locator.args, self!args, 'elements';
 		}
+
+
 	}
+=end comment
 	
-	role Shadow-Request does Request-Builder {
+	role Shadow-Request {
 		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) { ... }
 		method find-sub-shadow-elements ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) { ... }
 	}
 	
-	class Request::Chromium
+	class Request::Default
 			does Driver-Request
 			does Session-Request
 			does Element-Request
+			does Shadow-Request
 	{
-		has Int:D $.port = 9515;
 		use JSON::Fast;
 		
 		# DRIVER REQUESTS
@@ -767,18 +803,7 @@ module WD2P {
 		}
 	}
 	
-	role Shadow-Request does Request-Builder {
-		
-		
-		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
-			
-		}
-		
-		method find-sub-shadow-elements ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
-			
-		}
-	}
-	
+=begin comment
 	class Shadow-Request::Default does Shadow-Request {
 		has Str:D $.host is required;
 		has Int:D $.port is required;
@@ -791,6 +816,8 @@ module WD2P {
 			
 		}
 	}
+=end comment
+
 	class Shadow-Root { ... }
 	
 	class Element { ... }
@@ -1087,8 +1114,6 @@ module WD2P {
 	}
 	
 	role Driver {
-		# trusts WD2P::Session;
-		
 		has Driver-Request $!request is built is required;
 		has Result $!result is built is required;
 		
@@ -1183,14 +1208,7 @@ module WD2P {
 					}
 				}
 			}
-	}
-	
-	class Element does Context {
-		has Str:D $!session-id is built is required;
-		has Str:D $!element-id is built is required;
-		has Str:D $.browser is required;
-		
-		
+		}
 	}
 	
 	class Frame is Element {
@@ -1198,7 +1216,6 @@ module WD2P {
 	}
 	
 	class Page is Frame {
-		}
 		
 		method status {
 			$!result.status: $ua.request: $!request.status;
