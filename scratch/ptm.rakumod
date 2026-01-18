@@ -67,764 +67,647 @@ module WD2P {
 		has Str:D $.message is required;
 	}
 	
-	role Request-Builder does WebDriver2::Test::Debugging {
-		use JSON::Fast;
-		
-		method host ( --> Str:D ) { ... }
-		method port ( --> Int:D ) { ... }
-		
-		method request (
-				Str:D $method,
-				*@command
-				--> HTTP::Request:D
-		) {
-			my Str:D $url = join '/', "http://$.host:$.port/", |@command;
-			self.debug: Level::extra, $method, $url;
-			given $method {
-				when 'GET' { return HTTP::Request.new: GET => $url; }
-				when 'POST' { return HTTP::Request.new: POST => $url; }
-				when 'DELETE' { return HTTP::Request.new: DELETE => $url; }
-			}
-		}
-		
-		method get-request (
-				*@command
-				--> HTTP::Request:D
-		) {
-			self.request: 'GET', @command;
-		}
-		
-		method post-request (
-				$data,
-				*@command
-				--> HTTP::Request:D
-		) {
-			my HTTP::Request $req = self.request: 'POST', @command;
-			my Str:D $json = to-json $data;
-			self.debug: Level::extra, $json;
-			$req.add-content: $json;
-			$req;
-		}
-		
-		method delete-request (
-				*@command
-				--> HTTP::Request:D
-		) {
-			self.request: 'DELETE', @command;
-		}
-	}
+	class Shadow-Root { ... }
+	class Element { ... }
+	class Session { ... }
+	role Driver { ... }
 	
-	role Driver-Request {
-		has Str:D $.host = '127.0.0.1';
-		method status ( --> HTTP::Request:D ) { ... }
-		method new-session ( *%capabilities --> HTTP::Request:D ) { ... }
-	}
-	
-=begin comment
-	class Driver-Request::Chromium does Driver-Request {
-		use JSON::Fast;
-		has Str:D $.host = '127.0.0.1';
-		has Int:D $.port = 9515;
-		method status ( --> HTTP::Request:D ) {
-			self.get-request: 'status'
-		}
-		
-		multi method new-session ( *%capabilities --> HTTP::Request:D ) {
-			self.post-session: %capabilities, 'session';
-		}
-		multi method new-session ( --> HTTP::Request:D ) {
-			self.new-session: {
-				capabilities => {
-					alwaysMatch => {
-						unhandledPromptBehavior => {
-							alert => 'ignore',
-							beforeUnload => 'ignore',
-							confirm => 'ignore',
-							default => 'ignore',
-							prompt => 'ignore',
-							defaultPrompt => 'ignore',
-							:!notify
-						}
-					}
+	package Request {
+		role Base does WebDriver2::Test::Debugging {
+			use JSON::Fast;
+			
+			method host ( --> Str:D ) { ... }
+			method port ( --> Int:D ) { ... }
+			method command ( *@command --> Positional:D ) { ... }
+
+			method request (
+					Str:D $method,
+					*@command
+					--> HTTP::Request:D
+			) {
+				my Str:D $url = join '/', "http://$.host:$.port/", |self.command: @command;
+				self.debug: Level::extra, $method, $url;
+				given $method {
+					when 'GET' { return HTTP::Request.new: GET => $url; }
+					when 'POST' { return HTTP::Request.new: POST => $url; }
+					when 'DELETE' { return HTTP::Request.new: DELETE => $url; }
 				}
 			}
-		}
-	}
-=end comment
-	
-	role Session-Request {
-		has Str:D $!session-id is built is required;
-		
-		method delete-session ( --> HTTP::Request:D ) { ... }
-		method get-timeouts ( --> HTTP::Request:D ) { ... }
-		method set-timeouts (
-				Int :$script,
-				Int :$pageLoad,
-				Int :$implicit
-				--> HTTP::Request:D
-		) { ... }
-		method navigate-to ( Str:D $url --> HTTP::Request:D ) { ... }
-		method get-current-url ( --> HTTP::Request:D ) { ... }
-		method back ( --> HTTP::Request:D ) { ... }
-		method forward ( --> HTTP::Request:D ) { ... }
-		method refresh ( --> HTTP::Request:D ) { ... }
-		method get-title ( --> HTTP::Request:D ) { ... }
-		method get-window-handle ( --> HTTP::Request:D ) { ... }
-		method close-window ( --> HTTP::Request:D ) { ... }
-		method switch-to-window (  Str:D $handle --> HTTP::Request:D ) { ... }
-		method get-window-handles ( --> HTTP::Request:D ) { ... }
-		method new-window ( --> HTTP::Request:D ) { ... }
-		method switch-to-frame ( Int $frame --> HTTP::Request:D ) { ... }
-		method switch-to-parent-frame ( --> HTTP::Request:D ) { ... }
-		method get-window-rect ( --> HTTP::Request:D ) { ... }
-		method set-window-rect (
-				Int :$width,
-				Int :$height,
-				Int :$x,
-				Int :$y
-				--> HTTP::Request:D
-		) { ... }
-		method maximize-window ( --> HTTP::Request:D ) { ... }
-		method minimize-window ( --> HTTP::Request:D ) { ... }
-		method fullscreen-window ( --> HTTP::Request:D ) { ... }
-		method get-active-element ( --> HTTP::Request:D ) { ... }
-		
-		method get-page-source ( --> HTTP::Request:D ) { ... }
-		method execute-script ( Str:D $script, *@args --> HTTP::Request:D ) { ... }
-		method execute-async-script ( Str:D $script, *@args --> HTTP::Request:D ) { ... }
-		method get-all-cookies ( --> HTTP::Request:D ) { ... }
-		method get-named-cookie ( Str:D $name --> HTTP::Request:D ) { ... }
-		method add-cookie ( --> HTTP::Request:D ) { ... }
-		method delete-cookie ( Str:D $name --> HTTP::Request:D ) { ... }
-		method delete-all-cookies ( --> HTTP::Request:D ) { ... }
-		method perform-actions ( --> HTTP::Request:D ) { ... }
-		method release-actions ( --> HTTP::Request:D ) { ... }
-		method dismiss-alert ( --> HTTP::Request:D ) { ... }
-		method accept-alert ( --> HTTP::Request:D ) { ... }
-		method get-alert-text ( --> HTTP::Request:D ) { ... }
-		method send-alert-text ( --> HTTP::Request:D ) { ... }
-		method take-screenshot ( --> HTTP::Request:D ) { ... }
-		method take-element-screenshot ( --> HTTP::Request:D ) { ... }
-
-=begin table
-	Property       | JSON Key    | Value Type and Valid Values
-	==========================================================
-	orientation    | orientation | Str : { portrait ( default ), landscape }
-	==========================================================
-	scale          | scale       | Rat : [ 0.1, 2 ] ( default : 1 )
-	==========================================================
-	background     | background  | Bool : ( default : False )
-	==========================================================
-	pageWidth      | width       | Rat : [ 2.54 / 72, Inf ) ( default : 21.59 )
-	==========================================================
-	pageHeight     | height      | Rat : [ 2.54 / 72, Inf ) ( default : 27.94 )
-	==========================================================
-	margin         | margin      | JSON Obj : ( default : { } )
-	----------------------------------------------------------
-	- marginTop    | top         | Rat : [ 0, Inf ) ( default : 1 )
-	----------------------------------------------------------
-	- marginBottom | bottom      | Rat : [ 0, Inf ) ( default : 1 )
-	----------------------------------------------------------
-	- marginLeft   | left        | Rat : [ 0, Inf ) ( default : 1 )
-	----------------------------------------------------------
-	- marginRight  | right       | Rat : [ 0, Inf ) ( default : 1 )
-	==========================================================
-	shrinkToFit    | shrinkToFit | Bool : ( default : True )
-	==========================================================
-	pageRanges     | pageRanges  | Array:D[ Int:D ] : ( default : [ ] )
-=end table
-
-		method print-page ( %args --> HTTP::Request:D ) { ... }
-	}
-	
-=begin comment
-	class Session-Request::Default does Session-Request {
-		has Str:D $.host is required;
-		has Int:D $.port is required;
-		method !args { 'session', $!session-id }
-		
-		method delete-session ( --> HTTP::Request:D ) {
-			self.delete-request: self!args;
-		}
-		
-		method get-timeouts ( --> HTTP::Request:D ) {
-			self.get-request: self!args, 'timeouts';
-		}
-		
-		method set-timeouts (
-				Int :$script,
-				Int :$pageLoad,
-				Int :$implicit
-				--> HTTP::Request:D
-		) {
-			self.post-request: {
-				:$script,
-				:$pageLoad,
-				:$implicit
-			}, self!args, 'timeouts';
-		}
-		
-		method navigate-to ( Str:D $url --> HTTP::Request:D ) {
-			self.post-request: { :$url }, self!args, 'url';
-		}
-		
-		method get-current-url ( --> HTTP::Request:D ) {
-			self.get-request: self!args, 'url';
-		}
-		
-		method back ( --> HTTP::Request:D ) {
-			self.post-request: { }, self!args, 'back';
-		}
-		
-		method forward ( --> HTTP::Request:D ) {
-			self.post-request: { }, self!args, 'forward';
-		}
-		
-		method refresh ( --> HTTP::Request:D ) {
-			self.post-request: { }, self!args, 'refresh';
-		}
-		
-		method get-title ( --> HTTP::Request:D ) {
-			self.get-request: self!args, 'title';
-		}
-		
-		method get-window-handle ( --> HTTP::Request:D ) {
-			self.get-request: self!args, 'window';
-		}
-		
-		method close-window ( --> HTTP::Request:D ) {
-			self.delete-request: self!args, 'window';
-		}
-		
-		method switch-to-window ( Str:D $handle --> HTTP::Request:D ) {
-			self.post-request: { :$handle }, self!args, 'window';
-		}
-		
-		method get-window-handles ( --> HTTP::Request:D ) {
-			self.get-request: self!args, <window handles>;
-		}
-		
-		method new-window ( Str $target = 'tab' --> HTTP::Request:D ) {
-			self.post-request: { 'type hint' => $target }, self!args, <window new>;
-		}
-		
-		multi method switch-to-frame ( Str:D $id --> HTTP::Request:D ) {
-			self.post-request: { :$id }, self!args, 'frame';
-		}
-		multi method switch-to-frame ( Int $id ) {
-			self.post-request: { :$id }, self!args, 'frame';
-		}
-
-		method switch-to-parent-frame ( --> HTTP::Request:D ) {
-			self.post-request: { }, self!args, <frame parent>;
-		}
-		
-		method get-window-rect ( --> HTTP::Request:D ) {
-			self.get-request: self!args, <window rect>
-		}
-		
-		method set-window-rect (
-				Int :$width,
-				Int :$height,
-				Int :$x,
-				Int :$y
-				--> HTTP::Request:D
-		) {
-			self.post-request: { :$width, :$height, :$x, :$y }, self!args, <window rect>;
-		}
-		
-		method maximize-window ( --> HTTP::Request:D ) {
-			self.post-request: { }, self!args, <window maximize>;
-		}
-		
-		method minimize-window ( --> HTTP::Request:D ) {
-			self.post-request: { }, self!args, <window minimize>;
-		}
-		
-		method fullscreen-window ( --> HTTP::Request:D ) {
-			self.post-request: { }, self!args, <window fullscreen>;
-		}
-		
-		method get-active-element ( --> HTTP::Request:D ) {
-			self.get-request: self!args, <element active>;
-		}
-		
-		method find-element ( By $locator --> HTTP::Request:D ) {
-			self.post-request: $locator.args, self!args, 'element';
-		}
-		
-		method find-elements ( By $locator --> HTTP::Request:D ) {
-			self.post-request: $locator.args, self!args, 'elements';
-		}
-		
-		
-		
-		method get-page-source ( --> HTTP::Request:D ) {
-			self.get-request: self!args, 'source';
-		}
-		
-		method execute-script ( Str:D $script, *@args --> HTTP::Request:D ) {
-			self.post-request: { :$script, :@args }, self!args, <execute sync>;
-		}
-		
-		method execute-async-script ( Str:D $script, *@args --> HTTP::Request:D ) {
-			self.post-request: { :$script, :@args }, self!args, <execute async>;
-		}
-		
-		method get-all-cookies ( --> HTTP::Request:D ) {
-			self.get-request: self!args, 'cookie';
-		}
-		
-		method get-named-cookie ( Str:D $name --> HTTP::Request:D ) {
-			self.get-request: self!args, 'cookie', $name;
-		}
-		
-		method add-cookie (
-				Str:D :$name,
-				Str:D :$value,
-				Str:D :$path?,
-				Str:D :$domain?,
-				Bool:D :$secure?,
-				Bool:D :$httpOnly?,
-				Int:D :$expiry?,
-				Bool:D :$sameSite?
-				--> HTTP::Request:D
-		) {
-			my %args = grep *.value.defined,
-				( :$name, :$value, :$path, :$domain, :$secure, :$httpOnly, :$expiry, :$sameSite );
-			self.post-request: cookie => %args, self!args, 'cookie';
-		}
-		
-		method delete-cookie ( Str:D $name --> HTTP::Request:D ) {
-			self.delete-request: self!args, 'cookie', $name;
-		}
-		
-		method delete-all-cookies ( --> HTTP::Request:D ) {
-			self.delete-request: self!args, 'cookie';
-		}
-		
-		method perform-actions ( --> HTTP::Request:D ) {
-			!!! 'nyi'
-		}
-		
-		method release-actions ( --> HTTP::Request:D ) {
-			!!! 'nyi'
-		}
-		
-		method dismiss-alert ( --> HTTP::Request:D ) {
-			self.post-request: { }, self!args, <alert dismiss>;
-		}
-		
-		method accept-alert ( --> HTTP::Request:D ) {
-			self.post-request: { }, self!args, <alert accept>;
-		}
-		
-		method get-alert-text ( --> HTTP::Request:D ) {
-			self.get-request: self!args, <alert text>;
-		}
-		
-		method send-alert-text ( Str:D $text --> HTTP::Request:D ) {
-			self.post-request: { :$text }, self!args, <alert text>;
-		}
-		
-		method take-screenshot ( --> HTTP::Request:D ) {
-			self.get-request: self!args, 'screenshot';
-		}
-		
-		# TODO : margins, etc.?
-		method print-page (
-				Str:D $orientation where <portrait landscape>.any = 'portrait'
-				--> HTTP::Request:D
-		) {
-			self.post-request:{ :$orientation }, 'print';
-		}
-	}
-=end comment
-	
-	role Element-Request {
-		has Str:D $!session-id is built is required;
-		has Str:D $!element-id is built is required;
-		
-		method find-sub-element ( By:D $locator --> HTTP::Request:D ) { ... }
-		method find-sub-elements ( By:D $locator --> HTTP::Request:D ) { ... }
-		
-		method get-element-shadow-root ( --> HTTP::Request:D ) { ... }
-		
-		method is-element-selected ( --> HTTP::Request:D ) { ... }
-		method get-element-attribute ( Str:D $name --> HTTP::Request:D ) { ... }
-		method get-element-property ( Str:D $name --> HTTP::Request:D ) { ... }
-		method get-element-css-value ( Str:D $name --> HTTP::Request:D ) { ... }
-		method get-element-text ( --> HTTP::Request:D ) { ... }
-		method get-element-tag-name ( --> HTTP::Request:D ) { ... }
-		method get-element-rect ( --> HTTP::Request:D ) { ... }
-		method is-element-enabled ( Str --> HTTP::Request:D ) { ... }
-		method get-computed-role ( --> HTTP::Request:D ) { ... }
-		method get-computed-label ( --> HTTP::Request:D ) { ... }
-		method element-click ( --> HTTP::Request:D ) { ... }
-		method element-clear ( --> HTTP::Request:D ) { ... }
-		method element-send-keys ( Str:D $text --> HTTP::Request:D ) { ... }
-		method take-element-screenshot ( --> HTTP::Request:D ) { ... }
-	}
-	
-=begin comment
-	class Element-Request::Default does Element-Request {
-		has Str:D $.host is required;
-		has Int:D $.port is required;
-		method !args { 'session', $!session-id, 'element', $!element-id }
-
-		method find-sub-element ( By:D $locator --> HTTP::Request:D ) {
-			self.post-request: $locator.args, self!args, 'element';
-		}
-		method find-sub-elements ( By:D $locator --> HTTP::Request:D ) {
-			self.post-request: $locator.args, self!args, 'elements';
-		}
-
-
-	}
-=end comment
-	
-	role Shadow-Request {
-		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) { ... }
-		method find-sub-shadow-elements ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) { ... }
-	}
-	
-	class Request::Default
-			does Driver-Request
-			does Session-Request
-			does Element-Request
-			does Shadow-Request
-	{
-		use JSON::Fast;
-		
-		# DRIVER REQUESTS
-		
-		method status ( --> HTTP::Request:D ) {
-			self!get-request: 'status'
-		}
-		
-		method new-session ( *%capabilities --> HTTP::Request:D ) {
-			self!post-request: %capabilities, 'session';
-		}
-		
-		# SESSION REQUESTS
-		
-		method delete-session ( Str:D $session-id --> HTTP::Request:D ) {
-			self!delete-request: 'session', $session-id;
-		}
-		
-		method get-timeouts ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, 'timeouts';
-		}
-		
-		method set-timeouts (
-				Str:D $session-id,
-				Int :$script,
-				Int :$pageLoad,
-				Int :$implicit
-				--> HTTP::Request:D
-		) {
-			self!post-request: {
-				:$script,
-				:$pageLoad,
-				:$implicit
-			}, 'session', $session-id, 'timeouts';
-		}
-		
-		method navigate-to ( Str:D $session-id, Str:D $url --> HTTP::Request:D ) {
-			self!post-request: { :$url }, 'session', $session-id, 'url';
-		}
-		
-		method get-current-url ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, 'url';
-		}
-		
-		method back ( Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $session-id, 'back';
-		}
-		
-		method forward ( Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $session-id, 'forward';
-		}
-		
-		method refresh ( Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $session-id, 'refresh';
-		}
-		
-		method get-title ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, 'title';
-		}
-		
-		method get-window-handle ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, 'window';
-		}
-		
-		method close-window ( Str:D $session-id --> HTTP::Request:D ) {
-			self!delete-request: 'session', $session-id, 'window';
-		}
-		
-		method switch-to-window ( Str:D $session-id, Str:D $handle --> HTTP::Request:D ) {
-			self!post-request: { :$handle }, 'session', $session-id, 'window';
-		}
-		
-		method get-window-handles ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, |<window handles>;
-		}
-		
-		method new-window ( Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { 'type hint' => 'tab' }, 'session', $session-id, |<window new>;
-		}
-		
-		method switch-to-frame ( --> HTTP::Request:D ) {
-
-		}
-		
-		multi method switch-to-frame ( Str:D $session-id, Int $id ) {
-			self!post-request: { :$id }, 'session', $session-id, 'frame';
-		}
-		
-		method switch-to-parent-frame ( Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $session-id, |<frame parent>;
-		}
-		
-		method get-window-rect ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, |<window rect>;
-		}
-		
-		method set-window-rect (
-				Str:D $session-id,
-				Int :$width,
-				Int :$height,
-				Int :$x,
-				Int :$y
-				--> HTTP::Request:D
-		) {
-			self!post-request: { :$width, :$height, :$x, :$y }, 'session', $session-id, |<window rect>;
-		}
-		
-		method maximize-window ( Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $session-id, |<window maximize>;
-		}
-		
-		method minimize-window ( Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $session-id, |<window minimize>;
-		}
-		
-		method fullscreen-window ( Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $session-id, |<window fullscreen>;
-		}
-		
-		method get-active-element ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, |<element active>;
-		}
-		
-		method find-element ( Str:D $session-id, By:D $locator --> HTTP::Request:D ) {
-			self!post-request: $locator.args, 'session', $session-id, 'element';
-		}
-		
-		method find-elements ( Str:D $session-id, By:D $locator --> HTTP::Request:D ) {
-			self!post-request: $locator.args, 'session', $session-id, 'elements';
-		}
-		
-		
-		
-		method get-page-source ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, 'source';
-		}
-		
-		method execute-script (
-				Str:D $session-id,
-				Str:D $script,
-				*@args --> HTTP::Request:D
-		) {
-			self!post-request: { :$script, :@args }, 'session', $session-id, |<execute sync>;
-		}
-		
-		method execute-async-script (
-				Str:D $session-id,
-				Str:D $script,
-				*@args --> HTTP::Request:D
-		) {
-			self!post-request: { :$script, :@args }, 'session', $session-id, |<execute async>;
-		}
-		
-		method get-all-cookies ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, 'cookie';
-		}
-		
-		method get-named-cookie ( Str:D $session-id, Str:D $name --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, 'cookie', $name;
-		}
-		
-		method add-cookie (
-				Str:D $session-id,
-				Str:D :$name,
-				Str:D :$value,
-				Str:D :$path?,
-				Str:D :$domain?,
-				Bool:D :$secure?,
-				Bool:D :$httpOnly?,
-				Int:D :$expiry?,
-				Bool:D :$sameSite?
-				--> HTTP::Request:D
-		) {
-			my %args = grep *.value.defined,
-				( :$name, :$value, :$path, :$domain, :$secure, :$httpOnly, :$expiry, :$sameSite );
-			self!post-request: cookie => %args, 'session', $session-id, 'cookie';
-		}
-		
-		method delete-cookie ( Str:D $session-id, Str:D $name --> HTTP::Request:D ) {
-			self!delete-request: 'session', $session-id, 'cookie', $name;
-		}
-		
-		method delete-all-cookies ( Str:D $session-id --> HTTP::Request:D ) {
-			self!delete-request: 'session', $session-id, 'cookie';
-		}
-		
-		method perform-actions ( Str:D $session-id --> HTTP::Request:D ) {
-			!!! 'nyi'
-		}
-		
-		method release-actions ( Str:D $session-id --> HTTP::Request:D ) {
-			!!! 'nyi'
-		}
-		
-		method dismiss-alert ( Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $session-id, |<alert dismiss>;
-		}
-		
-		method accept-alert ( Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $session-id, |<alert accept>;
-		}
-		
-		method get-alert-text ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, |<alert text>;
-		}
-		
-		method send-alert-text ( Str:D $text, Str:D $session-id --> HTTP::Request:D ) {
-			self!post-request: { :$text }, 'session', $session-id, |<alert text>;
-		}
-		
-		method take-screenshot ( Str:D $session-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $session-id, 'screenshot';
-		}
-		
-		method print-page (
-				Str:D $session-id,
-				Str:D $orientation where <portrait landscape>.any = 'portrait'
-				--> HTTP::Request:D
-		) {
-			self!post-request: { :$orientation }, 'session', $session-id, 'print';
-		}
-		
-		# XXX : ELEMENT REQUESTS
-		
-		method find-sub-element ( Str:D $sid, Str:D $element-id, By:D $locator --> HTTP::Request:D ) {
-			self!post-request: $locator.args, 'session',$sid, 'element', $element-id, 'element';
-		}
-		
-		method find-sub-elements ( Str:D $sid, Str:D $element-id, By:D $locator --> HTTP::Request:D ) {
-			self!post-request: $locator.args, 'session',$sid, 'element', $element-id, 'elements';
-		}
-		
-		
-		
-		method get-element-shadow-root ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'shadow';
-		}
-				
-		method is-element-selected ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'selected';
-		}
-		
-		method get-element-attribute ( Str:D $sid, Str:D $element-id, Str:D $name --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'attribute', $name;
-		}
-		
-		method get-element-property ( Str:D $sid, Str:D $element-id, Str:D $name --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'property', $name;
-		}
-		
-		method get-element-css-value ( Str:D $sid, Str:D $element-id, $property-name --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'css', $property-name;
-		}
-		
-		method get-element-text ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'text';
-		}
-		
-		method get-element-tag-name ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'name';
-		}
-		
-		method get-element-rect ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'rect';
-		}
-		
-		method is-element-enabled ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'enabled';
-		}
-		
-		method get-computed-role ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'computedrole';
-		}
-		
-		method get-computed-label ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'computedlabel';
-		}
-		
-		method element-click ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $sid, 'element', $element-id, 'click';
-		}
-		
-		method element-clear ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!post-request: { }, 'session', $sid, 'element', $element-id, 'clear';
-		}
-		
-		method element-send-keys ( Str:D $sid, Str:D $element-id, Str:D $text --> HTTP::Request:D ) {
-			self!post-request: { :$text }, 'session', $sid, 'element', $element-id, 'value';
-		}
-
-		multi method switch-to-frame ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!post-request: { id => $element-id }, 'session', $sid, 'frame';
-		}
-		
-		method take-element-screenshot ( Str:D $sid, Str:D $element-id --> HTTP::Request:D ) {
-			self!get-request: 'session', $sid, 'element', $element-id, 'screenshot';
-		}
-		
-		# SHADOW REQUESTS
-		
-		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id, By:D $locator --> HTTP::Request:D ) {
-			self!post-request: $locator.args, 'session', $sid, 'shadow', $shadow-id, 'element';
-		}
-		
-		method find-sub-shadow-elements ( Str:D $sid, Str:D $shadow-id, By:D $locator --> HTTP::Request:D ) {
-			self!post-request: $locator.args, 'session', $sid, 'shadow', $shadow-id, 'elements';
-		}
-	}
-	
-=begin comment
-	class Shadow-Request::Default does Shadow-Request {
-		has Str:D $.host is required;
-		has Int:D $.port is required;
-		
-		method find-sub-shadow-element ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
 			
+			method get-request (
+					*@command
+					--> HTTP::Request:D
+			) {
+				self.request: 'GET', @command;
+			}
+			
+			method post-request (
+					$data,
+					*@command
+					--> HTTP::Request:D
+			) {
+				my HTTP::Request $req = self.request: 'POST', @command;
+				my Str:D $json = to-json $data;
+				self.debug: Level::extra, $json;
+				$req.add-content: $json;
+				$req;
+			}
+			
+			method delete-request (
+					*@command
+					--> HTTP::Request:D
+			) {
+				self.request: 'DELETE', @command;
+			}
 		}
 		
-		method find-sub-shadow-elements ( Str:D $sid, Str:D $shadow-id --> HTTP::Request:D ) {
+		role Driver-Request {
+			method status ( --> HTTP::Request:D ) { ... }
+			method new-session ( *%capabilities --> HTTP::Request:D ) { ... }
+		}
+		
+		role Session-Request {
+			method delete-session ( Session:D $session --> HTTP::Request:D ) { ... }
+			method get-timeouts ( Session:D $session --> HTTP::Request:D ) { ... }
+			method set-timeouts (
+					Session:D $session,
+					Int :$script,
+					Int :$pageLoad,
+					Int :$implicit
+					--> HTTP::Request:D
+			) { ... }
+			method navigate-to (
+					Session:D $session,
+					Str:D $url
+					--> HTTP::Request:D
+			) { ... }
+			method get-current-url ( Session:D $session --> HTTP::Request:D ) { ... }
+			method back ( Session:D $session --> HTTP::Request:D ) { ... }
+			method forward ( Session:D $session --> HTTP::Request:D ) { ... }
+			method refresh ( Session:D $session --> HTTP::Request:D ) { ... }
+			method get-title ( Session:D $session --> HTTP::Request:D ) { ... }
+			method get-window-handle ( Session:D $session --> HTTP::Request:D ) { ... }
+			method close-window ( Session:D $session --> HTTP::Request:D ) { ... }
+			method switch-to-window (
+					Session:D $session,
+					Str:D $handle
+					--> HTTP::Request:D
+			) { ... }
+			method get-window-handles ( Session:D $session --> HTTP::Request:D ) { ... }
+			method new-window ( Session:D $session --> HTTP::Request:D ) { ... }
+			method switch-to-frame (
+					Session:D $session,
+					Int $frame
+					--> HTTP::Request:D
+			) { ... }
+			method switch-to-parent-frame ( Session:D $session --> HTTP::Request:D ) { ... }
+			method get-window-rect ( Session:D $session --> HTTP::Request:D ) { ... }
+			method set-window-rect (
+					Session:D $session,
+					Int :$width,
+					Int :$height,
+					Int :$x,
+					Int :$y
+					--> HTTP::Request:D
+			) { ... }
+			method maximize-window ( Session:D $session --> HTTP::Request:D ) { ... }
+			method minimize-window ( Session:D $session --> HTTP::Request:D ) { ... }
+			method fullscreen-window ( Session:D $session --> HTTP::Request:D ) { ... }
+			method get-active-element ( Session:D $session --> HTTP::Request:D ) { ... }
 			
+			method get-page-source ( Session:D $session --> HTTP::Request:D ) { ... }
+			method execute-script (
+					Session:D $session,
+					Str:D $script,
+					*@args
+					--> HTTP::Request:D
+			) { ... }
+			method execute-async-script (
+					Session:D $session,
+					Str:D $script,
+					*@args
+					--> HTTP::Request:D
+			) { ... }
+			method get-all-cookies ( Session:D $session --> HTTP::Request:D ) { ... }
+			method get-named-cookie (
+					Session:D $session,
+					Str:D $name
+					--> HTTP::Request:D
+			) { ... }
+			method add-cookie ( Session:D $session --> HTTP::Request:D ) { ... }
+			method delete-cookie (
+					Session:D $session,
+					Str:D $name
+					--> HTTP::Request:D
+			) { ... }
+			method delete-all-cookies ( Session:D $session --> HTTP::Request:D ) { ... }
+			method perform-actions ( Session:D $session --> HTTP::Request:D ) { ... }
+			method release-actions ( Session:D $session --> HTTP::Request:D ) { ... }
+			method dismiss-alert ( Session:D $session --> HTTP::Request:D ) { ... }
+			method accept-alert ( Session:D $session --> HTTP::Request:D ) { ... }
+			method get-alert-text ( Session:D $session --> HTTP::Request:D ) { ... }
+			method send-alert-text ( Session:D $session --> HTTP::Request:D ) { ... }
+			method take-screenshot ( Session:D $session --> HTTP::Request:D ) { ... }
+			method take-element-screenshot (
+					Session:D $session
+					--> HTTP::Request:D
+			) { ... }
+
+			=begin table
+				Property       | JSON Key    | Value Type and Valid Values
+				==========================================================
+				orientation    | orientation | Str : { portrait ( default ), landscape }
+				==========================================================
+				scale          | scale       | Rat : [ 0.1, 2 ] ( default : 1 )
+				==========================================================
+				background     | background  | Bool : ( default : False )
+				==========================================================
+				pageWidth      | width       | Rat : [ 2.54 / 72, Inf ) ( default : 21.59 )
+				==========================================================
+				pageHeight     | height      | Rat : [ 2.54 / 72, Inf ) ( default : 27.94 )
+				==========================================================
+				margin         | margin      | JSON Obj : ( default : { } )
+				----------------------------------------------------------
+				- marginTop    | top         | Rat : [ 0, Inf ) ( default : 1 )
+				----------------------------------------------------------
+				- marginBottom | bottom      | Rat : [ 0, Inf ) ( default : 1 )
+				----------------------------------------------------------
+				- marginLeft   | left        | Rat : [ 0, Inf ) ( default : 1 )
+				----------------------------------------------------------
+				- marginRight  | right       | Rat : [ 0, Inf ) ( default : 1 )
+				==========================================================
+				shrinkToFit    | shrinkToFit | Bool : ( default : True )
+				==========================================================
+				pageRanges     | pageRanges  | Array:D[ Int:D ] : ( default : [ ] )
+			=end table
+
+			method print-page ( Session:D $session, %args --> HTTP::Request:D ) { ... }
+		}
+		
+		role Element-Request {
+			method find-sub-element (
+					Element:D $element,
+					By:D $locator
+					--> HTTP::Request:D
+			) { ... }
+			method find-sub-elements (
+					Element:D $element,
+					By:D $locator
+					--> HTTP::Request:D
+			) { ... }
+			
+			method get-element-shadow-root (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+			
+			method is-element-selected (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+			method get-element-attribute (
+					Element:D $element,
+					Str:D $name
+					--> HTTP::Request:D
+			) { ... }
+			method get-element-property (
+					Element:D $element,
+					Str:D $name
+					--> HTTP::Request:D
+			) { ... }
+			method get-element-css-value (
+					Element:D $element,
+					Str:D $name
+					--> HTTP::Request:D
+			) { ... }
+			method get-element-text (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+			method get-element-tag-name (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+			method get-element-rect (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+			method is-element-enabled (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+			method get-computed-role (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+			method get-computed-label (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+			method element-click (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+			method element-clear (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+			method element-send-keys (
+					Element:D $element,
+					Str:D $text
+					--> HTTP::Request:D
+			) { ... }
+			method take-element-screenshot (
+					Element:D $element
+					--> HTTP::Request:D
+			) { ... }
+		}
+		
+		role Shadow-Request {
+			method find-sub-shadow-element (
+					Shadow-Root:D $shadow
+					--> HTTP::Request:D
+			) { ... }
+			method find-sub-shadow-elements (
+					Shadow-Root:D $shadow
+					--> HTTP::Request:D
+			) { ... }
+		}
+		
+		class Default
+				does Driver-Request
+				does Session-Request
+				does Element-Request
+				does Shadow-Request
+		{
+			use JSON::Fast;
+			
+			# DRIVER REQUESTS
+			
+			method status ( --> HTTP::Request:D ) {
+				self!get-request: 'status'
+			}
+			
+			method new-session ( *%capabilities --> HTTP::Request:D ) {
+				self!post-request: %capabilities, 'session';
+			}
+			
+			# SESSION REQUESTS
+			
+			method delete-session ( Session:D $session --> HTTP::Request:D ) {
+				$session.delete-request;
+			}
+			
+			method get-timeouts ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: 'timeouts';
+			}
+			
+			method set-timeouts (
+					Session:D $session,
+					Int :$script,
+					Int :$pageLoad,
+					Int :$implicit
+					--> HTTP::Request:D
+			) {
+				$session.post-request: {
+					:$script,
+					:$pageLoad,
+					:$implicit
+				}, 'timeouts';
+			}
+			
+			method navigate-to ( Session:D $session, Str:D $url --> HTTP::Request:D ) {
+				$session.post-request: { :$url }, 'url';
+			}
+			
+			method get-current-url ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: 'url';
+			}
+			
+			method back ( Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { }, 'back';
+			}
+			
+			method forward ( Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { }, 'forward';
+			}
+			
+			method refresh ( Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { }, 'refresh';
+			}
+			
+			method get-title ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: 'title';
+			}
+			
+			method get-window-handle ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: 'window';
+			}
+			
+			method close-window ( Session:D $session --> HTTP::Request:D ) {
+				$session.delete-request: 'window';
+			}
+			
+			method switch-to-window ( Session:D $session, Str:D $handle --> HTTP::Request:D ) {
+				$session.post-request: { :$handle }, 'window';
+			}
+			
+			method get-window-handles ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: <window handles>;
+			}
+			
+			method new-window ( Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { 'type hint' => 'tab' }, <window new>;
+			}
+			
+			multi method switch-to-frame ( --> HTTP::Request:D ) {
+
+			}
+			
+			multi method switch-to-frame ( Session:D $session, Int $id ) {
+				$session.post-request: { :$id }, 'frame';
+			}
+			
+			method switch-to-parent-frame ( Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { }, <frame parent>;
+			}
+			
+			method get-window-rect ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: <window rect>;
+			}
+			
+			method set-window-rect (
+					Session:D $session,
+					Int :$width,
+					Int :$height,
+					Int :$x,
+					Int :$y
+					--> HTTP::Request:D
+			) {
+				$session.post-request: { :$width, :$height, :$x, :$y }, <window rect>;
+			}
+			
+			method maximize-window ( Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { }, <window maximize>;
+			}
+			
+			method minimize-window ( Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { }, <window minimize>;
+			}
+			
+			method fullscreen-window ( Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { }, <window fullscreen>;
+			}
+			
+			method get-active-element ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: <element active>;
+			}
+			
+			method find-element (
+					Session:D $session,
+					By:D $locator
+					--> HTTP::Request:D
+			) {
+				$session.post-request: $locator.args, 'element';
+			}
+			
+			method find-elements (
+					Session:D $session,
+					By:D $locator
+					--> HTTP::Request:D
+			) {
+				$session.post-request: $locator.args, 'elements';
+			}
+			
+			
+			
+			method get-page-source ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: 'source';
+			}
+			
+			method execute-script (
+					Session:D $session,
+					Str:D $script,
+					*@args --> HTTP::Request:D
+			) {
+				$session.post-request: { :$script, :@args }, <execute sync>;
+			}
+			
+			method execute-async-script (
+					Session:D $session,
+					Str:D $script,
+					*@args --> HTTP::Request:D
+			) {
+				$session.post-request: { :$script, :@args }, <execute async>;
+			}
+			
+			method get-all-cookies ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: 'cookie';
+			}
+			
+			method get-named-cookie (
+					Session:D $session,
+					Str:D $name
+					--> HTTP::Request:D
+			) {
+				$session.get-request: 'cookie', $name;
+			}
+			
+			method add-cookie (
+					Session:D $session,
+					Str:D :$name,
+					Str:D :$value,
+					Str:D :$path?,
+					Str:D :$domain?,
+					Bool:D :$secure?,
+					Bool:D :$httpOnly?,
+					Int:D :$expiry?,
+					Bool:D :$sameSite?
+					--> HTTP::Request:D
+			) {
+				my %args = grep *.value.defined,
+					(
+							:$name,
+							:$value,
+							:$path,
+							:$domain,
+							:$secure,
+							:$httpOnly,
+							:$expiry,
+							:$sameSite
+					);
+				$session.post-request: cookie => %args, 'cookie';
+			}
+			
+			method delete-cookie ( Session:D $session, Str:D $name --> HTTP::Request:D ) {
+				$session.delete-request: 'cookie', $name;
+			}
+			
+			method delete-all-cookies ( Session:D $session --> HTTP::Request:D ) {
+				$session.delete-request: 'cookie';
+			}
+			
+			method perform-actions ( Session:D $session --> HTTP::Request:D ) {
+				!!! 'nyi'
+			}
+			
+			method release-actions ( Session:D $session --> HTTP::Request:D ) {
+				!!! 'nyi'
+			}
+			
+			method dismiss-alert ( Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { }, <alert dismiss>;
+			}
+			
+			method accept-alert ( Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { }, <alert accept>;
+			}
+			
+			method get-alert-text ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: <alert text>;
+			}
+			
+			method send-alert-text ( Str:D $text, Session:D $session --> HTTP::Request:D ) {
+				$session.post-request: { :$text }, <alert text>;
+			}
+			
+			method take-screenshot ( Session:D $session --> HTTP::Request:D ) {
+				$session.get-request: 'screenshot';
+			}
+			
+			method print-page (
+					Session:D $session,
+					Str:D $orientation where <portrait landscape>.any = 'portrait'
+					--> HTTP::Request:D
+			) {
+				$session.post-request: { :$orientation }, 'print';
+			}
+			
+			# XXX : ELEMENT REQUESTS
+			
+			method find-sub-element (
+					Element:D $element,
+					By:D $locator
+					--> HTTP::Request:D
+			) {
+				$element.post-request: $locator.args, 'element';
+			}
+			
+			method find-sub-elements (
+					Element:D $element,
+					By:D $locator
+					--> HTTP::Request:D
+			) {
+				$element.post-request: $locator.args, 'elements';
+			}
+			
+			
+			
+			method get-element-shadow-root ( Element:D $element --> HTTP::Request:D ) {
+				$element.get-request: 'shadow';
+			}
+					
+			method is-element-selected ( Element:D $element --> HTTP::Request:D ) {
+				$element.get-request: 'selected';
+			}
+			
+			method get-element-attribute (
+					Element:D $element,
+					Str:D $name
+					--> HTTP::Request:D
+			) {
+				$element.get-request: 'attribute', $name;
+			}
+			
+			method get-element-property (
+					Element:D $element,
+					Str:D $name
+					--> HTTP::Request:D
+			) {
+				$element.get-request: 'property', $name;
+			}
+			
+			method get-element-css-value (
+					Element:D $element,
+					$property-name
+					--> HTTP::Request:D
+			) {
+				$element.get-request: 'css', $property-name;
+			}
+			
+			method get-element-text ( Element:D $element --> HTTP::Request:D ) {
+				$element.get-request: 'text';
+			}
+			
+			method get-element-tag-name ( Element:D $element --> HTTP::Request:D ) {
+				$element.get-request: 'name';
+			}
+			
+			method get-element-rect ( Element:D $element --> HTTP::Request:D ) {
+				$element.get-request: 'rect';
+			}
+			
+			method is-element-enabled ( Element:D $element --> HTTP::Request:D ) {
+				$element.get-request: 'enabled';
+			}
+			
+			method get-computed-role ( Element:D $element --> HTTP::Request:D ) {
+				$element.get-request: 'computedrole';
+			}
+			
+			method get-computed-label ( Element:D $element --> HTTP::Request:D ) {
+				$element.get-request: 'computedlabel';
+			}
+			
+			method element-click ( Element:D $element --> HTTP::Request:D ) {
+				$element.post-request: 'click';
+			}
+			
+			method element-clear ( Element:D $element --> HTTP::Request:D ) {
+				$element.post-request: 'clear';
+			}
+			
+			method element-send-keys (
+					Element:D $element,
+					Str:D $text
+					--> HTTP::Request:D
+			) {
+				$element.post-request: 'value';
+			}
+
+			multi method switch-to-frame (
+					Element:D $element,
+					Str:D $element-id
+					--> HTTP::Request:D
+			) {
+				$element.post-request: { id => $element-id }, 'frame';
+			}
+			
+			method take-element-screenshot ( Element:D $element --> HTTP::Request:D ) {
+				$element.get-request: 'screenshot';
+			}
+			
+			# SHADOW REQUESTS
+			
+			method find-sub-shadow-element (
+					Shadow-Root:D $shadow,
+					By:D $locator
+					--> HTTP::Request:D
+			) {
+				$shadow.post-request: $locator.args, 'element';
+			}
+			
+			method find-sub-shadow-elements (
+					Shadow-Root:D $shadow,
+					By:D $locator
+					--> HTTP::Request:D
+			) {
+				$shadow.post-request: $locator.args, 'elements';
+			}
 		}
 	}
-=end comment
-
-	class Shadow-Root { ... }
-	
-	class Element { ... }
 	
 	use WebDriver2::Command::Execution-Status;
-	
-	class Session { ... }
 	
 	role Result does WebDriver2::Test::Debugging {
 		
@@ -897,18 +780,18 @@ module WD2P {
 		method execute-async-script ( HTTP::Response:D $response ) { ... }
 		method get-all-cookies ( HTTP::Response:D $response --> List:D ) { ... }
 
-=begin table :caption<cookie object structure>
-	RFC 6265 Field   | JSON Key | Attribute Key
-	=========================================
-	name             | name     |
-	value            | value    |
-	path             | path     | Path
-	domain           | domain   | Domain
-	secure-only-flag | secure   | Secure
-	http-only-flag   | httpOnly | HttpOnly
-	expiry-time      | expiry   | Max-Age
-	samesite         | sameSite | SameSite
-=end table
+		=begin table :caption<cookie object structure>
+			RFC 6265 Field   | JSON Key | Attribute Key
+			=========================================
+			name             | name     |
+			value            | value    |
+			path             | path     | Path
+			domain           | domain   | Domain
+			secure-only-flag | secure   | Secure
+			http-only-flag   | httpOnly | HttpOnly
+			expiry-time      | expiry   | Max-Age
+			samesite         | sameSite | SameSite
+		=end table
 
 		method get-named-cookie ( HTTP::Response:D $response --> Hash:D[ Str:D ] ) { ... }
 		method add-cookie ( HTTP::Response:D $response --> Session:D ) { ... }
@@ -997,18 +880,18 @@ module WD2P {
 		method execute-async-script ( HTTP::Response:D $response ) { ... }
 		method get-all-cookies ( HTTP::Response:D $response --> List:D ) { ... }
 
-=begin table :caption<cookie object structure>
-	RFC 6265 Field   | JSON Key | Attribute Key
-	=========================================
-	name             | name     |
-	value            | value    |
-	path             | path     | Path
-	domain           | domain   | Domain
-	secure-only-flag | secure   | Secure
-	http-only-flag   | httpOnly | HttpOnly
-	expiry-time      | expiry   | Max-Age
-	samesite         | sameSite | SameSite
-=end table
+		=begin table :caption<cookie object structure>
+			RFC 6265 Field   | JSON Key | Attribute Key
+			=========================================
+			name             | name     |
+			value            | value    |
+			path             | path     | Path
+			domain           | domain   | Domain
+			secure-only-flag | secure   | Secure
+			http-only-flag   | httpOnly | HttpOnly
+			expiry-time      | expiry   | Max-Age
+			samesite         | sameSite | SameSite
+		=end table
 
 		method get-named-cookie ( HTTP::Response:D $response --> Hash:D[ Str:D ] ) { ... }
 		method add-cookie ( HTTP::Response:D $response --> Session:D ) { ... }
@@ -1050,6 +933,7 @@ module WD2P {
 		method find-sub-shadow-element ( HTTP::Response:D $response --> Element:D ) { ... }
 		method find-sub-shadow-elements ( HTTP::Response:D $response --> List:D[ Element:D ] ) { ... }
 	}
+
 	
 	class Result::Chrome is Result::Chromium {
 		
@@ -1075,15 +959,24 @@ module WD2P {
 	}
 	
 	class Element does Context {
-		has Str:D $!session-id is built is required;
+		has Session:D $!session is built is required;
 		has Str:D $!element-id is built is required;
 		has Str:D $.browser is required;
 		has Element-Request:D $!request is built is required;
+		has Result:D $!result is built is required;
+		
+		method command ( *@command --> Positional:D ) {
+			$!session.command: 'element', $!element-id, @command;
+		}
 		
 		method find-element ( By:D $locator --> Element:D ) {
-			
+			$!result.find-sub-element:
+					$ua.request: $!request.find-sub-element: self, $locator;
 		}
-		method find-elements ( By:D $locator --> List:D[ Element:D ] ) { ... }
+		method find-elements ( By:D $locator --> List:D[ Element:D ] ) {
+			$!result.find-sub-elements:
+					$ua.request: $!request.find-sub-elements: self, $locator;
+		}
 		method switch-to-parent-frame ( --> Bool:D ) { ... }
 		method take-screenshot ( --> Str:D ) { }
 	}
@@ -1096,17 +989,27 @@ module WD2P {
 		
 	}
 	
-	class Session does Context {
-		has Str:D $!id is built is required;
+	class Session does Request::Base does Context {
+		has Str:D $.host is required;
+		has Int:D $.port is required;
 		has Str:D $.browser is required;
-		has Request:D $request is built is required;
-		has Result:D $result is built is required;
+		has Str:D $!id is built is required;
+		has Session-Request:D $!request is built is required;
+		has Result:D $!result is built is required;
+		
+		method command ( *@command --> Positional:D ) {
+			'session', $!id, |@command
+		}
+		
+		method navigate-to ( Str:D $url ) {
+			$!result.navigate-to: $ua.request: $!request.navigate-to: self, $url;
+		}
 		
 		method find-element ( By:D $locator --> Element:D ) {
-			$result.find-element: $ua.request: $request.find-element: $locator;
+			$!result.find-element: $ua.request: $!request.find-element: self, $locator;
 		}
 		method find-elements ( By:D $locator --> List:D[ Element:D ] ) {
-			$result.find-elements: $ua.request: $request.find-elements: $locator;
+			$!result.find-elements: $ua.request: $!request.find-elements: self, $locator;
 		}
 		method take-screenshot ( --> Str:D ) {
 			
@@ -1122,7 +1025,7 @@ module WD2P {
 		has Str:D $.browser is required;
 		
 		method request ( HTTP::Request:D $req --> HTTP::Response:D ) {
-			$!ua.request: $req;
+			$ua.request: $req;
 		}
 		
 		method start { }
@@ -1135,7 +1038,7 @@ module WD2P {
 	
 	class WD2P::Driver::Chrome does WD2P::Driver {
 		method new (
-				Str:D $host = '127.0.0.1';
+				Str:D $host = '127.0.0.1',
 				Int:D $port = 9515,
 		) {
 			self.bless:
