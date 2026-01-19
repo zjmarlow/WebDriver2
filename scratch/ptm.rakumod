@@ -65,8 +65,8 @@ module WD2P {
 		has Str:D $.message is required;
 	}
 	
-	class Shadow-Root { ... }
-	class Element { ... }
+	role Shadow-Root { ... }
+	role Element { ... }
 	role Session { ... }
 	role Driver { ... }
 	
@@ -76,14 +76,14 @@ module WD2P {
 			
 			method host ( --> Str:D ) { ... }
 			method port ( --> Int:D ) { ... }
-			method command ( *@command --> Positional:D ) { ... }
+			method command ( *@command --> Positional:D ) { @command }
 
 			method request (
 					Str:D $method,
 					*@command
 					--> HTTP::Request:D
 			) {
-				my Str:D $url = join '/', "http://$.host:$.port/", |self.command: @command;
+				my Str:D $url = join '/', "http://$.host:$.port", |self.command: @command;
 				self.debug: Level::extra, $method, $url;
 				given $method {
 					when 'GET' { return HTTP::Request.new: GET => $url; }
@@ -121,7 +121,7 @@ module WD2P {
 		
 		role Driver-Request {
 			method status ( --> HTTP::Request:D ) { ... }
-			method new-session ( *%capabilities --> HTTP::Request:D ) { ... }
+			method new-session ( %capabilities --> HTTP::Request:D ) { ... }
 		}
 		
 		role Session-Request {
@@ -308,11 +308,11 @@ module WD2P {
 		
 		role Shadow-Request {
 			method find-sub-shadow-element (
-					Shadow-Root:D $shadow
+					WD2P::Shadow-Root:D $shadow
 					--> HTTP::Request:D
 			) { ... }
 			method find-sub-shadow-elements (
-					Shadow-Root:D $shadow
+					WD2P::Shadow-Root:D $shadow
 					--> HTTP::Request:D
 			) { ... }
 		}
@@ -327,12 +327,12 @@ module WD2P {
 			
 			# DRIVER REQUESTS
 			
-			method status ( --> HTTP::Request:D ) {
-				self.get-request: 'status'
+			method status ( Base:D $base --> HTTP::Request:D ) {
+				$base.get-request: 'status'
 			}
 			
-			method new-session ( *%capabilities --> HTTP::Request:D ) {
-				self.post-request: %capabilities, 'session';
+			method new-session ( Base:D $base, %capabilities --> HTTP::Request:D ) {
+				$base.post-request: %capabilities, 'session';
 			}
 			
 			# SESSION REQUESTS
@@ -713,10 +713,11 @@ module WD2P {
 		}
 	}
 	
+	use WebDriver2::Command::Result;
 	use WebDriver2::Command::Execution-Status;
 	
 	role Result does WebDriver2::Test::Debugging {
-		
+		use JSON::Fast;
 		method check-status ( HTTP::Response $response ) {
 			my $data = from-json $response.content;
 			return $data if $response.code.Int == 200;
@@ -729,14 +730,14 @@ module WD2P {
 										error => $data<value><error>,
 										message => $data<value><message> // '',
 										stacktrace => $data<value><stacktrace> // '',
-										data => $data<value><data> // Nil
+										data => $data<value><data> // { }
 										;
 		}
 		
 		# DRIVER RESULTS
 		
 		method status ( HTTP::Response:D $response ) { ... }
-		method session ( HTTP::Response:D $response --> Session:D ) { ... }
+		method new-session ( HTTP::Response:D $response --> Session:D ) { ... }
 		
 		# SESSION RESULTS
 		
@@ -851,7 +852,7 @@ module WD2P {
 		method status ( HTTP::Response:D $response ) {
 			.<value> with self.check-status: $response;
 		}
-		method session ( HTTP::Response:D $response ) {
+		method new-session ( HTTP::Response:D $response ) {
 			.<value> with self.check-status: $response;
 		}
 		
@@ -1075,54 +1076,135 @@ module WD2P {
 		method find-element ( By:D $locator --> Element:D ) { ... }
 		method find-elements ( By:D $locator --> List:D[ Element:D ] ) { ... }
 		# method switch-to-parent-frame ( --> Bool:D ) { ... }
+	}
+	role Screenshotable {
 		method take-screenshot ( --> Str:D ) { ... }
 	}
 	
-	class Shadow-Root does Context {
-		method find-element ( By:D $locator --> Element:D ) {
-			
+	my constant $ELEMENT-IDENTIFIER = 'element-6066-11e4-a52e-4f735466cecf';
+	my constant $SHADOW-IDENTIFIER = 'shadow-6066-11e4-a52e-4f735466cecf';
+	
+	role Shadow-Root does Context {
+		has Str:D $!host is built is required;
+		has Int:D $!port is built is required;
+		has Session:D $!session is built is required;
+		has Str:D $!shadow-id is built is required;
+		has Request::Shadow-Request $!request is built is required;
+		has Result $!result is built is required;
+		
+		method find-sub-shadow-element ( By:D $locator --> Element:D ) {
+			my $data = $!result.find-sub-shadow-element:
+					$ua.request: $!request.find-sub-shadow-element: self, $locator;
+			Element.new:
+					:$!host,
+					:$!port,
+					session => self,
+					element-id => $data<value>{ $ELEMENT-IDENTIFIER },
+					:$!request,
+					:$!result
+					;
 		}
-		method find-elements ( By:D $locator --> List:D[ Element:D ] ) { ... }
-		method take-screenshot ( --> Str:D ) { ... }
+		method find-sub-shadow-elements ( By:D $locator --> List:D[ Element:D ] ) {
+			my $data = $!result.find-sub-shadow-elements:
+					$ua.request: $!request.find-sub-shadow-elements: self, $locator;
+			my Element:D @elements = Array[ Element:D ].new;
+			for $data<value>>>.{ $ELEMENT-IDENTIFIER } -> $element-id {
+				@elements.push:
+						Element.new:
+								:$!host,
+								:$!port,
+								session => self,
+								:$element-id,
+								:$!request,
+								:$!result
+						;
+			}
+			@elements;
+		}
+		method find-element ( By:D $locator --> Element:D ) {
+			self.find-sub-shadow-element: $locator;
+		}
+		method find-elements ( By:D $locator --> List:D[ Element:D ] ) {
+			self.find-sub-shadow-elements: $locator;
+		}
 	}
 	
-	class Element does Context {
+	role Element does Context does Screenshotable {
+		has Str:D $!host is built is required;
+		has Int:D $!port is built is required;
 		has Session:D $!session is built is required;
 		has Str:D $!element-id is built is required;
-		has Request::Element-Request:D $!request is built is required;
-		has Result:D $!result is built is required;
+		has Request::Element-Request $!request is built is required;
+		has Result $!result is built is required;
 		
 		method command ( *@command --> Positional:D ) {
 			$!session.command: 'element', $!element-id, @command;
 		}
 		
-		method find-element ( By:D $locator --> Element:D ) {
-			$!result.find-sub-element:
+		method find-sub-element ( By:D $locator --> Element:D ) {
+			my $data = $!result.find-sub-element:
 					$ua.request: $!request.find-sub-element: self, $locator;
+			Element.new:
+					session => self,
+					element-id => $data<value>{ $ELEMENT-IDENTIFIER },
+					:$!request,
+					:$!result
+					;
 		}
-		method find-elements ( By:D $locator --> List:D[ Element:D ] ) {
-			$!result.find-sub-elements:
+		method find-sub-elements ( By:D $locator --> List:D[ Element:D ] ) {
+			my $data = $!result.find-sub-elements:
 					$ua.request: $!request.find-sub-elements: self, $locator;
+			my Element:D @elements = Array[ Element:D ].new;
+			for $data<value>>>.{ $ELEMENT-IDENTIFIER } -> $element-id {
+				@elements.push:
+						Element.new:
+								:$!host,
+								:$!port,
+								session => self,
+								:$element-id,
+								:$!request,
+								:$!result
+						;
+			}
+			@elements;
 		}
-		method switch-to-parent-frame ( --> Bool:D ) { ... }
-		method take-screenshot ( --> Str:D ) { }
+		method find-element ( By:D $locator --> Element:D ) {
+			self.find-sub-element: $locator;
+		}
+		method find-elements ( By:D $locator --> Element:D ) {
+			self.find-sub-elements: $locator;
+		}
+		method get-element-shadow-root ( --> Shadow-Root:D ) {
+			my $data = $!result.get-element-shadow-root:
+					$ua.request: $!request.get-element-shadow-root: self;
+			Shadow-Root.new:
+					:$!host,
+					:$!port,
+					:$!session,
+					shadow-id => $data<value>{ $SHADOW-IDENTIFIER },
+					:$!request,
+					:$!result
+					;
+		}
+		method switch-to-frame ( --> Element:D ) {
+			$!result.switch-to-frame:
+					$ua.request: $!request.switch-to-frame: self, $!element-id;
+			self;
+		}
+		method take-screenshot ( --> Str:D ) {
+			my $data = $!result.take-screenshot:
+					$ua.request: $!request.take-screenshot: self, $!element-id;
+			$data<value>;
+		}
 	}
 	
-	class Frame is Element {
-		
-	}
-	
-	class Page is Frame {
-		
-	}
-	
-	role Session does Request::Base does Context {
+	role Session does Request::Base does Context does Screenshotable {
 		has Str:D $.host is required;
 		has Int:D $.port is required;
-		has Str:D $.browser is required;
+		# has Str:D $.browser is required;
 		has Str:D $!id is built is required;
-		has Request::Session-Request:D $!request is built is required;
-		has Result:D $!result is built is required;
+		has Request::Session-Request $!request is built is required;
+		has Result $!result is built is required;
 		
 		method command ( *@command --> Positional:D ) {
 			'session', $!id, |@command
@@ -1149,7 +1231,7 @@ module WD2P {
 		method get-window-handle ( --> Str:D ) { ... }
 		method close-window ( --> Session:D ) { ... }
 		method switch-to-window ( Str:D $handle --> Session:D ) { ... }
-		method get-window-handles ( --> Array:D[ Str:D ] ) { ... }
+		method get-window-handles ( --> List:D[ Str:D ] ) { ... }
 		method new-window ( Str:D $type? where <tab window>.any ) { ... }
 		multi method switch-to-frame ( Session:D $session --> Session:D ) { ... }
 		multi method switch-to-frame ( Int $frame --> Session:D ) { ... }
@@ -1182,7 +1264,7 @@ module WD2P {
 				*@args
 				--> HTTP::Request:D
 		) { ... }
-		method get-all-cookies ( --> Array:D ) { ... }
+		method get-all-cookies ( --> List:D ) { ... }
 		method get-named-cookie ( Str:D $name ) { ... }
 		=begin table :caption<cookie object structure>
 			RFC 6265 Field   | JSON Key | Attribute Key
@@ -1308,7 +1390,7 @@ module WD2P {
 					$ua.request: $!request.switch-to-window: $handle, self;
 			self;
 		}
-		method get-window-handles ( --> Array:D[ Str:D ] ) {
+		method get-window-handles ( --> List:D[ Str:D ] ) {
 			my $data = $!result.get-window-handles: $ua.request: $!request.get-window-handles: self;
 			$data<value>;
 		}
@@ -1364,32 +1446,39 @@ module WD2P {
 			$!result.fullscreen-window: $ua.request: $!request.fullscreen-window: self;
 			self;
 		}
-		my constant ELEMENT-IDENTIFIER = 'element-6066-11e4-a52e-4f735466cecf';
 		method get-active-element ( --> Element:D ) {
 			my $data = $!result.get-active-element: $ua.request: $!request.get-active-element: self;
 			Element.new:
+					:$!host,
+					:$!port,
 					session => self,
-					element-id => $data<value>{ ELEMENT-IDENTIFIER },
+					element-id => $data<value>{ $ELEMENT-IDENTIFIER },
 					:$!request,
 					:$!result
 					;
 		}
 		
 		method find-element ( By:D $locator --> Element:D ) {
-			my $data = $!result.find-element: $ua.request: $!request.find-element: self, $locator;
+			my $data = $!result.find-element:
+					$ua.request: $!request.find-element: self, $locator;
 			Element.new:
+					:$!host,
+					:$!port,
 					session => self,
-					element-id => $data<value>{ ELEMENT-IDENTIFIER },
+					element-id => $data<value>{ $ELEMENT-IDENTIFIER },
 					:$!request,
 					:$!result
 					;
 		}
 		method find-elements ( By:D $locator --> List:D[ Element:D ] ) {
-			my $data = $!result.find-elements: $ua.request: $!request.find-elements: self, $locator;
+			my $data = $!result.find-elements:
+					$ua.request: $!request.find-elements: self, $locator;
 			my Element:D @elements = Array[ Element:D ].new;
-			for $data<value>>>.{ ELEMENT-IDENTIFIER } -> $element-id {
+			for $data<value>>>.{ $ELEMENT-IDENTIFIER } -> $element-id {
 				@elements.push:
-						Element.new: 
+						Element.new:
+								:$!host,
+								:$!port,
 								session => self,
 								:$element-id,
 								:$!request,
@@ -1419,7 +1508,7 @@ module WD2P {
 					$ua.request: $!request.execute-async-script: self, $script, @args;
 			$data<value>;
 		}
-		method get-all-cookies ( --> Array:D ) {
+		method get-all-cookies ( --> List:D ) {
 			my $data = $!result.get-all-cookies: $ua.request: $!request.get-all-cookies: self;
 			Array.new: |$data<value>;
 		}
@@ -1532,7 +1621,7 @@ module WD2P {
 		}
 	}
 	
-	role Driver {
+	role Driver does Request::Base {
 		has Request::Driver-Request $!request is built is required;
 		has Result $!result is built is required;
 		
@@ -1540,13 +1629,9 @@ module WD2P {
 		has Int:D $.port is required;
 		has Str:D $.browser is required;
 		
-		method request ( HTTP::Request:D $req --> HTTP::Response:D ) {
-			$ua.request: $req;
-		}
-		
 		method start { }
 		
-		method new-session ( *%capabilities --> WD2P::Session:D ) { ... }
+		method new-session ( %capabilities --> WD2P::Session:D ) { ... }
 		method status ( --> WD2P::Status:D ) { ... }
 		
 		method stop { }
@@ -1555,22 +1640,34 @@ module WD2P {
 	class Driver::Chrome does Driver {
 		method new (
 				Str:D $host = '127.0.0.1',
-				Int:D $port = 9515,
+				Int:D $port = 9515
 		) {
 			self.bless:
-					browser => 'chrome';
-					request => Driver-Request::Chrome,
+					browser => 'chrome',
+					request => Request::Default,
 					result => Result::Chrome,
 					:$host,
 					:$port,
 					;
 		}
 		
-		multi method new-session ( *%capabilities ) {
-			$!result.new-session: $ua.request: $!request.new-session: self, %capabilities;
+		multi method new-session ( %capabilities --> Session:D ) {
+			# my $result = $ua.request: $!request.new-session: self, %capabilities;
+			# $result.raku.say;
+			# my $data = $!result.new-session: $result;
+			my $data = $!result.new-session:
+					$ua.request: $!request.new-session: self, %capabilities;
+			warn 'Failure ', $data.raku.Str;
+			Session::Chromium.new:
+					:$!host,
+					:$!port,
+					id => $data<sessionId>, # also includes <capabilities>
+					:$!request,
+					:$!result
+					;
 		}
 		
-		multi method new-session ( --> HTTP::Request:D ) {
+		multi method new-session ( --> Session:D ) {
 			self.new-session: {
 				capabilities => {
 					alwaysMatch => {
@@ -1612,8 +1709,8 @@ module WD2P {
 			$!result.status: $ua.request: $!request.status: self;
 		}
 		
-		multi method new-session ( *%capabilities --> Session:D ) {
-			$!result.new-session: $ua.request: $!request.new-session: self,%capabilities;
+		multi method new-session ( %capabilities --> Session:D ) {
+			$!result.new-session: $ua.request: $!request.new-session: self, %capabilities;
 		}
 		
 		multi method new-session ( --> HTTP::Request:D ) {
@@ -1664,7 +1761,7 @@ class WD2P::Driver::Provider {
 	method get (
 			Str:D $browser where %driver.keys.any,
 			Str:D :$host = '127.0.0.1',
-			Int :$port
+			Int :$port?
 			--> WD2P::Driver:D
 	) {
 		my %args = :$host;
