@@ -25,11 +25,11 @@ module WD2P {
 	my HTTP::UserAgent $ua = HTTP::UserAgent.new;
 	
 	role By {
-		has Str:D $.value is required;
+		has Str:D $.value is built is required;
 		method using ( --> Str:D ) { ... }
 		method value ( Str:D $value ) { self.bless: :$value }
-		method args ( Str:D $value --> Hash:D[ Str:D ] ) {
-			{ :$.using, :$value }
+		method args ( --> Hash:D[ Str:D ] ) {
+			{ :$.using, :$!value }
 		}
 	}
 	class By::Tag does By {
@@ -666,11 +666,11 @@ module WD2P {
 			}
 			
 			method element-click ( Base:D $base --> HTTP::Request:D ) {
-				$base.post-request: 'click';
+				$base.post-request: { }, 'click';
 			}
 			
 			method element-clear ( Base:D $base --> HTTP::Request:D ) {
-				$base.post-request: 'clear';
+				$base.post-request: { }, 'clear';
 			}
 			
 			method element-send-keys (
@@ -678,7 +678,7 @@ module WD2P {
 					Str:D $text
 					--> HTTP::Request:D
 			) {
-				$base.post-request: 'value';
+				$base.post-request: { :$text }, 'value';
 			}
 
 			multi method switch-to-frame (
@@ -1099,7 +1099,7 @@ module WD2P {
 					:$!host,
 					:$!port,
 					session => self,
-					element-id => $data<value>{ $ELEMENT-IDENTIFIER },
+					element-id => $data{ $ELEMENT-IDENTIFIER },
 					:$!request,
 					:$!result
 					;
@@ -1108,7 +1108,7 @@ module WD2P {
 			my $data = $!result.find-sub-shadow-elements:
 					$ua.request: $!request.find-sub-shadow-elements: self, $locator;
 			my Element:D @elements = Array[ Element:D ].new;
-			for $data<value>>>.{ $ELEMENT-IDENTIFIER } -> $element-id {
+			for $data>>.{ $ELEMENT-IDENTIFIER } -> $element-id {
 				@elements.push:
 						Element.new:
 								:$!host,
@@ -1129,9 +1129,9 @@ module WD2P {
 		}
 	}
 	
-	role Element does Context does Screenshotable {
-		has Str:D $!host is built is required;
-		has Int:D $!port is built is required;
+	role Element does Request::Base does Context does Screenshotable {
+		has Str:D $.host is built is required;
+		has Int:D $.port is built is required;
 		has Session:D $!session is built is required;
 		has Str:D $!element-id is built is required;
 		has Request::Element-Request $!request is built is required;
@@ -1146,7 +1146,7 @@ module WD2P {
 					$ua.request: $!request.find-sub-element: self, $locator;
 			Element.new:
 					session => self,
-					element-id => $data<value>{ $ELEMENT-IDENTIFIER },
+					element-id => $data{ $ELEMENT-IDENTIFIER },
 					:$!request,
 					:$!result
 					;
@@ -1155,7 +1155,7 @@ module WD2P {
 			my $data = $!result.find-sub-elements:
 					$ua.request: $!request.find-sub-elements: self, $locator;
 			my Element:D @elements = Array[ Element:D ].new;
-			for $data<value>>>.{ $ELEMENT-IDENTIFIER } -> $element-id {
+			for $data>>.{ $ELEMENT-IDENTIFIER } -> $element-id {
 				@elements.push:
 						Element.new:
 								:$!host,
@@ -1181,20 +1181,106 @@ module WD2P {
 					:$!host,
 					:$!port,
 					:$!session,
-					shadow-id => $data<value>{ $SHADOW-IDENTIFIER },
+					shadow-id => $data{ $SHADOW-IDENTIFIER },
 					:$!request,
 					:$!result
 					;
 		}
-		method switch-to-frame ( --> Element:D ) {
-			$!result.switch-to-frame:
-					$ua.request: $!request.switch-to-frame: self, $!element-id;
+		
+		method is-element-selected ( --> Bool:D ) {
+			$!result.is-element-selected:
+					$ua.request: $!request.is-element-selected: self;
+		}
+		method selected ( --> Bool:D ) {
+			self.is-element-selected;
+		}
+		method get-element-attribute ( Str:D $name --> Str:D ) {
+			$!result.get-element-attribute:
+					$ua.request: $!request.get-element-attribute: self, $name;
+		}
+		method attribute ( Str:D $name --> Str:D ) {
+			self.get-element-attribute: $name;
+		}
+		method get-element-property ( Str:D $name --> Str:D ) {
+			$!result.get-element-property:
+					$ua.request: $!request.get-element-property: self, $name;
+		}
+		method property ( Str:D $name --> Str:D ) {
+			self.get-element-property: $name;
+		}
+		method get-element-css-value ( Str:D $name --> Str:D ) {
+			$!result.get-element-css-value:
+					$ua.request: $!request.get-element-css-value: self, $name;
+		}
+		method css-value ( Str:D $name --> Str:D ) {
+			self.get-element-css-value;
+		}
+		method get-element-text ( --> Str:D ) {
+			$!result.get-element-text:
+					$ua.request: $!request.get-element-text: self;
+		}
+		method text ( --> Str:D ) {
+			self.get-element-text;
+		}
+		method get-element-tag-name ( --> Str:D ) {
+			$!result.get-element-tag-name:
+					$ua.request: $!request.get-element-tag-name: self;
+		}
+		method tag-name ( --> Str:D ) {
+			self.get-element-tag-name;
+		}
+		method get-element-rect {
+			$!result.get-element-rect:
+					$ua.request: $!request.get-element-rect: self;
+		}
+		method is-element-enabled ( --> Bool:D ) {
+			$!result.is-element-enabled:
+					$ua.request: $!request.is-element-enabled: self;
+		}
+		method enabled ( --> Bool:D ) {
+			self.is-element-enabled;
+		}
+		method get-computed-role ( --> Str:D ) {
+			$!result.get-computed-role:
+					$ua.request: $!request.get-computed-role: self;
+		}
+		method get-computed-label ( --> Str:D ) {
+			$!result.get-computed-label:
+					$ua.request: $!request.get-computed-label: self;
+		}
+		method element-click ( --> Element:D ) {
+			$!result.element-click: $ua.request: $!request.element-click: self;
 			self;
 		}
+		method click ( --> Element:D ) {
+			self.element-click;
+		}
+		method element-clear ( --> Element:D ) {
+			$!result.element-clear: $ua.request: $!request.element-clear: self;
+			self;
+		}
+		method clear ( --> Element:D ) {
+			self.element-clear;
+		}
+		method element-send-keys ( Str:D $text -->Element:D ) {
+			$!result.element-send-keys:
+					$ua.request: $!request.element-send-keys: self, $text;
+			self;
+		}
+		method send-keys ( Str:D $text --> Element:D ) {
+			self.element-send-keys: $text;
+		}
+		
+		method switch-to-frame ( --> Element:D ) {
+			$!result.switch-to-frame: $ua.request: $!request.switch-to-frame: self;
+			self;
+		}
+		method take-element-screenshot ( --> Str:D ) {
+			$!result.take-element-screenshot:
+					$ua.request: $!request.take-element-screenshot: self;
+		}
 		method take-screenshot ( --> Str:D ) {
-			my $data = $!result.take-screenshot:
-					$ua.request: $!request.take-screenshot: self, $!element-id;
-			$data<value>;
+			self.take-element-screenshot;
 		}
 	}
 	
@@ -1337,8 +1423,7 @@ module WD2P {
 		}
 		
 		method get-timeouts {
-			my $data = $!result.get-timeouts: $ua.request: $!request.get-timeouts: self;
-			$data<value>;
+			$!result.get-timeouts: $ua.request: $!request.get-timeouts: self;
 		}
 		
 		method set-timeouts (
@@ -1358,8 +1443,7 @@ module WD2P {
 			self;
 		}
 		method get-current-url ( --> Str:D ) {
-			my $data = $!result.get-current-url: $ua.request: $!request.get-current-url: self;
-			$data<value>;
+			$!result.get-current-url: $ua.request: $!request.get-current-url: self;
 		}
 		method back ( --> Session:D ) {
 			$!result.back: $ua.request: $!request.back: self;
@@ -1374,12 +1458,10 @@ module WD2P {
 			self;
 		}
 		method get-title ( --> Str:D ) {
-			my $data = $!result.title: $ua.request: $!request.title: self;
-			$data<value>;
+			$!result.title: $ua.request: $!request.title: self;
 		}
 		method get-window-handle ( --> Str:D ) {
-			my $data = $!result.get-window-handle: $ua.request: $!request.get-window-handle: self;
-			$data<value>;
+			$!result.get-window-handle: $ua.request: $!request.get-window-handle: self;
 		}
 		method close-window ( --> Session:D ) {
 			$!result.close-window: $ua.request: $!request.close-window: self;
@@ -1391,13 +1473,11 @@ module WD2P {
 			self;
 		}
 		method get-window-handles ( --> List:D[ Str:D ] ) {
-			my $data = $!result.get-window-handles: $ua.request: $!request.get-window-handles: self;
-			$data<value>;
+			$!result.get-window-handles: $ua.request: $!request.get-window-handles: self;
 		}
 		method new-window ( Str:D $type? where <tab window>.any ) {
 			my %args = grep *.value.defined: ( :$type );
-			my $data = $!result.new-window: $ua.request: %args, $!request.close-window: self;
-			$data<value>;
+			$!result.new-window: $ua.request: %args, $!request.close-window: self;
 		}
 		multi method switch-to-frame ( Session:D $session --> Session:D ) {
 			$!result.switch-to-frame: $ua.request: $!request.switch-to-frame: self;
@@ -1419,9 +1499,7 @@ module WD2P {
 			self;
 		}
 		method get-window-rect {
-			my $data = $!result.get-window-rect:
-					$ua.request: $!request.get-window-rect: self;
-			$data<value>;
+			$!result.get-window-rect: $ua.request: $!request.get-window-rect: self;
 		}
 		method set-window-rect (
 				Int :$width,
@@ -1452,7 +1530,7 @@ module WD2P {
 					:$!host,
 					:$!port,
 					session => self,
-					element-id => $data<value>{ $ELEMENT-IDENTIFIER },
+					element-id => $data{ $ELEMENT-IDENTIFIER },
 					:$!request,
 					:$!result
 					;
@@ -1465,7 +1543,7 @@ module WD2P {
 					:$!host,
 					:$!port,
 					session => self,
-					element-id => $data<value>{ $ELEMENT-IDENTIFIER },
+					element-id => $data{ $ELEMENT-IDENTIFIER },
 					:$!request,
 					:$!result
 					;
@@ -1474,7 +1552,7 @@ module WD2P {
 			my $data = $!result.find-elements:
 					$ua.request: $!request.find-elements: self, $locator;
 			my Element:D @elements = Array[ Element:D ].new;
-			for $data<value>>>.{ $ELEMENT-IDENTIFIER } -> $element-id {
+			for $data>>.{ $ELEMENT-IDENTIFIER } -> $element-id {
 				@elements.push:
 						Element.new:
 								:$!host,
@@ -1489,33 +1567,29 @@ module WD2P {
 		}
 		
 		method get-page-source ( --> Str:D ) {
-			my $data = $!result.get-page-source: $ua.request: $!request.get-page-source: self;
-			$data<value>;
+			$!result.get-page-source: $ua.request: $!request.get-page-source: self;
 		}
 		method execute-script (
 				Str:D $script,
 				*@args
 		) {
-			my $data = $!result.execute-script:
+			$!result.execute-script:
 					$ua.request: $!request.execute-script: self, $script, @args;
-			$data<value>;
 		}
 		method execute-async-script (
 				Str:D $script,
 				*@args
 		) {
-			my $data = $!result.execute-async-script:
+			$!result.execute-async-script:
 					$ua.request: $!request.execute-async-script: self, $script, @args;
-			$data<value>;
 		}
 		method get-all-cookies ( --> List:D ) {
 			my $data = $!result.get-all-cookies: $ua.request: $!request.get-all-cookies: self;
-			Array.new: |$data<value>;
+			Array.new: |$data;
 		}
 		method get-named-cookie ( Str:D $name ) {
-			my $data = $!result.get-named-cookie:
+			$!result.get-named-cookie:
 					$ua.request: $!request.get-named-cookie: self, $name;
-			$data<value>;
 		}
 		=begin table :caption<cookie object structure>
 			RFC 6265 Field   | JSON Key | Attribute Key
@@ -1576,16 +1650,14 @@ module WD2P {
 			self;
 		}
 		method get-alert-text ( --> Str:D ) {
-			my $data = $!result.get-alert-text: $ua.request: $!request.get-alert-text: self;
-			$data<value>;
+			$!result.get-alert-text: $ua.request: $!request.get-alert-text: self;
 		}
 		method send-alert-text ( Str:D $text --> Session:D ) {
 			$!result.send-alert-text: $ua.request: $!request.send-alert-text: self, $text;
 			self;
 		}
 		method take-screenshot ( --> Str:D ) {
-			my $data = $!result.take-screenshot: $ua.request: $!request.take-screenshot: self;
-			$data<value>;
+			$!result.take-screenshot: $ua.request: $!request.take-screenshot: self;
 		}
 		
 		=begin table
@@ -1616,8 +1688,7 @@ module WD2P {
 			pageRanges     | pageRanges  | Array:D[ Int:D ] : ( default : [ ] )
 		=end table
 		method print-page ( %args --> Str:D ) {
-			my $data = $!result.print-page: $ua.request: $!request.print-page: self, %args;
-			$data<value>;
+			$!result.print-page: $ua.request: $!request.print-page: self, %args;
 		}
 	}
 	
