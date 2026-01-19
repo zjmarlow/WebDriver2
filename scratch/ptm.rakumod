@@ -67,7 +67,7 @@ module WD2P {
 	
 	class Shadow-Root { ... }
 	class Element { ... }
-	class Session { ... }
+	role Session { ... }
 	role Driver { ... }
 	
 	package Request {
@@ -1117,7 +1117,136 @@ module WD2P {
 		
 	}
 	
-	class Session does Request::Base does Context {
+	role Session does Request::Base does Context {
+		has Str:D $.host is required;
+		has Int:D $.port is required;
+		has Str:D $.browser is required;
+		has Str:D $!id is built is required;
+		has Request::Session-Request:D $!request is built is required;
+		has Result:D $!result is built is required;
+		
+		method command ( *@command --> Positional:D ) { ... }
+		
+		method delete-session { ... }
+		
+		method get-timeouts { ... }
+		
+		method set-timeouts (
+					Session:D $session,
+					Int :$script,
+					Int :$pageLoad,
+					Int :$implicit
+					--> Session:D
+		) { ... }
+		
+		method navigate-to ( Str:D $url --> Session:D ) { ... }
+		method get-current-url ( --> Str:D ) { ... }
+		method back ( --> Session:D ) { ... }
+		method forward ( --> Session:D ) { ... }
+		method refresh ( --> Session:D ) { ... }
+		method get-title ( --> Str:D ) { ... }
+		method get-window-handle ( --> Str:D ) { ... }
+		method close-window ( --> Session:D ) { ... }
+		method switch-to-window ( Str:D $handle --> Session:D ) { ... }
+		method get-window-handles ( --> Array:D[ Str:D ] ) { ... }
+		method new-window ( Str:D $type? where <tab window>.any ) { ... }
+		multi method switch-to-frame ( Session:D $session --> Session:D ) { ... }
+		multi method switch-to-frame ( Int $frame --> Session:D ) { ... }
+		multi method switch-to-frame ( Str:D $element-id --> Session:D ) { ... }
+		method switch-to-parent-frame ( --> Session:D ) { ... }
+		method get-window-rect { ... }
+		method set-window-rect (
+				Int :$width,
+				Int :$height,
+				Int :$x,
+				Int :$y
+				--> Session:D
+		) { ... }
+		method maximize-window ( --> Session:D ) { ... }
+		method minimize-window ( --> Session:D ) { ... }
+		method fullscreen-window ( --> Session:D ) { ... }
+		method get-active-element ( --> Element:D ) { ... }
+		
+		method find-element ( By:D $locator --> Element:D ) { ... }
+		method find-elements ( By:D $locator --> List:D[ Element:D ] ) { ... }
+		
+		method get-page-source ( --> Str:D ) { ... }
+		method execute-script (
+				Str:D $script,
+				*@args
+				--> HTTP::Request:D
+		) { ... }
+		method execute-async-script (
+				Str:D $script,
+				*@args
+				--> HTTP::Request:D
+		) { ... }
+		method get-all-cookies ( --> Array:D ) { ... }
+		method get-named-cookie ( Str:D $name ) { ... }
+		=begin table :caption<cookie object structure>
+			RFC 6265 Field   | JSON Key | Attribute Key
+			=========================================
+			name             | name     |
+			value            | value    |
+			path             | path     | Path
+			domain           | domain   | Domain
+			secure-only-flag | secure   | Secure
+			http-only-flag   | httpOnly | HttpOnly
+			expiry-time      | expiry   | Max-Age
+			samesite         | sameSite | SameSite
+		=end table
+		method add-cookie (
+				Str:D $name,
+				Str:D $value,
+				Str:D $path?,
+				Str:D $domain?,
+				Bool:D $secure?,
+				Bool:D $httpOnly?,
+				Int:D $expiry?,
+				Bool:D $sameSite?
+				--> Session:D
+		) { ... }
+		method delete-cookie ( Str:D $name --> Session:D ) { ... }
+		method delete-all-cookies ( --> Session:D ) { ... }
+		method perform-actions ( --> Session:D ) { ... }
+		method release-actions ( --> Session:D ) { ... }
+		method dismiss-alert ( --> Session:D ) { ... }
+		method accept-alert ( --> Session:D ) { ... }
+		method get-alert-text ( --> Str:D ) { ... }
+		method send-alert-text ( Str:D $text --> Session:D ) { ... }
+		method take-screenshot ( --> Str:D ) { ... }
+		
+		=begin table
+			Property       | JSON Key    | Value Type and Valid Values
+			==========================================================
+			orientation    | orientation | Str : { ... }
+			==========================================================
+			scale          | scale       | Rat : [ 0.1, 2 ] ( default : 1 )
+			==========================================================
+			background     | background  | Bool : ( default : False )
+			==========================================================
+			pageWidth      | width       | Rat : [ 2.54 / 72, Inf ) ( default : 21.59 )
+			==========================================================
+			pageHeight     | height      | Rat : [ 2.54 / 72, Inf ) ( default : 27.94 )
+			==========================================================
+			margin         | margin      | JSON Obj : ( default : { ... } )
+			----------------------------------------------------------
+			- marginTop    | top         | Rat : [ 0, Inf ) ( default : 1 )
+			----------------------------------------------------------
+			- marginBottom | bottom      | Rat : [ 0, Inf ) ( default : 1 )
+			----------------------------------------------------------
+			- marginLeft   | left        | Rat : [ 0, Inf ) ( default : 1 )
+			----------------------------------------------------------
+			- marginRight  | right       | Rat : [ 0, Inf ) ( default : 1 )
+			==========================================================
+			shrinkToFit    | shrinkToFit | Bool : ( default : True )
+			==========================================================
+			pageRanges     | pageRanges  | Array:D[ Int:D ] : ( default : [ ] )
+		=end table
+		method print-page ( %args --> Str:D ) { ... }
+	}
+	
+	class Session::Chromium does Session {
 		has Str:D $.host is required;
 		has Int:D $.port is required;
 		has Str:D $.browser is required;
@@ -1341,7 +1470,7 @@ module WD2P {
 		method take-screenshot ( --> Str:D ) {
 			$!result.take-screenshot: $ua.request: $!request.take-screenshot: self;
 		}
-
+		
 		=begin table
 			Property       | JSON Key    | Value Type and Valid Values
 			==========================================================
@@ -1394,7 +1523,7 @@ module WD2P {
 		method stop { }
 	}
 	
-	class WD2P::Driver::Chrome does WD2P::Driver {
+	class Driver::Chrome does Driver {
 		method new (
 				Str:D $host = '127.0.0.1',
 				Int:D $port = 9515,
@@ -1435,7 +1564,7 @@ module WD2P {
 		}
 	}
 	
-	class Driver::Edge does WD2P::Driver {
+	class Driver::Edge does Driver {
 		method new (
 				Str:D $host = '127.0.0.1';
 				Int:D $port = 9515
@@ -1475,10 +1604,6 @@ module WD2P {
 				}
 			}
 		}
-	}
-	
-	class Session::Chromium  {
-		
 	}
 	
 	=begin comment
