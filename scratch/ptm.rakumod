@@ -1657,14 +1657,15 @@ module WD2P {
 			# my $data = $!result.new-session: $result;
 			my $data = $!result.new-session:
 					$ua.request: $!request.new-session: self, %capabilities;
-			warn 'Failure ', $data.raku.Str;
+			return
 			Session::Chromium.new:
 					:$!host,
 					:$!port,
-					id => $data<sessionId>, # also includes <capabilities>
+					id => .<sessionId>, # also includes <capabilities>
 					:$!request,
 					:$!result
-					;
+			with $data;
+			$data.throw;
 		}
 		
 		multi method new-session ( --> Session:D ) {
