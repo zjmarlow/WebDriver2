@@ -1089,7 +1089,6 @@ module WD2P {
 	class Element does Context {
 		has Session:D $!session is built is required;
 		has Str:D $!element-id is built is required;
-		has Str:D $.browser is required;
 		has Request::Element-Request:D $!request is built is required;
 		has Result:D $!result is built is required;
 		
@@ -1125,7 +1124,9 @@ module WD2P {
 		has Request::Session-Request:D $!request is built is required;
 		has Result:D $!result is built is required;
 		
-		method command ( *@command --> Positional:D ) { ... }
+		method command ( *@command --> Positional:D ) {
+			'session', $!id, |@command
+		}
 		
 		method delete-session { ... }
 		
@@ -1247,16 +1248,6 @@ module WD2P {
 	}
 	
 	class Session::Chromium does Session {
-		has Str:D $.host is required;
-		has Int:D $.port is required;
-		has Str:D $.browser is required;
-		has Str:D $!id is built is required;
-		has Request::Session-Request:D $!request is built is required;
-		has Result:D $!result is built is required;
-		
-		method command ( *@command --> Positional:D ) {
-			'session', $!id, |@command
-		}
 		
 		method delete-session {
 			$!result.delete-session: $ua.request: $!request.delete-session: self;
@@ -1264,7 +1255,8 @@ module WD2P {
 		}
 		
 		method get-timeouts {
-			$!result.get-timeouts: $ua.request: $!request.get-timeouts: self;
+			my $data = $!result.get-timeouts: $ua.request: $!request.get-timeouts: self;
+			$data<value>;
 		}
 		
 		method set-timeouts (
@@ -1284,7 +1276,8 @@ module WD2P {
 			self;
 		}
 		method get-current-url ( --> Str:D ) {
-			$!result.get-current-url: $ua.request: $!request.get-current-url: self;
+			my $data = $!result.get-current-url: $ua.request: $!request.get-current-url: self;
+			$data<value>;
 		}
 		method back ( --> Session:D ) {
 			$!result.back: $ua.request: $!request.back: self;
@@ -1299,10 +1292,12 @@ module WD2P {
 			self;
 		}
 		method get-title ( --> Str:D ) {
-			$!result.title: $ua.request: $!request.title: self;
+			my $data = $!result.title: $ua.request: $!request.title: self;
+			$data<value>;
 		}
 		method get-window-handle ( --> Str:D ) {
-			$!result.get-window-handle: $ua.request: $!request.get-window-handle: self;
+			my $data = $!result.get-window-handle: $ua.request: $!request.get-window-handle: self;
+			$data<value>;
 		}
 		method close-window ( --> Session:D ) {
 			$!result.close-window: $ua.request: $!request.close-window: self;
@@ -1314,11 +1309,13 @@ module WD2P {
 			self;
 		}
 		method get-window-handles ( --> Array:D[ Str:D ] ) {
-			$!result.get-window-handles: $ua.request: $!request.get-window-handles: self;
+			my $data = $!result.get-window-handles: $ua.request: $!request.get-window-handles: self;
+			$data<value>;
 		}
 		method new-window ( Str:D $type? where <tab window>.any ) {
 			my %args = grep *.value.defined: ( :$type );
-			$!result.new-window: $ua.request: %args, $!request.close-window: self;
+			my $data = $!result.new-window: $ua.request: %args, $!request.close-window: self;
+			$data<value>;
 		}
 		multi method switch-to-frame ( Session:D $session --> Session:D ) {
 			$!result.switch-to-frame: $ua.request: $!request.switch-to-frame: self;
@@ -1340,8 +1337,9 @@ module WD2P {
 			self;
 		}
 		method get-window-rect {
-			$!result.get-window-rect:
+			my $data = $!result.get-window-rect:
 					$ua.request: $!request.get-window-rect: self;
+			$data<value>;
 		}
 		method set-window-rect (
 				Int :$width,
@@ -1366,42 +1364,69 @@ module WD2P {
 			$!result.fullscreen-window: $ua.request: $!request.fullscreen-window: self;
 			self;
 		}
+		my constant ELEMENT-IDENTIFIER = 'element-6066-11e4-a52e-4f735466cecf';
 		method get-active-element ( --> Element:D ) {
-			$!result.get-active-element: $ua.request: $!request.get-active-element: self;
+			my $data = $!result.get-active-element: $ua.request: $!request.get-active-element: self;
+			Element.new:
+					session => self,
+					element-id => $data<value>{ ELEMENT-IDENTIFIER },
+					:$!request,
+					:$!result
+					;
 		}
 		
 		method find-element ( By:D $locator --> Element:D ) {
-			$!result.find-element: $ua.request: $!request.find-element: self, $locator;
+			my $data = $!result.find-element: $ua.request: $!request.find-element: self, $locator;
+			Element.new:
+					session => self,
+					element-id => $data<value>{ ELEMENT-IDENTIFIER },
+					:$!request,
+					:$!result
+					;
 		}
 		method find-elements ( By:D $locator --> List:D[ Element:D ] ) {
-			$!result.find-elements: $ua.request: $!request.find-elements: self, $locator;
+			my $data = $!result.find-elements: $ua.request: $!request.find-elements: self, $locator;
+			my Element:D @elements = Array[ Element:D ].new;
+			for $data<value>>>.{ ELEMENT-IDENTIFIER } -> $element-id {
+				@elements.push:
+						Element.new: 
+								session => self,
+								:$element-id,
+								:$!request,
+								:$!result
+						;
+			}
+			@elements;
 		}
 		
 		method get-page-source ( --> Str:D ) {
-			$!result.get-page-source: $ua.request: $!request.get-page-source: self;
+			my $data = $!result.get-page-source: $ua.request: $!request.get-page-source: self;
+			$data<value>;
 		}
 		method execute-script (
 				Str:D $script,
 				*@args
-				--> HTTP::Request:D
 		) {
-			$!result.execute-script:
+			my $data = $!result.execute-script:
 					$ua.request: $!request.execute-script: self, $script, @args;
+			$data<value>;
 		}
 		method execute-async-script (
 				Str:D $script,
 				*@args
-				--> HTTP::Request:D
 		) {
-			$!result.execute-async-script:
+			my $data = $!result.execute-async-script:
 					$ua.request: $!request.execute-async-script: self, $script, @args;
+			$data<value>;
 		}
 		method get-all-cookies ( --> Array:D ) {
-			$!result.get-all-cookies: $ua.request: $!request.get-all-cookies: self;
+			my $data = $!result.get-all-cookies: $ua.request: $!request.get-all-cookies: self;
+			Array.new: |$data<value>;
 		}
 		method get-named-cookie ( Str:D $name ) {
-			$!result.get-named-cookie:
+			my $data = $!result.get-named-cookie:
 					$ua.request: $!request.get-named-cookie: self, $name;
+			$data<value>;
 		}
 		=begin table :caption<cookie object structure>
 			RFC 6265 Field   | JSON Key | Attribute Key
@@ -1462,13 +1487,16 @@ module WD2P {
 			self;
 		}
 		method get-alert-text ( --> Str:D ) {
-			$!result.get-alert-text: $ua.request: $!request.get-alert-text: self;
+			my $data = $!result.get-alert-text: $ua.request: $!request.get-alert-text: self;
+			$data<value>;
 		}
 		method send-alert-text ( Str:D $text --> Session:D ) {
 			$!result.send-alert-text: $ua.request: $!request.send-alert-text: self, $text;
+			self;
 		}
 		method take-screenshot ( --> Str:D ) {
-			$!result.take-screenshot: $ua.request: $!request.take-screenshot: self;
+			my $data = $!result.take-screenshot: $ua.request: $!request.take-screenshot: self;
+			$data<value>;
 		}
 		
 		=begin table
@@ -1499,7 +1527,8 @@ module WD2P {
 			pageRanges     | pageRanges  | Array:D[ Int:D ] : ( default : [ ] )
 		=end table
 		method print-page ( %args --> Str:D ) {
-			$!result.print-page: $ua.request: $!request.print-page: self, %args;
+			my $data = $!result.print-page: $ua.request: $!request.print-page: self, %args;
+			$data<value>;
 		}
 	}
 	
