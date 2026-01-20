@@ -1855,15 +1855,14 @@ module WD2E {
 		}
 	}
 	class Session does Command {
-		our constant $IDENTIFIER = '';
 		has Driver:D $.driver is required;
 		has Str:D $.session-id is required;
 		method url ( *@command --> Str:D ) {
-			$!driver.url: 'session',$!session-id, @command;
+			$!driver.url: 'session', $!session-id, @command;
 		}
 	}
 	class Element is Session {
-		our constant $IDENTIFIER = '';
+		our constant $IDENTIFIER = 'element-6066-11e4-a52e-4f735466cecf';
 		has Session:D $.session is required;
 		has Str:D $.element-id is required;
 		method url ( *@command --> Str:D ) {
@@ -1871,7 +1870,7 @@ module WD2E {
 		}
 	}
 	class Shadow-Root is Session {
-		our constant $IDENTIFIER = '';
+		our constant $IDENTIFIER = 'shadow-6066-11e4-a52e-4f735466cecf';
 		has Session:D $.session is required;
 		has Str:D $.shadow-id is required;
 		method url ( *@command --> Str:D ) {
@@ -1921,18 +1920,33 @@ module WD2E {
 		class Driver-Endpoints {
 			method status ( Driver:D $driver ) {
 				my $data = check-status $ua.request: get-request $driver, 'status';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method session ( %capabilities, Driver:D $driver --> Session:D ) {
 				my $data = check-status
 					$ua.request: post-request %capabilities, $driver, 'session';
+				return Session.new:
+						:$driver,
+						session-id => .<value><sessionId>
+				with $data;
+				$data.handled = False;
+				$data;
 			}
 		}
 		class Session-Endpoints {
 			method delete ( Session:D $session --> Driver:D ) {
 				my $data = check-status $ua.request: delete-request $session;
+				return $session.driver with $data;
+				$data.handled = False;
+				$data;
 			}
 			method get-timeouts ( Session:D $session ) {
 				my $data = check-status $ua.request: get-request $session, 'timeouts';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method set-timeouts (
 					Int $script,
@@ -1950,62 +1964,105 @@ module WD2E {
 						$session,
 						'timeouts'
 				;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method navigate-to ( Str:D $url, Session:D $session --> Session:D ) {
 				my $data = check-status $ua.request: post-request { :$url }, $session, 'url';
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method get-current-url( Session:D $session --> Str:D ) {
 				my $data = check-status $ua.request: get-request $session, 'url';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method back ( Session:D $session --> Session:D ) {
 				my $data = check-status $ua.request: post-request { }, $session, 'back';
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method forward ( Session:D $session --> Session:D ) {
 				my $data = check-status $ua.request: post-request { }, $session, 'forward';
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method refresh ( Session:D $session --> Session:D ) {
 				my $data = check-status $ua.request: post-request { }, $session, 'refresh';
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method get-title ( Session:D $session --> Str:D ) {
 				my $data = check-status $ua.request: get-request $session, 'title';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method get-window-handle ( Session:D $session --> Str:D ) {
 				my $data = check-status $ua.request: get-request $session, 'window';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method close-window ( Session:D $session --> Session:D ) {
 				my $data = check-status $ua.request: delete-request $session, 'window';
-				$session;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method switch-to-window ( Str:D $handle, Session:D $session --> Session:D ) {
 				my $data = check-status 
 						$ua.request: post-request { :$handle }, $session, 'window';
-				$session;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method get-window-handles ( Session:D $session --> List:D[ Str:D ] ) {
-				my $data = check-status $ua.request: get-request $session, <window handles>
+				my $data = check-status $ua.request: get-request $session, <window handles>;
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method new-window ( Str:D $type where <tab window>.any, Session:D $session ) {
 				my %args = ();
 				%args{ 'type hint' } = $type if $type;
 				my $data = check-status
 						$ua.request: %args, post-request $session, <window new>;
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			multi method switch-to-frame ( Session:D $session --> Session:D ) {
 				my $data = check-status $ua.request: post-request { }, $session, 'frame';
-				$session;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			multi method switch-to-frame ( Int $frame, Session:D $session --> Session:D ) {
 				my $data = check-status 
-						$ua.request: post-request { :$frame }, $session, 'frame';
-				$session;
+						$ua.request: post-request { id => $frame }, $session, 'frame';
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method switch-to-parent-frame ( Session:D $session --> Session:D ) {
 				my $data = check-status 
 						$ua.request: post-request { }, $session, <frame parent>;
-				$session;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method get-window-rect ( Session:D $session ) {
 				my $data = check-status $ua.request: get-request $session, <window rect>;
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method set-window-rect (
 					Int $width,
@@ -2018,42 +2075,54 @@ module WD2E {
 				my %args = grep *.value.defined, do :$width, :$height, :$x, :$y;
 				my $data = check-status
 						$ua.request: post-request %args, $session, <window rect>;
-				$session;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method maximize-window ( Session:D $session --> Session:D ) {
 				my $data = check-status
 						$ua.request: post-request { }, $session, <window maximize>;
-				$session;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method minimize-window ( Session:D $session --> Session:D ) {
 				my $data = check-status
 						$ua.request: post-request { }, $session, <window minimize>;
-				$session;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method fullscreen-window ( Session:D $session --> Session:D ) {
 				my $data = check-status
 						$ua.request: post-request { }, $session, <window fullscreen>;
-				$session;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method get-active-element ( Session:D $session --> Element:D ) {
 				my $data = check-status $ua.request: get-request $session, <element active>;
-				Element.new:
+				return Element.new:
 						host => $session.host,
 						port => $session.port,
 						:$session,
-						element-id => $data{ $ELEMENT::IDENTIFIER },
-						;
+						element-id => $data<value>{ $Element::IDENTIFIER }
+				with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method find-element ( By:D $locator, Session:D $session --> Element:D ) {
 				my $data = check-status
 						$ua.request: post-request $locator.args, $session, 'element';
-				Element.new:
+				return Element.new:
 						host => $session.host,
 						port => $session.port,
 						:$session,
-						element-id => $data{ $Element::IDENTIFIER }
-						;
+						element-id => $data<value>{ $Element::IDENTIFIER }
+				with $data;
+				$data.handled = False;
+				$data;
 			}
 			method find-elements (
 					By:D $locator,
@@ -2062,8 +2131,12 @@ module WD2E {
 			) {
 				my $data = check-status
 						$ua.request: post-request $locator.args, $session, 'elements';
+				without $data {
+					$data.handled = False;
+					return $data;
+				}
 				my Element:D @elements = Array[ Element:D ].new;
-				for $data>>.{ $ELEMENT::IDENTIFIER } -> $element-id {
+				for $data<value>>>.{ $Element::IDENTIFIER } -> $element-id {
 					@elements.push:
 							Element.new:
 									host => $session.host,
@@ -2077,6 +2150,9 @@ module WD2E {
 			
 			method get-page-source ( Session:D $session --> Str:D ) {
 				my $data = check-status $ua.request: get-request $session, 'source';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method execute-script (
 					Str:D $script,
@@ -2087,6 +2163,9 @@ module WD2E {
 						$ua.request:
 								post-request
 										{ :$script, :@args }, $session, <execute sync>;
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method execute-async-script (
 					Str:D $script,
@@ -2097,14 +2176,22 @@ module WD2E {
 						$ua.request:
 								post-request
 										{ :$script, :@args }, $session, <execute async>;
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method get-all-cookies ( Session:D $session --> List:D ) {
 				my $data = check-status $ua.request: get-request $session, 'cookie';
-				Array.new: |$data;
+				return Array.new: |.<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method get-named-cookie ( Str:D $name, Session:D $session ) {
 				my $data = check-status 
 						$ua.request: get-request $session, 'cookie', $name;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			=begin table :caption<cookie object structure>
 				RFC 6265 Field   | JSON Key | Attribute Key
@@ -2123,13 +2210,17 @@ module WD2E {
 					Str:D $value,
 					%cookie,
 					Session:D $session
-					--> HTTP::Request:D
+					--> Session:D
 			) {
 				my %args =
 					.flat with do grep -> $k, $v { $v.defined and $k, $v },
 					.flat with do :$name.kv, :$value.kv,
 						%cookie<path domain secure httpOnly expiry sameSite>:kv;
-				$ua.request: post-request { cookie => %args }, $session, 'cookie';
+				my $data = check-status
+						$ua.request: post-request { cookie => %args }, $session, 'cookie';
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			multi method add-cookie (
 					Str:D $name,
@@ -2140,15 +2231,22 @@ module WD2E {
 				my %args = :$name, :$value;
 				my $data = check-status
 						$ua.request: post-request { cookie => %args }, $session, 'cookie';
-				$session;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method delete-cookie ( Str:D $name, Session:D $session --> Session:D ) {
 				my $data = check-status
 						$ua.request: delete-request $session, 'cookie', $name;
-				$session;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method delete-all-cookies ( Session:D $session --> Session:D ) {
 				my $data = check-status $ua.request: delete-request $session, 'cookie';
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method perform-actions ( Session:D $session --> Session:D ) {
 				!!! 'nyi'
@@ -2159,20 +2257,34 @@ module WD2E {
 			method dismiss-alert ( Session:D $session --> Session:D ) {
 				my $data = check-status
 						$ua.request: post-request { }, $session, <alert dismiss>;
+				$data.handled = False;
+				$data;
 			}
 			method accept-alert ( Session:D $session --> Session:D ) {
 				my $data = check-status
 						$ua.request: post-request { }, $session, <alert accept>;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method get-alert-text ( Session:D $session --> Str:D ) {
 				my $data = check-status $ua.request: get-request $session, <alert text>;
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			method send-alert-text ( Str:D $text, Session:D $session --> Session:D ) {
 				my $data = check-status
 						$ua.request: post-request { :$text }, $session, <alert text>;
+				return $session with $data;
+				$data.handled = False;
+				$data;
 			}
 			method take-screenshot ( Session:D $session --> Str:D ) {
 				my $data = check-status $ua.request: get-request $session, 'screenshot';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			=begin table
@@ -2204,6 +2316,9 @@ module WD2E {
 			=end table
 			method print-page ( %args, Session:D $session --> Str:D ) {
 				my $data = check-status $ua.request: post-request %args, $session, 'print';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 		}
 		class Element-Endpoints {
@@ -2215,7 +2330,9 @@ module WD2E {
 										$element.session,
 										'frame'
 										;
-				$element.session;
+				return $element.session with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method find-sub-element (
@@ -2225,80 +2342,148 @@ module WD2E {
 			) {
 				my $data = check-status
 						$ua.request: post-request $locator.args, $element, 'element';
+				return Element.new:
+						host => $element.host,
+						port => $element.port,
+						session => $element.session,
+						element-id => $data<value>{ $Element::IDENTIFIER }
+				with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method find-sub-elements (
 					By:D $locator,
 					Element:D $element
-					--> Element:D
+					--> List:D[ Element:D ]
 			) {
-				my $data = check-status $ua.request: post-request $locator.args, $element, 'elements';
+				my $data = check-status
+						$ua.request: post-request $locator.args, $element, 'elements';
+				without $data {
+					$data.handled = False;
+					return $data;
+				}
+				my Element:D @elements = Array[ Element:D ].new;
+				for $data<value>>>.{ $Element::IDENTIFIER } -> $element-id {
+					@elements.push:
+							Element.new:
+									host => $element.host,
+									port => $element.port,
+									session => $element.session,
+									:$element-id
+							;
+				}
+				@elements;
 			}
 			
 			
 			
-			method get-element-shadow-root ( Element:D $element --> Element:D ) {
+			method get-element-shadow-root ( Element:D $element --> Shadow-Root:D ) {
 				my $data = check-status $ua.request: get-request $element, 'shadow';
+				return Shadow-Root.new:
+						host => $element.host,
+						port => $element.port,
+						session => $element.session,
+						shadow-id => $data<value>{ $Shadow-Root::IDENTIFIER }
+				with $data;
+				$data.handled = False;
+				$data;
 			}
 					
-			method is-element-selected ( Element:D $element --> Element:D ) {
+			method is-element-selected ( Element:D $element --> Bool:D ) {
 				my $data = check-status $ua.request: get-request $element, 'selected';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method get-element-attribute (
 					Str:D $name,
 					Element:D $element
-					--> Element:D
+					--> Str:D
 			) {
 				my $data = check-status $ua.request: get-request $element, 'attribute', $name;
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method get-element-property (
 					Str:D $name,
 					Element:D $element
-					--> Element:D
+					--> Str:D
 			) {
 				my $data = check-status $ua.request: get-request $element, 'property', $name;
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method get-element-css-value (
 					Str:D $name,
 					Element:D $element
-					--> Element:D
+					--> Str:D
 			) {
 				my $data = check-status $ua.request: get-request $element, 'css', $name;
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method get-element-text ( Element:D $element --> Element:D ) {
 				my $data = check-status $ua.request: get-request $element, 'text';
+				return .<value> with $data;
+				$data.Str = False;
+				$data;
 			}
 			
-			method get-element-tag-name ( Element:D $element --> Element:D ) {
+			method get-element-tag-name ( Element:D $element --> Str:D ) {
 				my $data = check-status $ua.request: get-request $element, 'name';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			
-			method get-element-rect ( Element:D $element --> Element:D ) {
+			method get-element-rect ( Element:D $element ) {
 				my $data = check-status $ua.request: get-request $element, 'rect';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			
-			method is-element-enabled ( Element:D $element --> Element:D ) {
+			method is-element-enabled ( Element:D $element --> Bool:D ) {
 				my $data = check-status $ua.request: get-request $element, 'enabled';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			
-			method get-computed-role ( Element:D $element --> Element:D ) {
+			method get-computed-role ( Element:D $element --> Str:D ) {
 				my $data = check-status $ua.request: get-request $element, 'computedrole';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			
-			method get-computed-label ( Element:D $element --> Element:D ) {
+			method get-computed-label ( Element:D $element --> Str:D ) {
 				my $data = check-status $ua.request: get-request $element, 'computedlabel';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method element-click ( Element:D $element --> Element:D ) {
 				my $data = check-status $ua.request: post-request { }, $element, 'click';
+				return $element with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method element-clear ( Element:D $element --> Element:D ) {
 				my $data = check-status $ua.request: post-request { }, $element, 'clear';
+				return $element with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method element-send-keys (
@@ -2307,10 +2492,16 @@ module WD2E {
 					--> Element:D
 			) {
 				my $data = check-status $ua.request: post-request { :$text }, $element, 'value';
+				return $element with $data;
+				$data.handled = False;
+				$data;
 			}
 			
-			method take-element-screenshot ( Element:D $element --> Element:D ) {
+			method take-element-screenshot ( Element:D $element --> Str:D ) {
 				my $data = check-status $ua.request: get-request $element, 'screenshot';
+				return .<value> with $data;
+				$data.handled = False;
+				$data;
 			}
 		}
 		class Shadow-Endpoints {
@@ -2321,6 +2512,14 @@ module WD2E {
 			) {
 				my $data = check-status
 						$ua.request: post-request $locator.args, $shadow, 'element';
+				return Element.new:
+						host => $shadow.host,
+						port => $shadow.port,
+						session => $shadow.session,
+						element-id => $data<value>{ $Element::IDENTIFIER }
+				with $data;
+				$data.handled = False;
+				$data;
 			}
 			
 			method find-sub-shadow-elements (
@@ -2329,9 +2528,42 @@ module WD2E {
 					--> Element:D
 			) {
 				my $data = check-status
-						$ua.request: post-request: $locator.args, $shadow, 'elements';
+						$ua.request: post-request $locator.args, $shadow, 'elements';
+				without $data {
+					$data.handled = False;
+					return $data;
+				}
+				my Element:D @elements = Array[ Element:D ].new;
+				for $data<value>>>.{ $Element::IDENTIFIER } -> $element-id {
+					@elements.push:
+							Element.new:
+									host => $shadow.host,
+									port => $shadow.port,
+									session => $shadow.session,
+									:$element-id
+							;
+				}
+				@elements;
 			}
 		}
+	}
+}
+
+class WD2E::Driver::Provider {
+	my WD2E::Driver %driver = (
+		chrome => WD2E::Driver,
+		edge => WD2E::Driver,
+	);
+	method get (
+			Str:D $browser where %driver.keys.any,
+			Str:D :$host = '127.0.0.1',
+			Int :$port?
+			--> WD2E::Driver:D
+	) {
+		my %args = :$host;
+		%args<port> = $port if $port;
+		%driver{ $browser }
+		// %driver{ $browser } = %driver{ $browser }.new: |%args;
 	}
 }
 
