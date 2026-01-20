@@ -1415,7 +1415,7 @@ module WD2P {
 		method print-page ( %args --> Str:D ) { ... }
 	}
 	
-	class Session::Chromium does Session {
+	class Session::Default does Session {
 		
 		method delete-session {
 			$!result.delete-session: $ua.request: $!request.delete-session: self;
@@ -1729,7 +1729,7 @@ module WD2P {
 			my $data = $!result.new-session:
 					$ua.request: $!request.new-session: self, %capabilities;
 			return
-			Session::Chromium.new:
+			Session::Default.new:
 					:$!host,
 					:$!port,
 					id => .<sessionId>, # also includes <capabilities>
@@ -1840,6 +1840,398 @@ class WD2P::Driver::Provider {
 		%args<port> = $port if $port;
 		%driver{ $browser }
 		// %driver{ $browser } = %driver{ $browser }.new: |%args;
+	}
+}
+
+module WD2E {
+	role Command {
+		method url ( *@command --> Str:D ) { ... }
+	}
+	class Driver does Command {
+		has Str:D $.host is required = '127.0.0.1';
+		has Int:D $.port is required;
+		method url ( *@command --> Str:D ) {
+			join '/', "http://$!host:$!port", |self.command: @command;
+		}
+	}
+	class Session does Command {
+		our constant $IDENTIFIER = '';
+		has Driver:D $.driver is required;
+		has Str:D $.session-id is required;
+		method url ( *@command --> Str:D ) {
+			$!driver.url: 'session',$!session-id, @command;
+		}
+	}
+	class Element is Session {
+		our constant $IDENTIFIER = '';
+		has Session:D $.session is required;
+		has Str:D $.element-id is required;
+		method url ( *@command --> Str:D ) {
+			$!session.url: 'element', $!element-id, @command;
+		}
+	}
+	class Shadow-Root is Session {
+		our constant $IDENTIFIER = '';
+		has Session:D $.session is required;
+		has Str:D $.shadow-id is required;
+		method url ( *@command --> Str:D ) {
+			$!session.url: 'shadow', $!shadow-id, @command;
+		}
+	}
+	module Endpoint {
+		# include debugging
+		use HTTP::UserAgent;
+		use JSON::Fast;
+		
+		my HTTP::UserAgent $ua = HTTP::UserAgent.new;
+		
+		sub request ( Str:D $method, Command:D $command, *@command --> HTTP::Request:D ) {
+			HTTP::Request.new: $method => $command.url: @command;
+		}
+		sub get-request ( Command:D $command, *@command --> HTTP::Request:D ) {
+			request 'GET', $command;
+		}
+		sub post-request ( $data, Command:D $command, *@command --> HTTP::Request:D ) {
+			my HTTP::Request $req = request 'POST', $command;
+			my Str:D $json = to-json $data;
+			# debug: Level::extra, $json;
+			$req.add-content: $json;
+			$req;
+		}
+		sub delete-request ( Command:D $command, *@command --> HTTP::Request:D ) {
+			request 'DELETE', $command;
+		}
+		
+		sub check-status ( HTTP::Response $response ) {
+			my $data = from-json $response.content;
+			return $data if $response.code.Int == 200;
+			
+			Failure.new:
+					WebDriver2::Command::Result::X.new:
+							execution-status =>
+								WebDriver2::Command::Execution-Status.new:
+										status => $response.code,
+										error => $data<value><error>,
+										message => $data<value><message> // '',
+										stacktrace => $data<value><stacktrace> // '',
+										data => $data<value><data> // { }
+										;
+		}
+		
+		class Driver-Endpoints {
+			method status ( Driver:D $driver ) {
+				my $data = check-status $ua.request: get-request $driver, 'status';
+			}
+			method session ( %capabilities, Driver:D $driver --> Session:D ) {
+				my $data = check-status
+					$ua.request: post-request %capabilities, $driver, 'session';
+			}
+		}
+		class Session-Endpoints {
+			method delete ( Session:D $session --> Driver:D ) {
+				my $data = check-status $ua.request: delete-request $session;
+			}
+			method get-timeouts ( Session:D $session ) {
+				my $data = check-status $ua.request: get-request $session, 'timeouts';
+			}
+			method set-timeouts (
+					Int $script,
+					Int $pageLoad,
+					Int $implicit,
+					Session:D $session
+					--> Session:D
+			) {
+				my $data = check-status $ua.request:
+						post-request {
+							:$script,
+							:$pageLoad,
+							:$implicit
+						},
+						$session,
+						'timeouts'
+				;
+			}
+			method navigate-to ( Str:D $url, Session:D $session --> Session:D ) {
+				my $data = check-status $ua.request: post-request { :$url }, $session, 'url';
+			}
+			method get-current-url( Session:D $session --> Str:D ) {
+				my $data = check-status $ua.request: get-request $session, 'url';
+			}
+			method back ( Session:D $session --> Session:D ) {
+				my $data = check-status $ua.request: post-request { }, $session, 'back';
+			}
+			method forward ( Session:D $session --> Session:D ) {
+				my $data = check-status $ua.request: post-request { }, $session, 'forward';
+			}
+			method refresh ( Session:D $session --> Session:D ) {
+				my $data = check-status $ua.request: post-request { }, $session, 'refresh';
+			}
+			method get-title ( Session:D $session --> Str:D ) {
+				my $data = check-status $ua.request: get-request $session, 'title';
+			}
+			method get-window-handle ( Session:D $session --> Str:D ) {
+				my $data = check-status $ua.request: get-request $session, 'window';
+			}
+			method close-window ( Session:D $session --> Session:D ) {
+				my $data = check-status $ua.request: delete-request $session, 'window';
+				$session;
+			}
+			method switch-to-window ( Str:D $handle, Session:D $session --> Session:D ) {
+				my $data = check-status 
+						$ua.request: post-request { :$handle }, $session, 'window';
+				$session;
+			}
+			method get-window-handles ( Session:D $session --> List:D[ Str:D ] ) {
+				my $data = check-status $ua.request: get-request $session, <window handles>
+			}
+			method new-window ( Str:D $type where <tab window>.any, Session:D $session ) {
+				my %args = ();
+				%args{ 'type hint' } = $type if $type;
+				my $data = check-status
+						$ua.request: %args, post-request $session, <window new>;
+			}
+			multi method switch-to-frame ( Session:D $session --> Session:D ) {
+				my $data = check-status $ua.request: post-request { }, $session, 'frame';
+				$session;
+			}
+			multi method switch-to-frame ( Int $frame, Session:D $session --> Session:D ) {
+				my $data = check-status 
+						$ua.request: post-request { :$frame }, $session, 'frame';
+				$session;
+			}
+			method switch-to-parent-frame ( Session:D $session --> Session:D ) {
+				my $data = check-status 
+						$ua.request: post-request { }, $session, <frame parent>;
+				$session;
+			}
+			method get-window-rect ( Session:D $session ) {
+				my $data = check-status $ua.request: get-request $session, <window rect>;
+			}
+			method set-window-rect (
+					Int $width,
+					Int $height,
+					Int $x,
+					Int $y,
+					Session:D $session
+					--> Session:D
+			) {
+				my %args = grep *.value.defined, ( :$width, :$height, :$x, :$y );
+				my $data = check-status
+						$ua.request: post-request %args, $session, <window rect>;
+				$session;
+			}
+			method maximize-window ( Session:D $session --> Session:D ) {
+				my $data = check-status
+						$ua.request: post-request { }, $session, <window maximize>;
+				$session;
+			}
+			method minimize-window ( Session:D $session --> Session:D ) {
+				my $data = check-status
+						$ua.request: post-request { }, $session, <window minimize>;
+				$session;
+			}
+			method fullscreen-window ( Session:D $session --> Session:D ) {
+				my $data = check-status
+						$ua.request: post-request { }, $session, <window fullscreen>;
+				$session;
+			}
+			method get-active-element ( Session:D $session --> Element:D ) {
+				my $data = check-status $ua.request: get-request $session, <element active>;
+				Element.new:
+						host => $session.host,
+						port => $session.port,
+						:$session,
+						element-id => $data{ $ELEMENT::IDENTIFIER },
+						;
+			}
+			
+			method find-element ( By:D $locator, Session:D $session --> Element:D ) {
+				my $data = check-status
+						$ua.request: post-request $locator.args, $session, 'element';
+				Element.new:
+						host => $session.host,
+						port => $session.port,
+						:$session,
+						element-id => $data{ $Element::IDENTIFIER }
+						;
+			}
+			method find-elements (
+					By:D $locator,
+					Session:D $session
+					--> List:D[ Element:D ]
+			) {
+				my $data = check-status
+						$ua.request: post-request $locator.args, $session, 'elements';
+				my Element:D @elements = Array[ Element:D ].new;
+				for $data>>.{ $ELEMENT::IDENTIFIER } -> $element-id {
+					@elements.push:
+							Element.new:
+									host => $session.host,
+									port => $session.port,
+									:$session,
+									:$element-id
+							;
+				}
+				@elements;
+			}
+			
+			method get-page-source ( Session:D $session --> Str:D ) {
+				my $data = check-status $ua.request: get-request $session, 'source';
+			}
+			method execute-script (
+					Str:D $script,
+					@args,
+					Session:D $session
+			) {
+				my $data = check-status
+						$ua.request:
+								post-request
+										{ :$script, :@args }, $session, <execute sync>;
+			}
+			method execute-async-script (
+					Str:D $script,
+					@args,
+					Session:D $session
+			) {
+				my $data = check-status
+						$ua.request:
+								post-request
+										{ :$script, :@args }, $session, <execute async>;
+			}
+			method get-all-cookies ( Session:D $session --> List:D ) {
+				my $data = check-status $ua.request: get-request $session, 'cookie';
+				Array.new: |$data;
+			}
+			method get-named-cookie ( Str:D $name, Session:D $session ) {
+				my $data = check-status 
+						$ua.request: get-request $session, 'cookie', $name;
+			}
+			=begin table :caption<cookie object structure>
+				RFC 6265 Field   | JSON Key | Attribute Key
+				=========================================
+				name             | name     |
+				value            | value    |
+				path             | path     | Path
+				domain           | domain   | Domain
+				secure-only-flag | secure   | Secure
+				http-only-flag   | httpOnly | HttpOnly
+				expiry-time      | expiry   | Max-Age
+				samesite         | sameSite | SameSite
+			=end table
+			multi method add-cookie (
+					Str:D $name,
+					Str:D $value,
+					Str $path,
+					Str $domain,
+					Bool $secure,
+					Bool $httpOnly,
+					Int $expiry,
+					Bool $sameSite,
+					Session:D $session
+					--> Session:D
+			) {
+				my %args = grep *.value.defined, (
+						:$name,
+						:$value,
+						:$path,
+						:$domain,
+						:$secure,
+						:$httpOnly,
+						:$expiry,
+						:$sameSite
+				);
+				my $data = check-status $ua.request: 
+				$session;
+			}
+			multi method add-cookie (
+					Str:D $name,
+					Str:D $value,
+					Session:D $session
+					--> Session:D
+			) {
+				my %args = ( :$name, :$value );
+				my $data = check-status
+						$ua.request: post-request %args, $session, 'cookie';
+				$session;
+			}
+			method delete-cookie ( Str:D $name, Session:D $session --> Session:D ) {
+				my $data = check-status
+						$ua.request: delete-request $session, 'cookie', $name;
+				$session;
+			}
+			method delete-all-cookies ( Session:D $session --> Session:D ) {
+				my $data = check-status $ua.request: 
+				$session;
+			}
+			method perform-actions ( Session:D $session --> Session:D ) {
+				!!! 'nyi'
+			}
+			method release-actions ( Session:D $session --> Session:D ) {
+				!!! 'nyi'
+			}
+			method dismiss-alert ( Session:D $session --> Session:D ) {
+				my $data = check-status $ua.request: 
+				$session;
+			}
+			method accept-alert ( Session:D $session --> Session:D ) {
+				my $data = check-status $ua.request: 
+				$session;
+			}
+			method get-alert-text ( Session:D $session --> Str:D ) {
+				my $data = check-status $ua.request: 
+			}
+			method send-alert-text ( Str:D $text, Session:D $session --> Session:D ) {
+				my $data = check-status $ua.request: 
+				$session;
+			}
+			method take-screenshot ( Session:D $session --> Str:D ) {
+				my $data = check-status $ua.request: 
+			}
+			
+			=begin table
+				Property       | JSON Key    | Value Type and Valid Values
+				==========================================================
+				orientation    | orientation | Str : { portrait ( default ), landscape }
+				==========================================================
+				scale          | scale       | Rat : [ 0.1, 2 ] ( default : 1 )
+				==========================================================
+				background     | background  | Bool : ( default : False )
+				==========================================================
+				pageWidth      | width       | Rat : [ 2.54 / 72, Inf ) ( default : 21.59 )
+				==========================================================
+				pageHeight     | height      | Rat : [ 2.54 / 72, Inf ) ( default : 27.94 )
+				==========================================================
+				margin         | margin      | JSON Obj : ( default : { } )
+				----------------------------------------------------------
+				- marginTop    | top         | Rat : [ 0, Inf ) ( default : 1 )
+				----------------------------------------------------------
+				- marginBottom | bottom      | Rat : [ 0, Inf ) ( default : 1 )
+				----------------------------------------------------------
+				- marginLeft   | left        | Rat : [ 0, Inf ) ( default : 1 )
+				----------------------------------------------------------
+				- marginRight  | right       | Rat : [ 0, Inf ) ( default : 1 )
+				==========================================================
+				shrinkToFit    | shrinkToFit | Bool : ( default : True )
+				==========================================================
+				pageRanges     | pageRanges  | Array:D[ Int:D ] : ( default : [ ] )
+			=end table
+			method print-page ( %args, Session:D $session --> Str:D ) {
+				my $data = check-status $ua.request: 
+			}
+		}
+		class Element-Endpoints {
+			method switch-to-frame ( Element:D $element --> Session:D ) {
+				my $data = check-status
+						$ua.request:
+								post-request
+										{ id => $element.element-id },
+										$element.session,
+										'frame'
+										;
+				$element.session;
+			}
+			
+		}
 	}
 }
 
