@@ -1889,17 +1889,17 @@ module WD2E {
 			HTTP::Request.new: $method => $command.url: @command;
 		}
 		sub get-request ( Command:D $command, *@command --> HTTP::Request:D ) {
-			request 'GET', $command;
+			request 'GET', $command, @command;
 		}
 		sub post-request ( $data, Command:D $command, *@command --> HTTP::Request:D ) {
-			my HTTP::Request $req = request 'POST', $command;
+			my HTTP::Request $req = request 'POST', $command, @command;
 			my Str:D $json = to-json $data;
 			# debug: Level::extra, $json;
 			$req.add-content: $json;
 			$req;
 		}
 		sub delete-request ( Command:D $command, *@command --> HTTP::Request:D ) {
-			request 'DELETE', $command;
+			request 'DELETE', $command, @command;
 		}
 		
 		sub check-status ( HTTP::Response $response ) {
@@ -2015,7 +2015,7 @@ module WD2E {
 					Session:D $session
 					--> Session:D
 			) {
-				my %args = grep *.value.defined, ( :$width, :$height, :$x, :$y );
+				my %args = grep *.value.defined, do :$width, :$height, :$x, :$y;
 				my $data = check-status
 						$ua.request: post-request %args, $session, <window rect>;
 				$session;
@@ -2121,27 +2121,15 @@ module WD2E {
 			multi method add-cookie (
 					Str:D $name,
 					Str:D $value,
-					Str $path,
-					Str $domain,
-					Bool $secure,
-					Bool $httpOnly,
-					Int $expiry,
-					Bool $sameSite,
+					%cookie,
 					Session:D $session
-					--> Session:D
+					--> HTTP::Request:D
 			) {
-				my %args = grep *.value.defined, (
-						:$name,
-						:$value,
-						:$path,
-						:$domain,
-						:$secure,
-						:$httpOnly,
-						:$expiry,
-						:$sameSite
-				);
-				my $data = check-status $ua.request: 
-				$session;
+				my %args =
+					.flat with do grep -> $k, $v { $v.defined and $k, $v },
+					.flat with do :$name.kv, :$value.kv,
+						%cookie<path domain secure httpOnly expiry sameSite>:kv;
+				$ua.request: post-request { cookie => %args }, $session, 'cookie';
 			}
 			multi method add-cookie (
 					Str:D $name,
@@ -2149,9 +2137,9 @@ module WD2E {
 					Session:D $session
 					--> Session:D
 			) {
-				my %args = ( :$name, :$value );
+				my %args = :$name, :$value;
 				my $data = check-status
-						$ua.request: post-request %args, $session, 'cookie';
+						$ua.request: post-request { cookie => %args }, $session, 'cookie';
 				$session;
 			}
 			method delete-cookie ( Str:D $name, Session:D $session --> Session:D ) {
@@ -2160,8 +2148,7 @@ module WD2E {
 				$session;
 			}
 			method delete-all-cookies ( Session:D $session --> Session:D ) {
-				my $data = check-status $ua.request: 
-				$session;
+				my $data = check-status $ua.request: delete-request $session, 'cookie';
 			}
 			method perform-actions ( Session:D $session --> Session:D ) {
 				!!! 'nyi'
@@ -2170,22 +2157,22 @@ module WD2E {
 				!!! 'nyi'
 			}
 			method dismiss-alert ( Session:D $session --> Session:D ) {
-				my $data = check-status $ua.request: 
-				$session;
+				my $data = check-status
+						$ua.request: post-request { }, $session, <alert dismiss>;
 			}
 			method accept-alert ( Session:D $session --> Session:D ) {
-				my $data = check-status $ua.request: 
-				$session;
+				my $data = check-status
+						$ua.request: post-request { }, $session, <alert accept>;
 			}
 			method get-alert-text ( Session:D $session --> Str:D ) {
-				my $data = check-status $ua.request: 
+				my $data = check-status $ua.request: get-request $session, <alert text>;
 			}
 			method send-alert-text ( Str:D $text, Session:D $session --> Session:D ) {
-				my $data = check-status $ua.request: 
-				$session;
+				my $data = check-status
+						$ua.request: post-request { :$text }, $session, <alert text>;
 			}
 			method take-screenshot ( Session:D $session --> Str:D ) {
-				my $data = check-status $ua.request: 
+				my $data = check-status $ua.request: get-request $session, 'screenshot';
 			}
 			
 			=begin table
@@ -2216,7 +2203,7 @@ module WD2E {
 				pageRanges     | pageRanges  | Array:D[ Int:D ] : ( default : [ ] )
 			=end table
 			method print-page ( %args, Session:D $session --> Str:D ) {
-				my $data = check-status $ua.request: 
+				my $data = check-status $ua.request: post-request %args, $session, 'print';
 			}
 		}
 		class Element-Endpoints {
@@ -2231,6 +2218,119 @@ module WD2E {
 				$element.session;
 			}
 			
+			method find-sub-element (
+					By:D $locator,
+					Element:D $element
+					--> Element:D
+			) {
+				my $data = check-status
+						$ua.request: post-request $locator.args, $element, 'element';
+			}
+			
+			method find-sub-elements (
+					By:D $locator,
+					Element:D $element
+					--> Element:D
+			) {
+				my $data = check-status $ua.request: post-request $locator.args, $element, 'elements';
+			}
+			
+			
+			
+			method get-element-shadow-root ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: get-request $element, 'shadow';
+			}
+					
+			method is-element-selected ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: get-request $element, 'selected';
+			}
+			
+			method get-element-attribute (
+					Str:D $name,
+					Element:D $element
+					--> Element:D
+			) {
+				my $data = check-status $ua.request: get-request $element, 'attribute', $name;
+			}
+			
+			method get-element-property (
+					Str:D $name,
+					Element:D $element
+					--> Element:D
+			) {
+				my $data = check-status $ua.request: get-request $element, 'property', $name;
+			}
+			
+			method get-element-css-value (
+					Str:D $name,
+					Element:D $element
+					--> Element:D
+			) {
+				my $data = check-status $ua.request: get-request $element, 'css', $name;
+			}
+			
+			method get-element-text ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: get-request $element, 'text';
+			}
+			
+			method get-element-tag-name ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: get-request $element, 'name';
+			}
+			
+			method get-element-rect ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: get-request $element, 'rect';
+			}
+			
+			method is-element-enabled ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: get-request $element, 'enabled';
+			}
+			
+			method get-computed-role ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: get-request $element, 'computedrole';
+			}
+			
+			method get-computed-label ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: get-request $element, 'computedlabel';
+			}
+			
+			method element-click ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: post-request { }, $element, 'click';
+			}
+			
+			method element-clear ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: post-request { }, $element, 'clear';
+			}
+			
+			method element-send-keys (
+					Str:D $text,
+					Element:D $element
+					--> Element:D
+			) {
+				my $data = check-status $ua.request: post-request { :$text }, $element, 'value';
+			}
+			
+			method take-element-screenshot ( Element:D $element --> Element:D ) {
+				my $data = check-status $ua.request: get-request $element, 'screenshot';
+			}
+		}
+		class Shadow-Endpoints {
+			method find-sub-shadow-element (
+					By:D $locator,
+					Shadow-Root:D $shadow
+					--> Element:D
+			) {
+				my $data = check-status
+						$ua.request: post-request $locator.args, $shadow, 'element';
+			}
+			
+			method find-sub-shadow-elements (
+					By:D $locator,
+					Shadow-Root:D $shadow
+					--> Element:D
+			) {
+				my $data = check-status
+						$ua.request: post-request: $locator.args, $shadow, 'elements';
+			}
 		}
 	}
 }
