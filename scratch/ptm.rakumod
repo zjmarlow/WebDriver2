@@ -1852,7 +1852,7 @@ module WD2E {
 	role Command {
 		method url ( *@command --> Str:D ) { ... }
 	}
-	class Driver does Command is export {
+	class Driver does Command {
 		has Str:D $.host is required = '127.0.0.1';
 		has Int:D $.port is required;
 		method url ( *@command --> Str:D ) {
@@ -1963,7 +1963,7 @@ module WD2E {
 				$data;
 			}
 			method new-session ( %capabilities, WD2E::Driver:D $driver --> WD2E::Session:D ) {
-				%capabilities<capabilities> = { } unless %capabilities;
+				%capabilities<capabilities> = { } unless %capabilities and %capabilities<capabilities>.isa: Hash;
 				my $data = check-status
 					$ua.request: post-request %capabilities, $driver, 'session';
 				return WD2E::Session.new:
@@ -2608,7 +2608,7 @@ class WD2E::Driver::Provider {
 
 sub EXPORT {
 	Map.new:
-			DriverE => WD2E::Endpoint::Driver-Endpoints,
+			Driver => WD2E::Endpoint::Driver-Endpoints,
 			Session => WD2E::Endpoint::Session-Endpoints,
 			Element => WD2E::Endpoint::Element-Endpoints,
 			Shadow => WD2E::Endpoint::Shadow-Endpoints
