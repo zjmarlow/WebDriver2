@@ -680,8 +680,8 @@ class Shadow-Endpoints {
 
 sub EXPORT {
 	Map.new:
-			Driver-Actions => WD2E::Endpoint::Driver-Endpoints,
-			Session-Actions => WD2E::Endpoint::Session-Endpoints,
-			Element-Actions => WD2E::Endpoint::Element-Endpoints,
-			Shadow-Actions => WD2E::Endpoint::Shadow-Endpoints
+			Dr => Driver-Endpoints,
+			Se => Session-Endpoints,
+			El => Element-Endpoints,
+			Sh => Shadow-Endpoints
 }
