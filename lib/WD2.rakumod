@@ -1,4 +1,5 @@
-use WD2::Component;
+# use WD2::Component;
+use WD2::Endpoints;
 
 unit class Provider;
 
@@ -14,6 +15,5 @@ method get-driver (
 ) {
     my %args = :$host;
     %args<port> = $port if $port;
-    %driver{ $browser }
-    // %driver{ $browser } = %driver{ $browser }.new: |%args;
+    %driver{ $browser } // %driver{ $browser } = %driver{ $browser }.new: |%args;
 }
