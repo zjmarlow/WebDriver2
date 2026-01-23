@@ -63,6 +63,13 @@ class Shadow does Command is export {
 		$!session.url: 'shadow', $!shadow-id, @command;
 	}
 	
+	method find-element ( By:D $locator --> Element:D ) {
+		self.find-sub-shadow-element: $locator;
+	}
+	method find-elements ( By:D $locator --> List:D[ Element:D ] ) {
+		self.find-sub-shadow-elements: $locator;
+	}
+	
 	multi method find-sub-shadow-element (
 			Shadow:D:
 			By:D $locator
@@ -96,7 +103,7 @@ class Shadow does Command is export {
 			Shadow:U:
 			By:D $locator,
 			Shadow:D $shadow
-            --> List:D[ Element:D ]
+			--> List:D[ Element:D ]
 	) {
 		my $return = check-status
 				$ua.request: post-request $locator.args, $shadow, 'elements';
@@ -133,7 +140,8 @@ class Element does Command is export {
 	) { Element.switch-to: self }
 	multi method switch-to (
 			Element:U:
-			Element:D $element --> Session:D
+			Element:D $element
+			--> Session:D
 	) {
 		my $return = check-status
 				$ua.request:
@@ -147,6 +155,12 @@ class Element does Command is export {
 		$return;
 	}
 	
+	method find-element ( By:D $locator --> Element:D ) {
+		self.find-sub-element: $locator;
+	}
+	method find-elements ( By:D $locator --> List:D[ Element:D ] ) {
+		self.find-sub-elements: $locator;
+	}
 	multi method find-sub-element (
 			Element:D:
 			By:D $locator,
@@ -156,7 +170,8 @@ class Element does Command is export {
 	multi method find-sub-element (
 			Element:U:
 			By:D $locator,
-			Element:D $element --> Element:D
+			Element:D $element
+			--> Element:D
 	) {
 		my $return = check-status
 				$ua.request: post-request $locator.args, $element, 'element';
@@ -179,7 +194,8 @@ class Element does Command is export {
 	multi method find-sub-elements (
 			Element:U:
 			By:D $locator,
-			Element:D $element --> List:D[ Element:D ]
+			Element:D $element
+			--> List:D[ Element:D ]
 	) {
 		my $return = check-status
 				$ua.request: post-request $locator.args, $element, 'elements';
@@ -411,8 +427,7 @@ class Element does Command is export {
 	) { Element.send-keys: $text }
 	
 	multi method send-keys (
-
-		Element:U:
+			Element:U:
 			Str:D $text,
 			Element:D $element --> Element:D
 	) {
@@ -422,6 +437,10 @@ class Element does Command is export {
 		$return;
 	}
 	
+	method take-screenshot ( --> Str:D ) {
+		self.take-element-screenshot;
+	}
+	
 	multi method take-element-screenshot (
 			Element:D:
 			--> Str:D
@@ -429,7 +448,8 @@ class Element does Command is export {
 	
 	multi method take-element-screenshot (
 			Element:U:
-			Element:D $element --> Str:D
+			Element:D $element
+			--> Str:D
 	) {
 		my $return = check-status $ua.request: get-request $element, 'screenshot';
 		return .<value> with $return;
@@ -444,7 +464,7 @@ class Session does Command is export {
 	method url ( *@command --> Str:D ) {
 		$!driver.url: 'session', $!session-id, @command;
 	}
-    
+	
 	multi method delete (
 			Session:D:
 			--> Driver:D
@@ -1129,7 +1149,7 @@ class Driver does Command is export {
 	method url ( *@command --> Str:D ) {
 		join '/', "http://$!host:$!port", |@command;
 	}
-    
+	
 	multi method status (
 			Driver:D:
 	) { Driver.status: self }
