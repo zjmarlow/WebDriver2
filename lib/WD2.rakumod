@@ -1,5 +1,4 @@
-# use WD2::Component;
-use WD2::Endpoints;
+use WD2::Component;
 
 unit class Provider;
 
