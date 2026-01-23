@@ -146,7 +146,11 @@ class Element does Command is export {
 		my $return = check-status
 				$ua.request:
 						post-request
-								{ id => $element.element-id },
+								{
+									id => Pair.new:
+												$Element::IDENTIFIER,
+												$element.element-id
+								},
 								$element.session,
 								'frame'
 								;
@@ -424,7 +428,7 @@ class Element does Command is export {
 			Element:D:
 			Str:D $text,
 			--> Element:D
-	) { Element.send-keys: $text }
+	) { Element.send-keys: $text, self }
 	
 	multi method send-keys (
 			Element:U:
