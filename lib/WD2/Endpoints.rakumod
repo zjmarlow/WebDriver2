@@ -35,7 +35,7 @@ class WD2::Endpoints::Execution-Status {
 	
 }
 
-class WebDriver::Endpoints::Error
+class WD2::Endpoints::Error
 		is WD2::Endpoints::Execution-Status
 {
 	has Str:D $.error is required;
@@ -46,45 +46,47 @@ class WebDriver::Endpoints::Error
 			$.status,
 			$!error,
 			$.message,
-			$!stacktrace,
-			%.data ?? %.data.Str !! ''
+			%.data ?? |( $!stacktrace, %.data.Str ) !! $!stacktrace,
 			;
 	}
 }
 
 
 class WD2::Endpoints::Result::X is Exception {
-	has WD2::Endpoints::Execution-Status $.execution-status;
+	has WD2::Endpoints::Error:D $.execution-error is required;
 	method message( WD2::Endpoints::Result::X:D: --> Str ) {
-		~ $!execution-status
+		$!execution-error.message
 	}
 	method ACCEPTS ( $topic ) {
 		return False unless $topic ~~ WD2::Endpoints::Result::X;
-		$topic.execution-status.type === $!execution-status.type;
+		$topic.execution-error.status == $!execution-error.status
+		and
+		$topic.execution-error.error eq $!execution-error.error;
 	}
 }
 
 
 
 role WD2::Endpoints {
+	use JSON::Fast;
 	use HTTP::UA-Strict;
 	my HTTP::UserAgent-Strict:D $ua = HTTP::UserAgent-Strict.new;
 	
 	has Str:D $.host is required = '127.0.0.1';
 	has Int:D $.port is required;
 	
-	sub request ( HTTP::Request-Strict:D $req --> HTTP::Response-Strict:D ) {
+	multi method request ( HTTP::Request-Strict:D $req --> HTTP::Response-Strict:D ) {
 		$ua.request: $req;
 	}
 	
-	sub check-status ( HTTP::Response-Strict $response ) {
+	method check-status ( HTTP::Response-Strict $response ) {
 		my $return = from-json $response.content;
 		return $return if $response.code.Int == 200;
 		
 		Failure.new:
 				WD2::Endpoints::Result::X.new:
-						execution-status =>
-							WD2::Endpoints::Execution-Status.new:
+						execution-error =>
+							WD2::Endpoints::Error.new:
 									status => $response.code,
 									error => $return<value><error>,
 									message => $return<value><message> // '',

@@ -13,24 +13,26 @@ multi method status (
 ) { WD2::Component::Driver.status: self }
 multi method status (
 		WD2::Component::Driver:U: WD2::Component::Driver:D $driver ) {
-	my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $driver, 'status';
+	my $return = self.check-status: self.request: self.get-request: $driver, 'status';
 	return .<value> with $return;
 	$return.handled = False;
 	$return;
 }
 multi method new-session (
 		WD2::Component::Driver:D:
-		%capabilities
+		%capabilities = { capabilities => { } }
 		--> WD2::Component::Session:D
 ) { WD2::Component::Driver.new-session: %capabilities, self }
 multi method new-session (
 		WD2::Component::Driver:U: %capabilities, WD2::Component::Driver:D $driver --> WD2::Component::Session:D
 ) {
 	%capabilities<capabilities> = { } unless %capabilities and %capabilities<capabilities>.isa: Hash;
-	my $return = WD2::Endpoints::check-status
-		WD2::Endpoints::request self.post-request: %capabilities, $driver, 'session';
+	my $return = self.check-status:
+		self.request: self.post-request: %capabilities, $driver, 'session';
 	return WD2::Component::Session.new:
 			:$driver,
+			host => $driver.host,
+			port => $driver.port,
 			session-id => .<value><sessionId>
 	with $return;
 	$return.handled = False;

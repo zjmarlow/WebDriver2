@@ -30,8 +30,8 @@ class WD2::Component::Shadow does WD2::Endpoints {
 			By:D $locator,
 			WD2::Component::Shadow:D $shadow --> WD2::Component::Element:D
 	) {
-		my $return = WD2::Endpoints::check-status
-				WD2::Endpoints::request self.post-request: $locator.args, $shadow, 'element';
+		my $return = self.check-status:
+				self.request: self.post-request: $locator.args, $shadow, 'element';
 		return WD2::Component::Element.new:
 				host => $shadow.host,
 				port => $shadow.port,
@@ -54,8 +54,8 @@ class WD2::Component::Shadow does WD2::Endpoints {
 			WD2::Component::Shadow:D $shadow
 			--> List:D[ WD2::Component::Element:D ]
 	) {
-		my $return = WD2::Endpoints::check-status
-				WD2::Endpoints::request self.post-request: $locator.args, $shadow, 'elements';
+		my $return = self.check-status:
+				self.request: self.post-request: $locator.args, $shadow, 'elements';
 		without $return {
 			$return.handled = False;
 			return $return;
@@ -92,8 +92,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element
 			--> WD2::Endpoints:D
 	) {
-		my $return = WD2::Endpoints::check-status
-				WD2::Endpoints::request
+		my $return = self.check-status:
+				self.request:
 						self.post-request:
 								{
 									id => Pair.new:
@@ -126,8 +126,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element
 			--> WD2::Component::Element:D
 	) {
-		my $return = WD2::Endpoints::check-status
-				WD2::Endpoints::request self.post-request: $locator.args, $element, 'element';
+		my $return = self.check-status:
+				self.request: self.post-request: $locator.args, $element, 'element';
 		return WD2::Component::Element.new:
 				host => $element.host,
 				port => $element.port,
@@ -150,8 +150,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element
 			--> List:D[ WD2::Component::Element:D ]
 	) {
-		my $return = WD2::Endpoints::check-status
-				WD2::Endpoints::request self.post-request: $locator.args, $element, 'elements';
+		my $return = self.check-status:
+				self.request: self.post-request: $locator.args, $element, 'elements';
 		without $return {
 			$return.handled = False;
 			return $return;
@@ -178,7 +178,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element --> WD2::Component::Shadow:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'shadow';
+		my $return = self.check-status: self.request: self.get-request: $element, 'shadow';
 		return WD2::Component::Shadow.new:
 				host => $element.host,
 				port => $element.port,
@@ -198,7 +198,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element --> Bool:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'selected';
+		my $return = self.check-status: self.request: self.get-request: $element, 'selected';
 		return .<value> with $return;
 		$return.handled = False;
 		$return;
@@ -215,7 +215,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			Str:D $name,
 			WD2::Component::Element:D $element --> Str:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'attribute', $name;
+		my $return = self.check-status: self.request: self.get-request: $element, 'attribute', $name;
 		return .<value> with $return;
 		$return.handled = False;
 		$return;
@@ -232,7 +232,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			Str:D $name,
 			WD2::Component::Element:D $element --> Str:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'property', $name;
+		my $return = self.check-status: self.request: self.get-request: $element, 'property', $name;
 		return .<value> with $return;
 		$return.handled = False;
 		$return;
@@ -249,7 +249,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			Str:D $name,
 			WD2::Component::Element:D $element --> Str:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'css', $name;
+		my $return = self.check-status: self.request: self.get-request: $element, 'css', $name;
 		return .<value> with $return;
 		$return.handled = False;
 		$return;
@@ -264,7 +264,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element --> WD2::Component::Element:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'text';
+		my $return = self.check-status: self.request: self.get-request: $element, 'text';
 		return .<value> with $return;
 		$return.Str = False;
 		$return;
@@ -279,7 +279,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element --> Str:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'name';
+		my $return = self.check-status: self.request: self.get-request: $element, 'name';
 		return .<value> with $return;
 		$return.handled = False;
 		$return;
@@ -292,7 +292,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	multi method rect (
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element ) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'rect';
+		my $return = self.check-status: self.request: self.get-request: $element, 'rect';
 		return .<value> with $return;
 		$return.handled = False;
 		$return;
@@ -307,7 +307,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element --> Bool:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'enabled';
+		my $return = self.check-status: self.request: self.get-request: $element, 'enabled';
 		return .<value> with $return;
 		$return.handled = False;
 		$return;
@@ -322,7 +322,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element --> Str:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'computedrole';
+		my $return = self.check-status: self.request: self.get-request: $element, 'computedrole';
 		return .<value> with $return;
 		$return.handled = False;
 		$return;
@@ -337,7 +337,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element --> Str:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'computedlabel';
+		my $return = self.check-status: self.request: self.get-request: $element, 'computedlabel';
 		return .<value> with $return;
 		$return.handled = False;
 		$return;
@@ -352,7 +352,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element --> WD2::Component::Element:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.post-request: { }, $element, 'click';
+		my $return = self.check-status: self.request: self.post-request: { }, $element, 'click';
 		return $element with $return;
 		$return.handled = False;
 		$return;
@@ -367,7 +367,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element --> WD2::Component::Element:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.post-request: { }, $element, 'clear';
+		my $return = self.check-status: self.request: self.post-request: { }, $element, 'clear';
 		return $element with $return;
 		$return.handled = False;
 		$return;
@@ -384,7 +384,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			Str:D $text,
 			WD2::Component::Element:D $element --> WD2::Component::Element:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.post-request: { :$text }, $element, 'value';
+		my $return = self.check-status: self.request: self.post-request: { :$text }, $element, 'value';
 		return $element with $return;
 		$return.handled = False;
 		$return;
@@ -404,7 +404,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element
 			--> Str:D
 	) {
-		my $return = WD2::Endpoints::check-status WD2::Endpoints::request self.get-request: $element, 'screenshot';
+		my $return = self.check-status: self.request: self.get-request: $element, 'screenshot';
 		return .<value> with $return;
 		$return.handled = False;
 		$return;

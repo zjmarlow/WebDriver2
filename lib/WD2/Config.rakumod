@@ -6,7 +6,7 @@ role WD2::Config::From-File {
 	#`[, Level $debug-level is rw ] ) {
 		unless $browser {
 			die 'must provide valid browser argument or specify in browser file'
-			unless $test-root.add( 'browser' ).e;
+			unless do .f with $test-root.add: 'browser';
 			$browser = .trim.lc with $browser-file.slurp: :close;
 		}
 	}

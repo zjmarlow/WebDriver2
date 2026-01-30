@@ -12,9 +12,10 @@ role WD2::Test::Template
 		does WD2::Config::From-File
 {
 	my constant $PLAN = 2;
-	has WD2::Debug:D $!debug is built is required = WD2::Debug.new;
+	has Level:D $!debug is built is required = WD2::Debug.new;
 	has IO::Path:D $.test-root is required;
 	has Int:D $.close-delay is rw is required;
+	has Str:D $.browser is required;
 	has WD2::Component::Driver:D $!driver is built is required;
 	has WD2::Component::Session $!session;
 	
@@ -37,6 +38,7 @@ role WD2::Test::Template
 		my WD2::Component::Driver:D $driver =
 				Provider.get-driver: $browser, :$host, :$port, :$debug-level;
 		self.bless:
+				:$browser,
 				:$driver,
 				:$test-root,
 				:$close-delay,
@@ -46,9 +48,9 @@ role WD2::Test::Template
 	}
 	
 	method !init {
-		self.lives-ok: 'session created', { $!session = $!driver.session };
+		self.lives-ok: 'session created', { $!session = $!driver.new-session };
 		$!session.set-window-rect: 1200, 750, 8, 8
-			if $!session.browser eq 'chrome' | 'safari';
+			if $!browser eq 'chrome' | 'safari';
 	}
 	method pre-test { ... }
 	method test { ... }
@@ -98,7 +100,7 @@ role WD2::Test::Template
 	}
 	
 	multi method screenshot {
-		$!session.screenshot; #  if $!driver-provider.driver.session-id;
+		$!session.take-screenshot; #  if $!driver-provider.driver.session-id;
 	}
 	
 	multi method screenshot ( Str:D $name ) {
@@ -108,12 +110,12 @@ role WD2::Test::Template
 			warn "no screenshot for $name";
 			return;
 		}
-		my Str:D $test-name = .[*-1] with self.^name.split: /\:\:/;
+		my Str:D $test-name = .tail with self.^name.split: /\:\:/;
 		my Str:D $fn =
 				join '-',
 						$name,
 						$test-name,
-						$now.to-posix[0] ~ '.png';
+						$now.to-posix.head ~ '.png';
 		.spurt: MIME::Base64.decode: $screenshot
 			with IO::Path.new: $fn.subst: /<-[.a..zA..Z0..9_-]>+/, '-', :g;
 	}
@@ -136,7 +138,7 @@ our sub driver-test ( WD2::Test::Template:U $test-class ) {
 				:$port,
 				:$close-delay,
 				:$test-root,
-				debug-level => Level::{ $debug-level }
+				debug => Level::{ $debug-level }
 				;
 	}
 }
