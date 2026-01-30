@@ -1,16 +1,16 @@
-use WD2::Component;
+use WD2::Component::Driver;
 
 unit class Provider;
 
-my Driver %driver = (
-    chrome => Driver,
-    edge => Driver,
+my WD2::Component::Driver %driver = (
+    chrome => WD2::Component::Driver,
+    edge => WD2::Component::Driver,
 );
 method get-driver (
         Str:D $browser where %driver.keys.any,
         Str:D :$host = '127.0.0.1',
         Int :$port?
-        --> Driver:D
+        --> WD2::Component::Driver:D
 ) {
     my %args = :$host;
     %args<port> = $port if $port;

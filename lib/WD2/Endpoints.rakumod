@@ -1,0 +1,118 @@
+enum WD2::Endpoints::Execution-Status::Type
+	# 200 400 404 405 500 other
+	<OK
+		Click-Intercepted Not-Interactable
+		Insecure-Cert
+		Invalid-Arg Invalid-Cookie-Domain Invalid-Element-State
+		Invalid-Selector
+		
+		Invalid-Session-ID No-Alert No-Such-Cookie
+		No-Such-Element No-Such-Frame No-Such-Window No-Such-Shadow-Root
+		Stale Detached-Shadow-Root
+		Unknown-Endpoint
+		
+		Unknown-Method
+		
+		JavaScript Target-Bounds Script-Timeout Session-Not-Created
+		Unexpected-Alert
+		Timeout Cant-Cookie Cant-Screen
+		Unknown-Error Unsupported-Operation
+	Other>;
+
+class WD2::Endpoints::Execution-Status {
+	has Int:D $.status is required;
+	# TODO : implement OS data ?
+	# has WD2::Endpoints::Execution-Status::Type:D $.type is required;
+	has Str:D $.message is required;
+	has Str:D %.data;
+	
+	method Str( --> Str:D ) {
+		join "\n",
+			$!message,
+			%!data ?? %!data.Str !! ''
+			;
+	}
+	
+}
+
+class WebDriver::Endpoints::Error
+		is WD2::Endpoints::Execution-Status
+{
+	has Str:D $.error is required;
+	has Str:D $.stacktrace is required;
+	
+	method Str( --> Str:D ) {
+		join "\n",
+			$.status,
+			$!error,
+			$.message,
+			$!stacktrace,
+			%.data ?? %.data.Str !! ''
+			;
+	}
+}
+
+
+class WD2::Endpoints::Result::X is Exception {
+	has WD2::Endpoints::Execution-Status $.execution-status;
+	method message( WD2::Endpoints::Result::X:D: --> Str ) {
+		~ $!execution-status
+	}
+	method ACCEPTS ( $topic ) {
+		return False unless $topic ~~ WD2::Endpoints::Result::X;
+		$topic.execution-status.type === $!execution-status.type;
+	}
+}
+
+
+
+role WD2::Endpoints {
+	use HTTP::UA-Strict;
+	my HTTP::UserAgent-Strict:D $ua = HTTP::UserAgent-Strict.new;
+	
+	has Str:D $.host is required = '127.0.0.1';
+	has Int:D $.port is required;
+	
+	sub request ( HTTP::Request-Strict:D $req --> HTTP::Response-Strict:D ) {
+		$ua.request: $req;
+	}
+	
+	sub check-status ( HTTP::Response-Strict $response ) {
+		my $return = from-json $response.content;
+		return $return if $response.code.Int == 200;
+		
+		Failure.new:
+				WD2::Endpoints::Result::X.new:
+						execution-status =>
+							WD2::Endpoints::Execution-Status.new:
+									status => $response.code,
+									error => $return<value><error>,
+									message => $return<value><message> // '',
+									stacktrace => $return<value><stacktrace> // '',
+									data => $return<value><data> // { }
+									;
+	}
+	
+	multi method request ( Str:D $method, WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request-Strict:D ) {
+		my Str:D $url = $endpoint.url: @endpoint;
+		given $method {
+			when 'GET' { return HTTP::Request-Strict.new: GET => $url }
+			when 'POST' { return HTTP::Request-Strict.new: POST => $url }
+			when 'DELETE' { return HTTP::Request-Strict.new: DELETE => $url }
+		}
+	}
+	method get-request ( WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request-Strict:D ) {
+		self.request: 'GET', $endpoint, @endpoint;
+	}
+	method post-request ( $data, WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request-Strict:D ) {
+		my HTTP::Request-Strict $req = self.request: 'POST', $endpoint, @endpoint;
+		# $req.field: Connection => 'keep-alive';
+		my Str:D $json = to-json $data;
+		# debug: Level::extra, $json;
+		$req.add-content: $json;
+		$req;
+	}
+	method delete-request ( WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request-Strict:D ) {
+		self.request: 'DELETE', $endpoint, @endpoint;
+	}
+}

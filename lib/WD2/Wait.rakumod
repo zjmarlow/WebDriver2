@@ -1,6 +1,6 @@
 use WD2::Debug;
 
-class WebDriver2::Until-C::Timeout::X is Exception {
+class WD2::Wait::Timeout::X is Exception {
 	method message () {
 		'timeout'
 	}
@@ -38,7 +38,7 @@ our sub basic (
 			sleep $interval;
 		} while (now - $start) < $duration;
 		&cleanup() if &cleanup;
-		WebDriver2::Until-C::Timeout::X.new.throw unless $soft;
+		WD2::WaitTimeout::X.new.throw unless $soft;
 		$return;
 	}
 }
@@ -77,9 +77,9 @@ multi sub expect-throw ( @exception, &operation ) {
 our sub expect-throw-type ( @types, &operation ) {
 	sub {
 		my $result = .() with throwable &operation;
-		return $result unless $result ~~ WebDriver2::Command::Result::X;
-#		return WebDriver2::Command::Result::X
-#			unless $result.defined and $result ~~ WebDriver2::Command::Result::X;
+		return $result unless $result ~~ WD2::Endpoints::Result::X;
+#		return WD2::Endpoints::Result::X
+#			unless $result.defined and $result ~~ WD2::Endpoints::Result::X;
 		$result.rethrow unless [or] ( $result.execution-status.type <<~~<< @types );
 		$result;
 	}
@@ -132,9 +132,9 @@ our sub no-throw-type ( @types, &operation ) {
 	sub {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
-		$result.rethrow unless $result ~~ WebDriver2::Command::Result::X;
+		$result.rethrow unless $result ~~ WD2::Endpoints::Result::X;
 		$result.rethrow unless $result.execution-status.type ~~ @types.any;
-#		return WebDriver2::Command::Result::X; # False;
+#		return WD2::Endpoints::Result::X; # False;
 		$result;
 	}
 }

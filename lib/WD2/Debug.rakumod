@@ -1,8 +1,8 @@
 enum Level ( OFF => -3, ERR => -1, WARN => 0, Info => 1, trace => 2, extra => 3 );
 
-unit role WebDriver2::Test::Debugging;
+unit class WD2::Debug;
 
-has Level:D $.debug-level is rw is built = Level::WARN;
+has Level:D $.debug-level is rw = Level::WARN;
 
 method !frame ( --> Backtrace::Frame ) {
 	my Backtrace:D $b = Backtrace.new: 4;
@@ -27,5 +27,5 @@ multi method debug ( Level:D $sev, Str:D $msg, *@msg ) {
 }
 
 multi method debug ( Str:D $msg, *@msg ) {
-	self!debug: Level::Info, $msg, |@msg;
+	self.debug: Level::Info, $msg, |@msg;
 }
