@@ -1,6 +1,6 @@
 use WD2::Wait :ALL;
 
-our sub present ( @types, &operation ) is export(:present) {
+our sub present ( @types, &operation ) is export(:presence) {
 	sub {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
@@ -9,4 +9,8 @@ our sub present ( @types, &operation ) is export(:present) {
 #		return WD2::Endpoints::Result::X; # False;
 		$result;
 	}
+}
+
+our sub displayed (  ) {
+	
 }

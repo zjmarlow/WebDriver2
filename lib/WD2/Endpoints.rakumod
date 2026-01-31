@@ -83,7 +83,9 @@ role WD2::Endpoints {
 	
 	method check-status ( HTTP::Response-Strict $response ) {
 		my $return = from-json $response.content;
-		return $return if $response.code.Int == 200;
+		#| as specified in https://w3c.github.io/webdriver/
+		#| success for endpoints without natural return values return json null
+		return $return // True if $response.code.Int == 200;
 		
 		# Failure.new:
 				WD2::Endpoints::Result::X.new:
