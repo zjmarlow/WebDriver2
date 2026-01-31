@@ -19,8 +19,7 @@ multi method delete (
 ) {
 	my $return = self.check-status: self.request: self.delete-request: $session;
 	return $session.driver with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method get-timeouts (
 		WD2::Component::Session:D:
@@ -31,8 +30,7 @@ multi method get-timeouts (
 ) {
 	my $return = self.check-status: self.request: self.get-request: $session, 'timeouts';
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method set-timeouts (
 		WD2::Component::Session:D:
@@ -59,8 +57,7 @@ multi method set-timeouts (
 			'timeouts'
 	;
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method navigate-to (
 		WD2::Component::Session:D:
@@ -72,8 +69,7 @@ multi method navigate-to (
 ) {
 	my $return = self.check-status: self.request: self.post-request: { :$url }, $session, 'url';
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method current-url (
 		WD2::Component::Session:D:
@@ -86,8 +82,7 @@ multi method current-url (
 ) {
 	my $return = self.check-status: self.request: self.get-request: $session, 'url';
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method back (
 		WD2::Component::Session:D:
@@ -100,8 +95,7 @@ multi method back (
 ) {
 	my $return = self.check-status: self.request: self.post-request: { }, $session, 'back';
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method forward (
 		WD2::Component::Session:D:
@@ -114,8 +108,7 @@ multi method forward (
 ) {
 	my $return = self.check-status: self.request: self.post-request: { }, $session, 'forward';
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method refresh (
 		WD2::Component::Session:D:
@@ -128,8 +121,7 @@ multi method refresh (
 ) {
 	my $return = self.check-status: self.request: self.post-request: { }, $session, 'refresh';
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method title (
 		WD2::Component::Session:D:
@@ -142,8 +134,7 @@ multi method title (
 ) {
 	my $return = self.check-status: self.request: self.get-request: $session, 'title';
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method get-window-handle (
 		WD2::Component::Session:D:
@@ -156,8 +147,7 @@ multi method get-window-handle (
 ) {
 	my $return = self.check-status: self.request: self.get-request: $session, 'window';
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method close-window (
 		WD2::Component::Session:D:
@@ -170,8 +160,7 @@ multi method close-window (
 ) {
 	my $return = self.check-status: self.request: self.delete-request: $session, 'window';
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method switch-to-window (
 		WD2::Component::Session:D:
@@ -184,8 +173,7 @@ multi method switch-to-window (
 	my $return = self.check-status: 
 			self.request: self.post-request: { :$handle }, $session, 'window';
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method get-window-handles (
 		WD2::Component::Session:D:
@@ -196,8 +184,7 @@ multi method get-window-handles (
 		--> List:D[ Str:D ] ) {
 	my $return = self.check-status: self.request: self.get-request: $session, <window handles>;
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method new-window (
 		WD2::Component::Session:D:
@@ -211,23 +198,20 @@ multi method new-window (
 	my $return = self.check-status:
 			self.request: %args, self.post-request: $session, <window new>;
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method switch-to-frame ( WD2::Component::Session:D: --> WD2::Component::Session:D
 ) {
 	my $return = self.check-status: self.request: self.post-request: { id => Str }, self, 'frame';
 	return self with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method switch-to-frame ( WD2::Component::Session:D: Int $frame --> WD2::Component::Session:D
 ) {
 	my $return = self.check-status: 
 			self.request: self.post-request: { id => $frame }, self, 'frame';
 	return self with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method switch-to-parent-frame (
 		WD2::Component::Session:D:
@@ -241,8 +225,7 @@ multi method switch-to-parent-frame (
 	my $return = self.check-status: 
 			self.request: self.post-request: { }, $session, <frame parent>;
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method get-window-rect (
 		WD2::Component::Session:D:
@@ -252,8 +235,7 @@ multi method get-window-rect (
 		WD2::Component::Session:D $session ) {
 	my $return = self.check-status: self.request: self.get-request: $session, <window rect>;
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method set-window-rect (
 		WD2::Component::Session:D:
@@ -282,8 +264,7 @@ multi method set-window-rect (
 	my $return = self.check-status:
 			self.request: self.post-request: %args, $session, <window rect>;
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method maximize-window (
 		WD2::Component::Session:D:
@@ -297,8 +278,7 @@ multi method maximize-window (
 	my $return = self.check-status:
 			self.request: self.post-request: { }, $session, <window maximize>;
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method minimize-window (
 		WD2::Component::Session:D:
@@ -312,8 +292,7 @@ multi method minimize-window (
 	my $return = self.check-status:
 			self.request: self.post-request: { }, $session, <window minimize>;
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method fullscreen-window (
 		WD2::Component::Session:D:
@@ -327,8 +306,7 @@ multi method fullscreen-window (
 	my $return = self.check-status:
 			self.request: self.post-request: { }, $session, <window fullscreen>;
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method active-element (
 		WD2::Component::Session:D:
@@ -346,8 +324,7 @@ multi method active-element (
 			:$session,
 			element-id => $return<value>{ $Element::IDENTIFIER }
 	with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 
 multi method find-element (
@@ -370,8 +347,7 @@ multi method find-element (
 			:$session,
 			element-id => $return<value>{ $Element::IDENTIFIER }
 	with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method find-elements (
 		WD2::Component::Session:D:
@@ -418,8 +394,7 @@ multi method page-source (
 ) {
 	my $return = self.check-status: self.request: self.get-request: $session, 'source';
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method execute-script (
 		WD2::Component::Session:D:
@@ -436,8 +411,7 @@ multi method execute-script (
 					self.post-request:
 							{ :$script, :@args }, $session, <execute sync>;
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method execute-async-script (
 		WD2::Component::Session:D:
@@ -456,8 +430,7 @@ multi method execute-async-script (
 					self.post-request:
 							{ :$script, :@args }, $session, <execute async>;
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method get-all-cookies (
 		WD2::Component::Session:D:
@@ -470,8 +443,7 @@ multi method get-all-cookies (
 ) {
 	my $return = self.check-status: self.request: self.get-request: $session, 'cookie';
 	return Array.new: |.<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method get-named-cookie ( WD2::Component::Session:D: Str:D $name ) {
 	WD2::Component::Session.get-named-cookie: $name, self
@@ -482,8 +454,7 @@ multi method get-named-cookie (
 	my $return = self.check-status: 
 			self.request: self.get-request: $session, 'cookie', $name;
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 =begin table :caption<cookie object structure>
 	RFC 6265 Field   | JSON Key | Attribute Key
@@ -511,8 +482,7 @@ multi method add-cookie (
 	my $return = self.check-status:
 			self.request: self.post-request: { cookie => %args }, $session, 'cookie';
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method add-cookie (
 		Str:D $name,
@@ -524,8 +494,7 @@ multi method add-cookie (
 	my $return = self.check-status:
 			self.request: self.post-request: { cookie => %args }, $session, 'cookie';
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method delete-cookie (
 		WD2::Component::Session:D:
@@ -538,8 +507,7 @@ multi method delete-cookie (
 	my $return = self.check-status:
 			self.request: self.delete-request: $session, 'cookie', $name;
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method delete-all-cookies (
 		WD2::Component::Session:D:
@@ -552,8 +520,7 @@ multi method delete-all-cookies (
 ) {
 	my $return = self.check-status: self.request: self.delete-request: $session, 'cookie';
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method perform-actions (
 		WD2::Component::Session:D:
@@ -588,8 +555,7 @@ multi method dismiss-alert (
 ) {
 	my $return = self.check-status:
 			self.request: self.post-request: { }, $session, <alert dismiss>;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method accept-alert (
 		WD2::Component::Session:D:
@@ -603,8 +569,7 @@ multi method accept-alert (
 	my $return = self.check-status:
 			self.request: self.post-request: { }, $session, <alert accept>;
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method get-alert-text (
 		WD2::Component::Session:D:
@@ -617,8 +582,7 @@ multi method get-alert-text (
 ) {
 	my $return = self.check-status: self.request: self.get-request: $session, <alert text>;
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method send-alert-text (
 		WD2::Component::Session:D:
@@ -631,8 +595,7 @@ multi method send-alert-text (
 	my $return = self.check-status:
 			self.request: self.post-request: { :$text }, $session, <alert text>;
 	return $session with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method take-screenshot (
 		WD2::Component::Session:D:
@@ -645,8 +608,7 @@ multi method take-screenshot (
 ) {
 	my $return = self.check-status: self.request: self.get-request: $session, 'screenshot';
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 
 =begin table
@@ -686,6 +648,5 @@ multi method print-page (
 ) {
 	my $return = self.check-status: self.request: self.post-request: %args, $session, 'print';
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }

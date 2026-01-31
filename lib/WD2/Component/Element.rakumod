@@ -39,8 +39,7 @@ class WD2::Component::Shadow does WD2::Endpoints {
 				session => $shadow.session,
 				element-id => $return<value>{ $WD2::Component::Element::IDENTIFIER }
 		with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 
 	multi method find-sub-shadow-elements (
@@ -107,8 +106,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 								'frame'
 								;
 		return $element.session with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	method find-element ( By:D $locator --> WD2::Component::Element:D ) {
@@ -138,8 +136,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 				session => $element.session,
 				element-id => $return<value>{ $WD2::Component::Element::IDENTIFIER }
 		with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method find-sub-elements (
@@ -190,8 +187,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 				session => $element.session,
 				shadow-id => $return<value>{ $WD2::Component::Shadow::IDENTIFIER }
 		with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 			
 	multi method is-element-selected (
@@ -205,8 +201,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'selected';
 		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method is-displayed (
@@ -220,8 +215,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'displayed';
 		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method attribute (
@@ -237,8 +231,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'attribute', $name;
 		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method property (
@@ -254,8 +247,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'property', $name;
 		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method css-value (
@@ -271,8 +263,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'css', $name;
 		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method text (
@@ -312,8 +303,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element ) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'rect';
 		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method is-enabled (
@@ -327,8 +317,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'enabled';
 		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method computed-role (
@@ -342,8 +331,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'computedrole';
 		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method computed-label (
@@ -357,8 +345,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'computedlabel';
 		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method click (
@@ -372,8 +359,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.post-request: { }, $element, 'click';
 		return $element with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method clear (
@@ -387,8 +373,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.post-request: { }, $element, 'clear';
 		return $element with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method send-keys (
@@ -404,8 +389,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.post-request: { :$text }, $element, 'value';
 		return $element with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 	
 	method take-screenshot ( --> Str:D ) {
@@ -424,7 +408,6 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'screenshot';
 		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		$return.throw;
 	}
 }

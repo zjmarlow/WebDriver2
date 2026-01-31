@@ -15,8 +15,7 @@ multi method status (
 		WD2::Component::Driver:U: WD2::Component::Driver:D $driver ) {
 	my $return = self.check-status: self.request: self.get-request: $driver, 'status';
 	return .<value> with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
 multi method new-session (
 		WD2::Component::Driver:D:
@@ -35,6 +34,5 @@ multi method new-session (
 			port => $driver.port,
 			session-id => .<value><sessionId>
 	with $return;
-	$return.handled = False;
-	$return;
+	$return.throw;
 }
