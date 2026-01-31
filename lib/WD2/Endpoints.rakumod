@@ -75,6 +75,8 @@ role WD2::Endpoints {
 	has Str:D $.host is required = '127.0.0.1';
 	has Int:D $.port is required;
 	
+	method url ( *@command --> Str:D ) { ... }
+	
 	multi method request ( HTTP::Request-Strict:D $req --> HTTP::Response-Strict:D ) {
 		$ua.request: $req;
 	}

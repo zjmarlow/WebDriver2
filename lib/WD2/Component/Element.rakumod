@@ -35,6 +35,7 @@ class WD2::Component::Shadow does WD2::Endpoints {
 		return WD2::Component::Element.new:
 				host => $shadow.host,
 				port => $shadow.port,
+				:$locator,
 				session => $shadow.session,
 				element-id => $return<value>{ $WD2::Component::Element::IDENTIFIER }
 		with $return;
@@ -66,6 +67,7 @@ class WD2::Component::Shadow does WD2::Endpoints {
 					WD2::Component::Element.new:
 							host => $shadow.host,
 							port => $shadow.port,
+							:$locator,
 							session => $shadow.session,
 							:$element-id
 					;
@@ -77,6 +79,7 @@ class WD2::Component::Shadow does WD2::Endpoints {
 class WD2::Component::Element does WD2::Endpoints is export {
 	our constant $IDENTIFIER = 'element-6066-11e4-a52e-4f735466cecf';
 	
+	has By:D $.locator is required;
 	has WD2::Endpoints:D $.session is required;
 	has Str:D $.element-id is required;
 	method url ( *@command --> Str:D ) {
@@ -131,6 +134,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 		return WD2::Component::Element.new:
 				host => $element.host,
 				port => $element.port,
+				:$locator,
 				session => $element.session,
 				element-id => $return<value>{ $WD2::Component::Element::IDENTIFIER }
 		with $return;
@@ -162,6 +166,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 					WD2::Component::Element.new:
 							host => $element.host,
 							port => $element.port,
+							:$locator,
 							session => $element.session,
 							:$element-id
 					;

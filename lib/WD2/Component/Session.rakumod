@@ -341,8 +341,8 @@ multi method active-element (
 ) {
 	my $return = self.check-status: self.request: self.get-request: $session, <element active>;
 	return Element.new:
-			host => $session.driver.host,
-			port => $session.driver.port,
+			host => $session.host,
+			port => $session.port,
 			:$session,
 			element-id => $return<value>{ $Element::IDENTIFIER }
 	with $return;
@@ -357,13 +357,16 @@ multi method find-element (
 
 multi method find-element (
 		WD2::Component::Session:U:
-		By:D $locator, WD2::Component::Session:D $session --> Element:D
+		By:D $locator,
+		WD2::Component::Session:D $session
+		--> Element:D
 ) {
 	my $return = self.check-status:
 			self.request: self.post-request: $locator.args, $session, 'element';
 	return Element.new:
-			host => $session.driver.host,
-			port => $session.driver.port,
+			host => $session.host,
+			port => $session.port,
+			:$locator,
 			:$session,
 			element-id => $return<value>{ $Element::IDENTIFIER }
 	with $return;
@@ -393,8 +396,9 @@ multi method find-elements (
 	for $return<value>>>.{ $Element::IDENTIFIER } -> $element-id {
 		@elements.push:
 				Element.new:
-						host => $session.driver.host,
-						port => $session.driver.port,
+						host => $session.host,
+						port => $session.port,
+						:$locator,
 						:$session,
 						:$element-id
 				;
