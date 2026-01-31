@@ -209,6 +209,21 @@ class WD2::Component::Element does WD2::Endpoints is export {
 		$return;
 	}
 	
+	multi method is-displayed (
+			WD2::Component::Element:D:
+			--> Bool:D
+	) { WD2::Component::Element.is-displayed: self }
+			
+	multi method is-displayed (
+			WD2::Component::Element:U:
+			WD2::Component::Element:D $element --> Bool:D
+	) {
+		my $return = self.check-status: self.request: self.get-request: $element, 'displayed';
+		return .<value> with $return;
+		$return.handled = False;
+		$return;
+	}
+	
 	multi method attribute (
 			WD2::Component::Element:D:
 			Str:D $name,
@@ -271,8 +286,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'text';
 		return .<value> with $return;
-		$return.Str = False;
-		$return;
+		$return.throw;
 	}
 	
 	multi method tag-name (
@@ -285,9 +299,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'name';
-		return .<value> with $return;
-		$return.handled = False;
-		$return;
+		return $return.<value> unless $return.isa: Exception;
+		$return.throw;
 	}
 	
 	multi method rect (

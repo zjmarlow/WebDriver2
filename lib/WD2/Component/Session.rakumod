@@ -214,18 +214,18 @@ multi method new-window (
 	$return.handled = False;
 	$return;
 }
-multi method switch-to-frame ( WD2::Component::Session:D $session --> WD2::Component::Session:D
+multi method switch-to-frame ( WD2::Component::Session:D: --> WD2::Component::Session:D
 ) {
-	my $return = self.check-status: self.request: self.post-request: { }, $session, 'frame';
-	return $session with $return;
+	my $return = self.check-status: self.request: self.post-request: { id => Str }, self, 'frame';
+	return self with $return;
 	$return.handled = False;
 	$return;
 }
-multi method switch-to-frame ( Int $frame, WD2::Component::Session:D $session --> WD2::Component::Session:D
+multi method switch-to-frame ( WD2::Component::Session:D: Int $frame --> WD2::Component::Session:D
 ) {
 	my $return = self.check-status: 
-			self.request: self.post-request: { id => $frame }, $session, 'frame';
-	return $session with $return;
+			self.request: self.post-request: { id => $frame }, self, 'frame';
+	return self with $return;
 	$return.handled = False;
 	$return;
 }

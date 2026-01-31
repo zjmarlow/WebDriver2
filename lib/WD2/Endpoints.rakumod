@@ -85,7 +85,7 @@ role WD2::Endpoints {
 		my $return = from-json $response.content;
 		return $return if $response.code.Int == 200;
 		
-		Failure.new:
+		# Failure.new:
 				WD2::Endpoints::Result::X.new:
 						execution-error =>
 							WD2::Endpoints::Error.new:

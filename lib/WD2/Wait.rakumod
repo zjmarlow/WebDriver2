@@ -10,11 +10,11 @@ my Duration $_interval = Duration.new: 1 / 10;
 my Duration $_max-duration = Duration.new: 1 * 60;
 my Level:D $_debug = Level::WARN;
 
-our sub did (
-		Real :$duration = $_max-duration,
-		Real :$interval = $_interval,
+sub did (
+		Rat :$duration = $_max-duration,
+		Rat :$interval = $_interval,
 		Level:D :$debug-level = $_debug
-) {
+) is export(:config) {
 	$_max-duration = $duration if $duration;
 	$_interval = $interval if $interval;
 	$_debug = $debug-level with $debug-level;
@@ -28,7 +28,7 @@ our sub basic (
 		Duration :$interval = $_interval,
 		Bool :$soft,
 		Int :$debug-level is copy = $_debug
-) {
+) is export(:basic) {
 	sub {
 		my $return;
 		my Instant $start = now;
@@ -38,12 +38,12 @@ our sub basic (
 			sleep $interval;
 		} while (now - $start) < $duration;
 		&cleanup() if &cleanup;
-		WD2::WaitTimeout::X.new.throw unless $soft;
+		WD2::Wait::Timeout::X.new.throw unless $soft;
 		$return;
 	}
 }
 
-our sub throwable (&operation) {
+our sub throwable (&operation) is export(:throw) {
 	-> {
 		my $val;
 		try $val = &operation();
@@ -53,7 +53,7 @@ our sub throwable (&operation) {
 
 
 
-our proto sub expect-throw ( | ) {*}
+our proto sub expect-throw ( | ) is export(:throw) {*}
 
 multi sub expect-throw ( $exception, &operation ) {
 	sub {
@@ -68,26 +68,26 @@ multi sub expect-throw ( @exception, &operation ) {
 	sub {
 		my $result = .() with throwable &operation;
 		return False unless $result ~~ Exception;
-		$result.rethrow unless [or] ( $result <<~~<< @exception );
+		$result.rethrow unless $result ~~ @exception.any;
 		$result;
 	}
 }
 
 # wait for exception
-our sub expect-throw-type ( @types, &operation ) {
+our sub expect-throw-type ( @types, &operation ) is export(:throw) {
 	sub {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ WD2::Endpoints::Result::X;
 #		return WD2::Endpoints::Result::X
 #			unless $result.defined and $result ~~ WD2::Endpoints::Result::X;
-		$result.rethrow unless [or] ( $result.execution-status.type <<~~<< @types );
+		$result.rethrow unless $result.execution-status.type ~~ @types.any;
 		$result;
 	}
 }
 
 
 
-our proto sub no-throw ( | ) {*}
+our proto sub no-throw ( | ) is export(:throw) {*}
 
 # wait until expected exception no longer occurs;
 # propagate throw if exception not expected
@@ -128,7 +128,7 @@ multi sub no-throw ( &matcher, &operation ) {
 
 # wait until expected exception no longer occurs;
 # propagate throw if exception not expected
-our sub no-throw-type ( @types, &operation ) {
+our sub no-throw-type ( @types, &operation ) is export(:throw) {
 	sub {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
