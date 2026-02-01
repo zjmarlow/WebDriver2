@@ -73,6 +73,10 @@ class WD2::Component::Shadow does WD2::Endpoints {
 		}
 		@elements;
 	}
+	
+	method present ( WD2::Component::Shadow:D: By:D $locator --> Bool:D ) {
+		so self.find-elements: $locator;
+	}
 }
 
 class WD2::Component::Element does WD2::Endpoints is export {
@@ -169,6 +173,10 @@ class WD2::Component::Element does WD2::Endpoints is export {
 					;
 		}
 		@elements;
+	}
+	#| checks SUB-element
+	method present ( WD2::Component::Element:D: By:D $locator ) {
+		so self.find-elements: $locator;
 	}
 	
 	multi method shadow-root (
