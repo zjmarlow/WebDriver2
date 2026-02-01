@@ -539,4 +539,32 @@ welcome.
 		<td align="center" class="not-started">&nbsp;</td>
 		<td><code>$element.present</code></td>
 	</tr>
+	<tr><td>switch-to ( convenience endpoint - not spec'd )</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td><code>$frame-element.switch-to</code></td>
+	</tr>
+	<tr><td>select ( convenience endpoint - not spec'd )</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td><code>$select-element.select: Str $option-text</code></td>
+	</tr>
+	<tr><td>selected-option ( convenience endpoint - not spec'd )</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td><code>$select-element.selected-option</code></td>
+	</tr>
+	<tr><td>selected-value ( convenience endpoint - not spec'd )</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td><code>$select-element.selected-value</code></td>
+	</tr>
 </tbody></table>
