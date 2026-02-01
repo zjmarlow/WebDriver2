@@ -1,0 +1,86 @@
+use Test;
+
+use lib <../HTTP-UserAgent/lib lib t/lib>;
+
+use WD2;
+use WD2::Wait;
+use WD2::Test::Template;
+use WD2::Locators;
+#use WebDriver2::Test::Locating-Test;
+
+my IO::Path:D $html-file = .add: 'test.html' with $*CWD.add: <xt content>;
+my IO::Path:D $from-file = .add: 'page-from.html' with $*CWD.add: <xt content>;
+my By:D $link = By::ID.value: 'link-to-page';
+my By:D $h2 = By::ID.value: 'page-to-heading-2';
+
+class Stale does WD2::Test::Template {
+	has Int:D $.plan = 6;
+	has Str:D $.name = 'stale';
+	has Str:D $.description = 'stale handling';
+	
+	method pre-test { }
+	method post-test { }
+	
+	method test {
+		$!session.navigate-to: 'file://' ~ $html-file.absolute;
+		is $!session.title, 'test', 'page title';
+		my WD2::Component::Element $outer-el = self.element-by-id: 'text';
+		my WD2::Component::Element $frame = self.element-by-id: 'iframe';
+		self.is:
+				'iframe reachable',
+				'iframe',
+				$frame.attribute: 'id';
+		self.is:
+				'element reachable',
+				'text',
+				$outer-el.attribute: 'id';
+		$!session.navigate-to: 'file://' ~ $html-file.absolute;
+		self.throws-like:
+				'stale outer element',
+				WD2::Endpoints::Result::X.new(
+						execution-error =>
+						WD2::Endpoints::Error.new:
+								status => 404,
+								error => 'stale element reference',
+								stacktrace => '',
+								# type => WD2::Endpoints::Execution-Status::Type::Stale,
+								message => 'stale element reference: stale element not found'
+				),
+				{ $outer-el.attribute: 'id' },
+				execution-error => { .status == 404 and .error.contains: 'stale' }
+				;
+		self.throws-like:
+                'stale frame element',
+                WD2::Endpoints::Result::X.new(
+                        execution-error =>
+                        WD2::Endpoints::Error.new:
+								status => 404,
+								error => 'stale element reference',
+								stacktrace => '',
+                                # type => WD2::Endpoints::Execution-Status::Type::Stale,
+                                message => 'stale element reference: stale element not found'
+                ),
+                { $frame.attribute: 'id' },
+                execution-error => { .status == 404 and .error.contains: 'stale' }
+                ;
+        $frame = $!session.find-element: $frame.locator;
+        $frame.switch-to;
+		my WD2::Component::Element $ifr-cb = self.element-by-id: 'iframe-cb';
+        self.is:
+                'iframe checkbox reachable',
+                'iframe-cb',
+                $ifr-cb.attribute: 'id'
+                ;
+	}
+	
+	method element-by-id( Str $id ) {
+		$!session.find-element( By::ID.value: $id )
+	}
+	method element-by-tag ( Str:D $tag ) {
+#		.resolve with
+			$!session.find-element:
+					By::Tag.value: $tag;
+	}
+}
+
+constant &MAIN = driver-test Stale;

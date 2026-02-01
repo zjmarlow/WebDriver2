@@ -460,16 +460,16 @@ multi method get-named-cookie (
 	$return.throw;
 }
 =begin table :caption<cookie object structure>
-	RFC 6265 Field   | JSON Key | Attribute Key
+	RFC 6265 Field		| JSON Key | Attribute Key
 	=========================================
-	name			| name	|
-	value			| value	|
-	path			| path	| Path
-	domain		| domain   | Domain
-	secure-only-flag | secure   | Secure
-	http-only-flag   | httpOnly | HttpOnly
-	expiry-time	| expiry   | Max-Age
-	samesite		| sameSite | SameSite
+	name				| name		|
+	value				| value		|
+	path				| path		| Path
+	domain				| domain	| Domain
+	secure-only-flag	| secure	| Secure
+	http-only-flag		| httpOnly	| HttpOnly
+	expiry-time			| expiry	| Max-Age
+	samesite			| sameSite	| SameSite
 =end table
 multi method add-cookie (
 		Str:D $name,
@@ -501,11 +501,14 @@ multi method add-cookie (
 }
 multi method delete-cookie (
 		WD2::Component::Session:D:
-		Str:D $name --> WD2::Component::Session:D
+		Str:D $name
+		--> WD2::Component::Session:D
 ) { WD2::Component::Session.delete-cookie: $name, self }
 multi method delete-cookie (
 		WD2::Component::Session:U:
-		Str:D $name, WD2::Component::Session:D $session --> WD2::Component::Session:D
+		Str:D $name,
+		WD2::Component::Session:D $session
+		--> WD2::Component::Session:D
 ) {
 	my $return = self.check-status:
 			self.request: self.delete-request: $session, 'cookie', $name;

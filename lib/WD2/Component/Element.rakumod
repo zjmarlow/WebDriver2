@@ -208,7 +208,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Bool:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'selected';
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 	
@@ -222,7 +222,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Bool:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'displayed';
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 	
@@ -238,7 +238,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'attribute', $name;
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 	
@@ -254,7 +254,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'property', $name;
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 	
@@ -270,7 +270,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'css', $name;
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 	
@@ -284,7 +284,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> WD2::Component::Element:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'text';
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 	
@@ -310,7 +310,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element ) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'rect';
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 	
@@ -324,7 +324,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Bool:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'enabled';
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 	
@@ -338,7 +338,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'computedrole';
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 	
@@ -352,7 +352,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'computedlabel';
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 	
@@ -415,7 +415,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			--> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'screenshot';
-		return .<value> unless $return.isa: Exception;
+		return $return<value> unless $return.isa: Exception;
 		$return.throw;
 	}
 }
