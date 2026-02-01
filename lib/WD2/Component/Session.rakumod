@@ -617,32 +617,32 @@ multi method take-screenshot (
 	$return.throw;
 }
 
-=begin table
-	Property	| JSON Key	| Value Type and Valid Values
+=begin table :caption<print options>
+	Property		| JSON Key		| Value Type and Valid Values
 	==========================================================
-	orientation	| orientation | Str : { portrait ( default ), landscape }
+	orientation		| orientation 	| Str : { portrait ( default ), landscape }
 	==========================================================
-	scale		| scale	| Rat : [ 0.1, 2 ] ( default : 1 )
+	scale			| scale			| Rat : [ 0.1, 2 ] ( default : 1 )
 	==========================================================
-	background	| background  | Bool : ( default : False )
+	background		| background	| Bool : ( default : False )
 	==========================================================
-	pageWidth	| width	| Rat : [ 2.54 / 72, Inf ) ( default : 21.59 )
+	pageWidth		| width			| Rat : [ 2.54 / 72, Inf ) ( default : 21.59 )
 	==========================================================
-	pageHeight	| height	| Rat : [ 2.54 / 72, Inf ) ( default : 27.94 )
+	pageHeight		| height		| Rat : [ 2.54 / 72, Inf ) ( default : 27.94 )
 	==========================================================
-	margin		| margin	| JSON Obj : ( default : { } )
+	margin			| margin		| JSON Obj : ( default : { } )
 	----------------------------------------------------------
-	- marginTop	| top		| Rat : [ 0, Inf ) ( default : 1 )
+	- marginTop		| top			| Rat : [ 0, Inf ) ( default : 1 )
 	----------------------------------------------------------
-	- marginBottom | bottom	| Rat : [ 0, Inf ) ( default : 1 )
+	- marginBottom	| bottom		| Rat : [ 0, Inf ) ( default : 1 )
 	----------------------------------------------------------
-	- marginLeft   | left		| Rat : [ 0, Inf ) ( default : 1 )
+	- marginLeft	| left			| Rat : [ 0, Inf ) ( default : 1 )
 	----------------------------------------------------------
-	- marginRight  | right	| Rat : [ 0, Inf ) ( default : 1 )
+	- marginRight	| right			| Rat : [ 0, Inf ) ( default : 1 )
 	==========================================================
-	shrinkToFit	| shrinkToFit | Bool : ( default : True )
+	shrinkToFit		| shrinkToFit	| Bool : ( default : True )
 	==========================================================
-	pageRanges	| pageRanges  | Array:D[ Int:D ] : ( default : [ ] )
+	pageRanges		| pageRanges	| Array:D[ Int:D ] : ( default : [ ] )
 =end table
 multi method print-page (
 		WD2::Component::Session:D:

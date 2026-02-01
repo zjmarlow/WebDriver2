@@ -400,6 +400,28 @@ class WD2::Component::Element does WD2::Endpoints is export {
 		$return.throw;
 	}
 	
+	method select ( WD2::Component::Element:D: Str:D $text --> Bool:D ) {
+		for self.find-elements: By::Tag.value: 'option' {
+			if .text eq $text {
+				.click;
+				return True;
+			}
+		}
+		False;
+	}
+	method selected-option ( WD2::Component::Element:D: --> Str ) {
+		for self.find-elements: By::Tag.value: 'option' {
+			return .text if .is-element-selected;
+		}
+		Str;
+	}
+	method selected-value ( WD2::Component::Element:D: --> Str ) {
+		for self.find-elements: By::Tag.value: 'option' {
+			return .value if .is-element-selected;
+		}
+		Str;
+	}
+	
 	method take-screenshot ( --> Str:D ) {
 		self.take-element-screenshot;
 	}
