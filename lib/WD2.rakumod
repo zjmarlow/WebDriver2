@@ -1,6 +1,6 @@
-use WD2::Component::Driver;
-
 unit class Provider;
+
+use WD2::Component::Driver;
 
 my WD2::Component::Driver %driver = (
     chrome => WD2::Component::Driver,

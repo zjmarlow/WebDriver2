@@ -1,4 +1,5 @@
 use WD2::Debug;
+use WD2::Endpoints;
 
 my Duration:D $_duration = Duration.new: 3;
 my Duration:D $_interval = Duration.new: 1/10;
@@ -68,11 +69,8 @@ our sub basic (
 		my Bool:D $expired = False;
 		my Instant:D $start = now;
 		react whenever Supply.interval: $interval {
-			$return = &operation();
-			do {
-				&cleanup() if &cleanup;
-				done;
-			} if &expect($return) or $expired = now - $start > $duration;
+			try $return = &operation();
+			done if $! && &expect($!) || &expect($return) or $expired = now - $start > $duration;
 		}
 		&cleanup() if &cleanup;
 		WD2::Wait::Timeout::X.new.throw if $expired and not $soft;
@@ -80,8 +78,11 @@ our sub basic (
 	}
 }
 
+#| performs the operation and returns a (non-failure) exception
+#|   if there was one,
+#|   otherwise the return value
 our sub throwable (&operation) is export(:throw) {
-	{
+	-> {
 		my $val;
 		try $val = &operation();
 		$! or $val
@@ -110,14 +111,23 @@ multi sub expect-throw ( @exception, &operation ) {
 	}
 }
 
-# wait for exception
-our sub expect-throw-type ( @types, &operation ) is export(:throw) {
+#| rethrow wrong exception
+#| return the type if it was expected
+#| return Error-Code:U otherwise
+our sub expect-throw-type ( &operation, Error-Code:D @types ) is export(:throw) {
 	-> {
 		my $result = .() with throwable &operation;
-		return $result unless $result ~~ WD2::Endpoints::Result::X;
-#		return WD2::Endpoints::Result::X
-#			unless $result.defined and $result ~~ WD2::Endpoints::Result::X;
-		$result.rethrow unless $result.execution-status.type ~~ @types.any;
+		if $result.isa: WD2::Endpoints::Result::X {
+			if $result.execution-error.error === @types.any {
+				$result = $result.execution-error.error;
+			} else {
+				$result = Error-Code;
+			}
+		} elsif $result.isa: Exception {
+			$result.rethrow;
+		} else {
+			$result = Error-Code;
+		}
 		$result;
 	}
 }

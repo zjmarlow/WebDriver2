@@ -381,8 +381,13 @@ multi method find-elements (
 	}
 	@elements;
 }
-method present ( WD2::Component::Session:D: By:D $locator --> Bool:D ) {
-	so self.find-elements: $locator;
+method present (
+		WD2::Component::Session:D:
+		By:D $locator
+		--> WD2::Component::Element
+) {
+	my WD2::Component::Element:D @elements = self.find-elements: $locator;
+	@elements ?? @elements[0] !! WD2::Component::Element;
 }
 
 multi method page-source (

@@ -1,5 +1,6 @@
 use WD2::Wait :ALL;
 use WD2::Debug;
+use WD2::Endpoints;
 use WD2::Locators;
 use WD2::Component::Element;
 use WD2::Component::Session;
@@ -14,7 +15,11 @@ our sub present (
 		Level :$debug-level
 ) is export(:presence) {
 	my &operation = { $context.present: $locator; };
-	basic &operation, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic &operation, |%args;
 }
 
 our sub stale (
@@ -25,10 +30,13 @@ our sub stale (
 		Bool :$soft,
 		Level :$debug-level
 ) is export(:presence) {
-	my &operation = 
-	    expect-throw-type { $element.tag-name; },
-            'stale element reference';
-    basic &operation, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my &operation =
+			expect-throw-type -> { $element.tag-name }, Array[ Error-Code:D ].new: Stale;
+    my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level
+	;
+	basic &operation, |%args;
 }
 
 our sub displayed (
@@ -40,7 +48,11 @@ our sub displayed (
 		Level :$debug-level
 ) is export(:presence) {
 	my &operation = { $element.displayed; };
-	basic &operation, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic &operation, |%args;
 }
 
 our sub not-displayed (
@@ -52,7 +64,11 @@ our sub not-displayed (
 		Level :$debug-level
 ) is export(:presence) {
 	my &operation = { not $element.displayed; };
-	basic &operation, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic &operation, |%args;
 }
 
 our sub value-not-empty (
@@ -64,7 +80,11 @@ our sub value-not-empty (
 		Level :$debug-level
 ) is export(:value) {
 	my &operation = { $element.value; };
-	basic &operation, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic &operation, |%args;
 }
 
 our sub value-to-be (
@@ -77,7 +97,11 @@ our sub value-to-be (
 		Level :$debug-level
 ) is export(:value) {
 	my &operation = { $element.value eq $value; };
-	basic &operation, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic &operation, |%args;
 }
 
 our sub text-to-be (
@@ -90,7 +114,11 @@ our sub text-to-be (
 		Level :$debug-level
 ) is export(:value) {
 	my &operation = { $element.text eq $text; };
-	basic &operation, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic &operation, |%args;
 }
 
 our sub title-to-be (
@@ -103,5 +131,9 @@ our sub title-to-be (
 		Level :$debug-level
 ) is export(:value) {
 	my &operation = { $session.title eq $title; };
-	basic &operation, :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic &operation, |%args;
 }

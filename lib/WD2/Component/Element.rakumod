@@ -74,8 +74,13 @@ class WD2::Component::Shadow does WD2::Endpoints {
 		@elements;
 	}
 	
-	method present ( WD2::Component::Shadow:D: By:D $locator --> Bool:D ) {
-		so self.find-elements: $locator;
+	method present (
+			WD2::Component::Shadow:D:
+			By:D $locator
+			--> WD2::Component::Element
+	) {
+		my WD2::Component::Element:D @elements = self.find-elements: $locator;
+		@elements ?? @elements[0] !! WD2::Component::Element;
 	}
 }
 
@@ -175,8 +180,13 @@ class WD2::Component::Element does WD2::Endpoints is export {
 		@elements;
 	}
 	#| checks SUB-element
-	method present ( WD2::Component::Element:D: By:D $locator ) {
-		so self.find-elements: $locator;
+	method present (
+			WD2::Component::Element:D:
+			By:D $locator
+			--> WD2::Component::Element
+	) {
+		my WD2::Component::Element:D @elements = self.find-elements: $locator;
+		@elements ?? @elements[0] !! WD2::Component::Element;
 	}
 	
 	multi method shadow-root (
@@ -240,6 +250,9 @@ class WD2::Component::Element does WD2::Endpoints is export {
 		my $return = self.check-status: self.request: self.get-request: $element, 'attribute', $name;
 		return $return<value> unless $return.isa: Exception;
 		$return.throw;
+	}
+	method id ( WD2::Component::Element:D: --> Str ) {
+		self.attribute: 'id';
 	}
 	
 	multi method property (

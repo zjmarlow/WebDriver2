@@ -1,23 +1,46 @@
-enum WD2::Endpoints::Execution-Status::Type
-	# 200 400 404 405 500 other
-	<OK
-		Click-Intercepted Not-Interactable
-		Insecure-Cert
-		Invalid-Arg Invalid-Cookie-Domain Invalid-Element-State
-		Invalid-Selector
+our Str enum Error-Code (
+		# 200
+		OK => 'OK',
 		
-		Invalid-Session-ID No-Alert No-Such-Cookie
-		No-Such-Element No-Such-Frame No-Such-Window No-Such-Shadow-Root
-		Stale Detached-Shadow-Root
-		Unknown-Endpoint
+		# 400
+		Click-Intercepted => 'element click intercepted',
+		Not-Interactable => 'element not interactable',
+		Insecure-Cert => 'insecure certificate',
+		Invalid-Arg => 'invalid argument',
+		Invalid-Cookie-Domain => 'invaid cookie domain',
+		Invalid-Element-State => 'invalid element state',
+		Invalid-Selector => 'invalid selector',
 		
-		Unknown-Method
+		# 404
+		Invalid-Session-ID => 'invalid session id',
+		No-Alert => 'no such alert',
+		No-Such-Cookie => 'no such cookie',
+		No-Such-Element => 'no such element',
+		No-Such-Frame => 'no such frame',
+		No-Such-Window => 'no such window',
+		No-Such-Shadow-Root => 'no such shadow root',
+		Stale => 'stale element reference',
+		Detached-Shadow-Root => 'detached shadow root',
+		Unknown-Command => 'unknown command',
 		
-		JavaScript Target-Bounds Script-Timeout Session-Not-Created
-		Unexpected-Alert
-		Timeout Cant-Cookie Cant-Screen
-		Unknown-Error Unsupported-Operation
-	Other>;
+		# 405
+		Unknown-Method => 'unknown method',
+		
+		# 500
+		JavaScript => 'javascript error',
+		Target-Bounds => 'move target out of bounds',
+		Script-Timeout => 'script timeout error',
+		Session-Not-Created => 'session not created',
+		Unexpected-Alert => 'unexpected alert open',
+		Timeout => 'timeout',
+		Cant-Cookie => 'unable to set cookie',
+		Cant-Screen => 'unable to capture screen',
+		Unknown-Error => 'unknown error',
+		Unsupported-Operation => 'unsupported operation',
+		
+		# other
+		Other => 'other',
+);
 
 class WD2::Endpoints::Execution-Status {
 	has Int:D $.status is required;
@@ -38,13 +61,14 @@ class WD2::Endpoints::Execution-Status {
 class WD2::Endpoints::Error
 		is WD2::Endpoints::Execution-Status
 {
-	has Str:D $.error is required;
+	has Error-Code:D $.error is required;
 	has Str:D $.stacktrace is required;
 	
 	method Str( --> Str:D ) {
+		say 'Error.Str ', $!error.Str;
 		join "\n",
 			$.status,
-			$!error,
+			$!error.Str,
 			$.message,
 			%.data ?? |( $!stacktrace, %.data.Str ) !! $!stacktrace,
 			;
@@ -58,10 +82,10 @@ class WD2::Endpoints::Result::X is Exception {
 		$!execution-error.message
 	}
 	method ACCEPTS ( $topic ) {
-		return False unless $topic ~~ WD2::Endpoints::Result::X;
+		return False unless $topic.isa: WD2::Endpoints::Result::X;
 		$topic.execution-error.status == $!execution-error.status
 		and
-		$topic.execution-error.error eq $!execution-error.error;
+		$topic.execution-error.error === $!execution-error.error;
 	}
 }
 
@@ -92,7 +116,7 @@ role WD2::Endpoints {
 						execution-error =>
 							WD2::Endpoints::Error.new:
 									status => $response.code,
-									error => $return<value><error>,
+									error => Error-Code( $return<value><error> ),
 									message => $return<value><message> // '',
 									stacktrace => $return<value><stacktrace> // '',
 									data => $return<value><data> // { }
