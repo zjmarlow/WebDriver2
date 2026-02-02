@@ -24,16 +24,28 @@ class Wait does WD2::Test::Template {
 		my By:D $locator = By::ID.value: 'added';
 		my &wait;
 		my WD2::Component::Element $element;
-		$!session.navigate-to: 'file://' ~ $html-file.absolute;
-		self.subtest: 'wait present' => {
-			plan 9;
+		my Instant $start;
+		self.subtest: 'wait present / absent' => {
+			plan 10;
+			
+			self.diag: 'element absent';
+			$!session.navigate-to: 'file://' ~ $html-file.absolute;
+			self.ok:
+					'absent true for absent element',
+					.() with absent $!session, $locator, :$duration;
+			&wait = absent $!session, $locator, :$duration;
+			self.lives-ok:
+					'absent returns immediately for absent element',
+					&wait;
 			self.nok:
-					'button not added yet',
+					'present times out for absent element',
 					.() with present $!session, $locator, :$duration, :soft;
 			self.throws-like:
 					'present throws correctly when element is absent',
 					WD2::Wait::Timeout::X,
-					{ .() with present $!session, $locator, :$duration; };
+					present $!session, $locator, :$duration;
+			
+			self.diag: 'element becomes present';
 			&wait = present $!session, $locator, :soft;
 			.click with $!session.find-element: By::ID.value: 'add';
 			$element = &wait();
@@ -44,27 +56,73 @@ class Wait does WD2::Test::Template {
 			self.ok: 'wait for presence found element', $element;
 			self.is: 'found correct type of element', 'button', $element.tag-name;
 			self.is: 'found correct element', 'added', $element.id;
-			my Instant:D $start = now;
-			$element = .() with present $!session, By::ID.value: 'hidden';
+			
+			self.diag: 'element present';
+			&wait = present $!session, $locator, :$duration;
+			$start = now;
+			$element = &wait();
 			self.ok:
 					'wait for presence returns immediately if already present',
 					now - $start < $duration;
 			self.ok: 'immediate presence returned element', $element;
 			self.is: 'correct element returned', 'hidden', $element.id;
+			self.nok:
+					'absent times out for present element',
+					.() with absent $!session, $locator, :$duration, :soft;
+					
+			self.diag: 'element removed';
+			$locator = By::ID.value: 'remove';
+			$element = $!session.find-element: $locator;
+			&wait = absent $!session, $locator, :soft;
+			$element.click;
+			self.ok: 'element removed', &wait();
+			&wait = absent $!session, $locator, :$duration;
+			self.lives-ok: 'absent returns immediately if already absent', &wait;
 		}
 		self.subtest: 'wait stale' => {
-			plan 5;
+			plan 7;
+			$!session.refresh;
 			$element = .() with present $!session, By::ID.value: 'remove';
 			self.ok: 'button starts out present', $element;
-			self.nok: 'not stale while present', .() with stale $element, :$duration, :soft;
+			self.nok:
+					'not stale while present',
+					.() with stale $element, :$duration, :soft;
+			self.throws-like:
+					'stale times out on present',
+					WD2::Wait::Timeout::X,
+					stale $element;
 			&wait = stale $element;
 			$element.click;
 			self.is: 'stale', Stale, &wait();
-			$locator = By::ID.value: 'remove';
+			$locator = $element.locator;
 			self.nok: 'element not present', $!session.present: $locator;
 			self.nok:
-					'wait detects element no longer present',
+					'wait stale detects element no longer present',
 					.() with present $!session, $locator, :soft;
+			$start = now;
+			&wait();
+			self.ok:
+					'wait returns immediately if already stale',
+					now - $start < $duration;
+		}
+		self.subtest: 'wait (not-)displayed' => {
+			plan 5;
+			$!session.refresh;
+			$element = $!session.find-element: By::ID.value: 'visible';
+			self.ok:
+					'displayed detects displayed',
+					.() with displayed $element, :$duration;
+			self.nok:
+					'not-displayed returns false for displayed',
+					.() with not-displayed $element, :$duration, :soft;
+			self.throws-like:
+					'not-displayed times out for displayed',
+					WD2::Wait::Timeout::X,
+					not-displayed $element;
+			&wait = not-displayed;
+			$element.click;
+			self.ok: 'not-displayed detects no longer displayed', &wait();
+			
 		}
 	}
 	

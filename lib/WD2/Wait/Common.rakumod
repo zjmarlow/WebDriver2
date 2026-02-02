@@ -22,6 +22,24 @@ our sub present (
 	basic &operation, |%args;
 }
 
+our sub absent (
+		$context where .defined,
+		By:D $locator,
+		:&cleanup,
+		Duration :$duration,
+		Duration :$interval,
+		Bool :$soft,
+		Level :$debug-level
+) is export(:presence) {
+	my &operation = { not $context.present: $locator; };
+	# my &expect = -> $val { $val === False };
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic &operation, |%args;
+}
+
 our sub stale (
 		WD2::Component::Element:D $element,
 		:&cleanup,
