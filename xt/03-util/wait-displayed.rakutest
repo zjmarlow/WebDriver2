@@ -1,0 +1,57 @@
+use Test;
+
+use lib <../http-useragent/lib lib>;
+
+use WD2;
+use WD2::Wait;
+use WD2::Wait::Common :ALL;
+use WD2::Test::Template;
+use WD2::Endpoints;
+use WD2::Locators;
+
+my IO::Path:D $html-file = .add: 'test.html' with $*CWD.add: <xt content>;
+
+class Wait does WD2::Test::Template {
+	has Int:D $.plan = 6;
+	has Str:D $.name = 'wait';
+	has Str:D $.description = 'various waits';
+	
+	method pre-test { }
+	method post-test { }
+	
+	method test {
+		my Duration:D $duration = Duration.new: 1/2;
+		my By:D $locator = By::ID.value: 'added';
+		my &wait;
+		my WD2::Component::Element $element;
+		my Instant $start;
+		
+		$!session.navigate-to: 'file://' ~ $html-file.absolute;
+		$element = $!session.find-element: By::ID.value: 'visible';
+		self.ok:
+				'displayed detects displayed',
+				.() with displayed $element, :$duration;
+		self.nok:
+				'hidden returns false for displayed',
+				.() with hidden $element, :$duration, :soft;
+		self.throws-like:
+				'hidden times out for displayed',
+				WD2::Wait::Timeout::X,
+				hidden $element, :$duration;
+		&wait = hidden $element, :soft;
+		$element.click;
+		self.ok: 'hidden detects no longer displayed', &wait();
+		&wait = hidden $element, :$duration;
+		self.lives-ok: 'hidden returns immediately for hidden', &wait;
+		self.throws-like:
+				'displayed times out for hidden',
+				WD2::Wait::Timeout::X,
+				displayed $element, :$duration;
+	}
+	
+	method element-by-id( Str $id ) {
+		$!session.find-element( By::ID.value: $id )
+	}
+}
+
+constant &MAIN = driver-test Wait;

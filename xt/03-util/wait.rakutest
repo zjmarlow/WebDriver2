@@ -109,7 +109,7 @@ class Wait does WD2::Test::Template {
 					stale $element, :$duration;
 		}
 		self.subtest: 'wait displayed / hidden' => {
-			plan 5;
+			plan 6;
 			$!session.refresh;
 			$element = $!session.find-element: By::ID.value: 'visible';
 			self.ok:
@@ -121,12 +121,16 @@ class Wait does WD2::Test::Template {
 			self.throws-like:
 					'hidden times out for displayed',
 					WD2::Wait::Timeout::X,
-					hidden $element;
-			&wait = hidden $element;
+					hidden $element, :$duration;
+			&wait = hidden $element, :soft;
 			$element.click;
 			self.ok: 'hidden detects no longer displayed', &wait();
 			&wait = hidden $element, :$duration;
 			self.lives-ok: 'hidden returns immediately for hidden', &wait;
+			self.throws-like:
+					'displayed times out for hidden',
+					WD2::Wait::Timeout::X,
+					displayed $element, :$duration;
 		}
 	}
 	

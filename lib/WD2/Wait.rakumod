@@ -54,15 +54,38 @@ sub check-bounds (
 	}
 }
 
-our sub basic (
+our sub basic-op (
 		&operation where .defined,
-		:&expect = sub ( $value ) { $value.defined }, # { $value !=== Any }
 		:&cleanup,
 		Duration:D :$duration = $_duration,
 		Duration:D :$interval = $_interval,
 		Bool :$soft,
 		Level :$debug-level = $_debug
-) is export(:basic) {
+) is export(:base :basic) {
+	check-bounds $duration, $interval;
+	-> {
+		my $return;
+		my Bool:D $expired = False;
+		my Instant:D $start = now;
+		react whenever Supply.interval: $interval {
+			try $return = &operation();
+			done if $return or $expired = now - $start > $duration;
+		}
+		&cleanup() if &cleanup;
+		WD2::Wait::Timeout::X.new.throw if $expired and not $soft;
+		$return;
+	}
+}
+
+our sub basic (
+		&operation where .defined,
+		:&expect = -> $value { $value.defined },
+		:&cleanup,
+		Duration:D :$duration = $_duration,
+		Duration:D :$interval = $_interval,
+		Bool :$soft,
+		Level :$debug-level = $_debug
+) is export(:base :basic) {
 	check-bounds $duration, $interval;
 	-> {
 		my $return;
@@ -78,6 +101,73 @@ our sub basic (
 	}
 }
 
+our sub basic-true (
+		&operation where .defined,
+		:&cleanup,
+		Duration:D :$duration = $_duration,
+		Duration:D :$interval = $_interval,
+		Bool :$soft,
+		Level :$debug-level = $_debug
+) is export(:basic) {
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my &expect = -> $value { $value === True };
+	basic &operation, :&expect, |%args;
+}
+
+our sub basic-so-true (
+		&operation where .defined,
+		:&cleanup,
+		Duration:D :$duration = $_duration,
+		Duration:D :$interval = $_interval,
+		Bool :$soft,
+		Level :$debug-level = $_debug
+) is export(:basic) {
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my &expect = -> $value { so $value };
+	basic &operation, :&expect, |%args;
+}
+
+our sub basic-to-true (
+		&operation where .defined,
+		:&cleanup,
+		Duration:D :$duration = $_duration,
+		Duration:D :$interval = $_interval,
+		Bool :$soft,
+		Level :$debug-level = $_debug
+) is export(:basic) {
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my &expect = <-> $val {
+		! $val === True
+				?? ( $val = True )
+				!! ( $val = False )
+	};
+	basic &operation, :&expect, |%args;
+}
+
+our sub basic-equals (
+		&operation where .defined,
+		$value,
+		:&cleanup,
+		Duration:D :$duration = $_duration,
+		Duration:D :$interval = $_interval,
+		Bool :$soft,
+		Level :$debug-level = $_debug
+) is export(:basic) {
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my &expect = -> $val { $val == $value };
+	basic &operation, :&expect, |%args;
+}
+
+
+
 #| performs the operation and returns a (non-failure) exception
 #|   if there was one,
 #|   otherwise the return value
@@ -89,25 +179,11 @@ our sub throwable (&operation) is export(:throw) {
 	};
 }
 
-
-
-our proto sub expect-throw ( | ) is export(:throw) {*}
-
-multi sub expect-throw ( $exception, &operation ) {
+our sub expect-throw ( &operation ) is export(:throw){
 	-> {
 		my $result = .() with throwable &operation;
-		return False unless $result ~~ Exception;
-		$result.rethrow unless $result ~~ $exception;
-		$result;
-	}
-}
-
-multi sub expect-throw ( @exception, &operation ) {
-	-> {
-		my $result = .() with throwable &operation;
-		return False unless $result ~~ Exception;
-		$result.rethrow unless $result ~~ @exception.any;
-		$result;
+		return False unless $result.isa: Exception;
+		$result but True;
 	}
 }
 
@@ -134,54 +210,23 @@ our sub expect-throw-type ( &operation, Error-Code:D @types ) is export(:throw) 
 
 
 
-our proto sub no-throw ( | ) is export(:throw) {*}
-
-# wait until expected exception no longer occurs;
-# propagate throw if exception not expected
-multi sub no-throw ($exception, &operation) {
+# wait until exception no longer occurs
+our sub no-throw (&operation) {
 	-> {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
-		$result.rethrow unless $result ~~ $exception;
-		$result; # return the expected exception
+		$result but False;
 	}
 }
 
 # wait until expected exception no longer occurs;
 # propagate throw if exception not expected
-# TODO : does this work ?
-multi sub no-throw (@exception, &operation) {
-	-> {
-		my $result = .() with throwable &operation;
-		return $result unless $result ~~ Exception;
-#		$result.rethrow unless [or] ( $result <<~~<< @exception );
-		$result.rethrow unless $result ~~ @exception.any;
-#		False;
-		$result;
-	}
-}
-
-# wait until expected exception no longer occurs;
-# propagate throw if exception not expected
-multi sub no-throw ( &matcher, &operation ) {
-	-> {
-		my $result = .() with throwable &operation;
-		return $result unless $result ~~ Exception;
-		$result.rethrow unless &matcher( $result );
-#		False;
-		$result;
-	}
-}
-
-# wait until expected exception no longer occurs;
-# propagate throw if exception not expected
-our sub no-throw-type ( @types, &operation ) is export(:throw) {
+our sub no-throw-type ( &operation, Error-Code:D @types ) is export(:throw) {
 	-> {
 		my $result = .() with throwable &operation;
 		return $result unless $result ~~ Exception;
 		$result.rethrow unless $result ~~ WD2::Endpoints::Result::X;
-		$result.rethrow unless $result.execution-status.type ~~ @types.any;
-#		return WD2::Endpoints::Result::X; # False;
-		$result;
+		$result.rethrow unless $result.execution-error.error === @types.any;
+		$result but False;
 	}
 }
