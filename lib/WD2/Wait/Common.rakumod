@@ -31,13 +31,17 @@ our sub absent (
 		Bool :$soft,
 		Level :$debug-level
 ) is export(:presence) {
-	my &operation = { not $context.present: $locator; };
-	# my &expect = -> $val { $val === False };
+	my &operation = { so $context.present: $locator; };
+	my &expect = <-> $val {
+		$val === False
+				?? ( $val = True )
+				!! ( $val = False )
+	};
 	my %args =
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	;
-	basic &operation, |%args;
+	basic &operation, :&expect, |%args;
 }
 
 our sub stale (
@@ -65,7 +69,7 @@ our sub displayed (
 		Bool :$soft,
 		Level :$debug-level
 ) is export(:presence) {
-	my &operation = { $element.displayed; };
+	my &operation = { $element.displayed };
 	my %args =
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
@@ -81,7 +85,12 @@ our sub hidden (
 		Bool :$soft,
 		Level :$debug-level
 ) is export(:presence) {
-	my &operation = { not $element.displayed; };
+	my &operation = { so $element.displayed };
+	my &expect = <-> $val {
+		$val === False
+				?? ( $val = True )
+				!! ( $val = False )
+	};
 	my %args =
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;

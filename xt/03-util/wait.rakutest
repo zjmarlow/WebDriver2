@@ -74,7 +74,7 @@ class Wait does WD2::Test::Template {
 					'absent throws correctly for present element',
 					WD2::Wait::Timeout::X,
 					absent $!session, $locator, :$duration;
-					
+			
 			self.diag: 'element removed';
 			$locator = By::ID.value: 'remove';
 			$element = $!session.find-element: $locator;
@@ -108,7 +108,7 @@ class Wait does WD2::Test::Template {
 					'wait returns immediately if already stale',
 					stale $element, :$duration;
 		}
-		self.subtest: 'wait (not-)displayed' => {
+		self.subtest: 'wait displayed / hidden' => {
 			plan 5;
 			$!session.refresh;
 			$element = $!session.find-element: By::ID.value: 'visible';

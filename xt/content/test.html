@@ -4,6 +4,34 @@
 		<style>
 			#li3 { font-weight : 700 }
 		</style>
+		<script type="text/javascript" src="jquery-3.6.4.js"></script>
+		<script type="text/javascript">
+			function sleep(seconds, action) {
+				setTimeout(action, seconds * 1000);
+			}
+			function remove(thing) {
+				sleep(2, function(){ thing.remove(); });
+			}
+			function replaceButton() {
+				var old = $( "#replace" );
+				var button = $( "<button>" );
+				button.attr("id", "replace");
+				button.text("replacer");
+				sleep(2, function(){ old.remove(); $( "#form" ).append(button); });
+			}
+			function addButton() {
+				var button = $( "<button>" );
+				button.attr("id", "added");
+				button.text("added");
+				sleep(2, function(){ $( "#form" ).append(button) });
+			}
+			function showButton() {
+				sleep(2, function(){ $( "#hidden" ).show(); });
+			}
+			function hideButton() {
+				sleep(2, function(){ $( "$visible" ).hide() });
+			}
+		</script>
 	</head>
 	<body>
 		<h2>test</h2>
@@ -41,7 +69,13 @@
 			<iframe id="iframe" src="iframe.html"></iframe>
 		</form>
 		
-		<button id="remove" onclick="var self = this; async function sleep() { await new Promise(resolve => setTimeout(resolve, 3000)); self.remove() }; sleep();">remove</button>
+		<button id="visible" onclick="hideButton()">visible</button>
+		<button id="hidden">hidden</button>
+		<button id="hide" onclick="hideButton();">hide</button>
+		<button id="show" onclick="showButton();">show</button>
+		<button id="add" onclick="addButton();">add</button>
+		<button id="replace" onclick="replaceButton();">replace</button>
+		<button id="remove" onclick="remove(this);">remove</button>
 		
 		<p><a href="page-to.html" id="link-to-page">another page</a></p>
 		<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
