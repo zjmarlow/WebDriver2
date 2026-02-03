@@ -21,7 +21,6 @@ will need to specify the browser and port upon instantiation:
 
 Most commands are Session or Element endpoints, though:
 
-	# previously
 	use WD2::Component::Session;
 	
 	my WD2::Component::Session:D $session =
@@ -33,7 +32,6 @@ If no capabilities are given, the minimum, empty default will be supplied: `{ ca
 
 Some Element endpoints:
 
-	# previously
 	use WD2::Component::Element;
 	
 	use WD2::Locators;
@@ -52,12 +50,52 @@ When finished:
 
 	$session.delete;
 
+### Convenience Methods and Routines
+
+#### Methods
+
+Some Session and Element convenience methods have been provided that are not part of the WebDriver2 specification.  They are [listed below](#implementation-status) at the end of the implementation status section.
+
+#### Wait Routines
+
+Since waiting for a condition to be true before moving to the next step is useful, several routines that poll state have also been provided:
+
+	# relevant imports and declarations completed above
+	use WD2::Wait::Common :ALL;
+	
+	my &wait-present = present $session, $locator, duration => 5, interval => 1/10, :soft;
+	# do something...
+	# then wait for 5 seconds, polling every .1 second,
+	#   for an element to appear; don't throw an exception if it doesn't
+	&wait-present();
+	
+	my WD2::Component::Element $element =
+		$session.find-element: By::ID.value: 'gets-removed';
+	my &wait-stale = stale $element;
+	# do something...
+	# then wait for the element to be removed using default values;
+	#   throw Timeout exception if it isn't
+	&wait-stale();
+	
+	my WD2::Component::Element $updatable =
+		$session.find-element: By::ID.value: 'updatable';
+	my WD2::Component::Element $input =
+		$session.find-element: By::ID.value: 'text-input';
+	my WD2::Component::Element $updater =
+		$session.find-element: By::Tag.value: 'button';
+	my &wait-updated = text-to-be $updatable, 'new text';
+	$input.send-keys: 'new text';
+	$updater.click;
+	&wait-updated();
+
+[List](#wait-status) with implementation status given below the endpoints table.
+
 ## TODO
 
 - [ ] cover all implemented endpoints with unit tests
 - [ ] add Rakudoc
-- [ ] implement the rest of the endpoints
 - [ ] browser support
+- [ ] implement the rest of the endpoints
 
 ### Feedback
 
@@ -65,6 +103,7 @@ Suggestions, design recommendations, and feature requests
 welcome.
 
 ### Implementation Status
+- "" - Planned
 - NYI - will throw exception
 - I - Implemented
 - &check; - Implemented and tested
@@ -532,35 +571,42 @@ welcome.
 		<td align="center" class="not-started">&nbsp;</td>
 		<td><code>$element.displayed</code></td>
 	</tr>
-	<tr><td>present ( convenience endpoint - not spec'd )</td>
+	<tr><td>present ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="not-started">&nbsp;</td>
 		<td align="center" class="not-started">&nbsp;</td>
-		<td><code>$element.present</code></td>
+		<td><code>$session.presen: By $locator; $element.present: By $locator</code></td>
 	</tr>
-	<tr><td>switch-to ( convenience endpoint - not spec'd )</td>
+	<tr><td>id ( convenience method - not spec'd )</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td><code>$element.id</code></td>
+	</tr>
+	<tr><td>switch-to ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="not-started">&nbsp;</td>
 		<td align="center" class="not-started">&nbsp;</td>
 		<td><code>$frame-element.switch-to</code></td>
 	</tr>
-	<tr><td>select ( convenience endpoint - not spec'd )</td>
+	<tr><td>select ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="not-started">&nbsp;</td>
 		<td align="center" class="not-started">&nbsp;</td>
 		<td><code>$select-element.select: Str $option-text</code></td>
 	</tr>
-	<tr><td>selected-option ( convenience endpoint - not spec'd )</td>
+	<tr><td>selected-option ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="not-started">&nbsp;</td>
 		<td align="center" class="not-started">&nbsp;</td>
 		<td><code>$select-element.selected-option</code></td>
 	</tr>
-	<tr><td>selected-value ( convenience endpoint - not spec'd )</td>
+	<tr><td>selected-value ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="not-started">&nbsp;</td>
@@ -568,3 +614,33 @@ welcome.
 		<td><code>$select-element.selected-value</code></td>
 	</tr>
 </tbody></table>
+
+### Wait Status
+
+- "" - Planned
+- I - Implemention completed
+- X - Broken / not passing tests
+- &check; - Passing
+
+<table>
+	<thead>
+		<tr>
+			<th>routine</th>
+			<th>status</th>
+			<th>import with</th>
+			<th>notes</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr><td>basic</td><td>&check;</td><td><code>use WD2::Wait :basic</code></td><td>base wait routine.  can be used to wait for arbitrary conditions</td></tr>
+		<tr><td>present</td><td>&check;</td><td><code>use WD2::Wait::Common :presence</code></td><td></td></tr>
+		<tr><td>absent</td><td>&check;</td><td><code>use WD2::Wait::Common :presence</code></td><td></td></tr>
+		<tr><td>stale</td><td>&check;</td><td><code>use WD2::Wait::Common :presence</code></td><td></td></tr>
+		<tr><td>displayed</td><td>X</td><td><code>use WD2::Wait::Common :presence</code></td><td></td></tr>
+		<tr><td>hidden</td><td>X</td><td><code>use WD2::Wait::Common :presence</code></td><td></td></tr>
+		<tr><td>value-not-empty</td><td></td><td><code>use WD2::Wait::Common :value</code></td><td></td></tr>
+		<tr><td>value-to-be</td><td></td><td><code>use WD2::Wait::Common :value</code></td><td></td></tr>
+		<tr><td>text-to-be</td><td></td><td><code>use WD2::Wait::Common :value</code></td><td></td></tr>
+		<tr><td>title-to-be</td><td></td><td><code>use WD2::Wait::Common :value</code></td><td></td></tr>
+	</tbody>
+</table>
