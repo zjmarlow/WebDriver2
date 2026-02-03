@@ -73,7 +73,7 @@ our sub displayed (
 	basic &operation, |%args;
 }
 
-our sub not-displayed (
+our sub hidden (
 		WD2::Component::Element:D $element,
 		:&cleanup,
 		Duration :$duration,
