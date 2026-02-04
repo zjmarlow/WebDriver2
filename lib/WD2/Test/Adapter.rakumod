@@ -88,6 +88,10 @@ method skip ( Str $reason, Int $count? ) {
 	skip ( !$count.defined ?? $reason !! ( $reason, $count ) );
 }
 
+method pass ( Str $reason? ) {
+	$reason.defined ?? pass $reason !! pass;
+}
+
 method flunk ( Str:D $descr ) {
 #	self.handle-test-failure: $descr;
 	flunk $descr;

@@ -79,7 +79,7 @@ our sub basic-op (
 
 our sub basic (
 		&operation where .defined,
-		:&expect = -> $value { $value.defined },
+		:&expect = -> $value { not $value.isa: Exception and $value.defined },
 		:&cleanup,
 		Duration:D :$duration = $_duration,
 		Duration:D :$interval = $_interval,

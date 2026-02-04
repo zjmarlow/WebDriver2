@@ -47,15 +47,16 @@ role WD2::Test::Template
 				;
 	}
 	
-	method !init {
+	method init {
+		plan $PLAN;
 		self.lives-ok: 'session created', { $!session = $!driver.new-session };
 		$!session.set-window-rect: 1200, 750, 8, 8
 			if $!browser eq 'chrome' | 'safari';
 	}
-	method pre-test { ... }
+	method pre-test { }
 	method test { ... }
-	method post-test { ... }
-	method !close {
+	method post-test { }
+	method close {
 		say "\nclosing in";
 		.say, sleep 1 for [R,] 1 .. $!close-delay;
 		$!session.delete;
@@ -63,22 +64,22 @@ role WD2::Test::Template
 	}
 	#method !done-testing { done-testing }
 	method cleanup {
-		self!close;
+		self.close;
 	}
 	
 	method execute {
 		try {
-			plan $PLAN;
-			self!init;
+			self.init;
 			
 			self.subtest: Pair.new: $.name, {
 				plan $.plan with $.plan;
 				self.pre-test;
 				self.test;
 				self.post-test;
+				done-testing unless $.plan;
 			};
 			
-			self!close;
+			self.close;
 			CATCH {
 				default {
 					.note;
@@ -87,7 +88,6 @@ role WD2::Test::Template
 				}
 			}
 		}
-		done-testing unless $.plan;
 	}
 	
 	method handle-test-failure ( Str $descr ) {

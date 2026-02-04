@@ -3,8 +3,7 @@ use Test;
 use lib <../http-useragent/lib lib>;
 
 use WD2;
-use WD2::Wait;
-use WD2::Wait::Common :ALL;
+use WD2::Wait :ALL;
 use WD2::Test::Template;
 use WD2::Endpoints;
 use WD2::Locators;
@@ -12,126 +11,83 @@ use WD2::Locators;
 my IO::Path:D $html-file = .add: 'test.html' with $*CWD.add: <xt content>;
 
 class Wait does WD2::Test::Template {
-	has Int:D $.plan = 2;
+	has Int:D $.plan = 14;
 	has Str:D $.name = 'wait';
 	has Str:D $.description = 'various waits';
 	
-	method pre-test { }
-	method post-test { }
+	sub no-arg-once ( Int $run is rw ) {
+		$run = 0;
+		-> { not $run++ }
+	}
+	
+	sub true-once ( Int $run is rw ) {
+		$run = 0;
+		-> $v { not $run++ }
+	}
+	
+	sub not-true ( Int $run is rw ) {
+		$run = 0;
+		-> $v { ++$run; False }
+	}
+	
+	method init { }
+	method close { }
+	method handle-test-failure ( Str $descr ) { }
+	method handle-error ( Exception $x ) { }
 	
 	method test {
 		my Duration:D $duration = Duration.new: 1/2;
+		my Duration:D $interval = $duration;
 		my By:D $locator = By::ID.value: 'added';
 		my &wait;
 		my WD2::Component::Element $element;
 		my Instant $start;
-		self.subtest: 'wait present / absent' => {
-			plan 15;
-			
-			self.diag: 'element absent';
-			$!session.navigate-to: 'file://' ~ $html-file.absolute;
-			self.ok:
-					'absent true for absent element',
-					.() with absent $!session, $locator, :$duration;
-			&wait = absent $!session, $locator, :$duration;
-			self.lives-ok:
-					'absent returns immediately for absent element',
-					&wait;
-			self.nok:
-					'present times out for absent element',
-					.() with present $!session, $locator, :$duration, :soft;
-			self.throws-like:
-					'present throws correctly for absent element',
-					WD2::Wait::Timeout::X,
-					present $!session, $locator, :$duration;
-			
-			self.diag: 'element becomes present';
-			&wait = present $!session, $locator, :soft;
-			.click with $!session.find-element: By::ID.value: 'add';
-			$element = &wait();
-			self.isa-ok:
-					'present returns correct type',
-					WD2::Component::Element,
-					$element;
-			self.ok: 'present found element', $element;
-			self.is: 'found correct type of element', 'button', $element.tag-name;
-			self.is: 'found correct element', 'added', $element.id;
-			
-			self.diag: 'element present';
-			$locator = By::ID.value: 'hidden';
-			&wait = present $!session, $locator, :$duration;
-			$start = now;
-			$element = &wait();
-			self.ok:
-					'present returns immediately if already present',
-					now - $start < $duration;
-			self.ok: 'immediately returned element', $element;
-			self.is: 'correct element returned', 'hidden', $element.id;
-			self.nok:
-					'absent times out for present element',
-					.() with absent $!session, $locator, :$duration, :soft;
-			self.throws-like:
-					'absent throws correctly for present element',
-					WD2::Wait::Timeout::X,
-					absent $!session, $locator, :$duration;
-			
-			self.diag: 'element removed';
-			$locator = By::ID.value: 'remove';
-			$element = $!session.find-element: $locator;
-			&wait = absent $!session, $locator, :soft;
-			$element.click;
-			self.ok: 'element removed', &wait();
-			&wait = absent $!session, $locator, :$duration;
-			self.lives-ok: 'absent returns immediately if already absent', &wait;
-		}
-		self.subtest: 'wait stale' => {
-			plan 7;
-			$!session.refresh;
-			$element = .() with present $!session, By::ID.value: 'remove';
-			self.ok: 'button starts out present', $element;
-			self.nok:
-					'not stale while present',
-					.() with stale $element, :$duration, :soft;
-			self.throws-like:
-					'stale times out on present',
-					WD2::Wait::Timeout::X,
-					stale $element;
-			&wait = stale $element;
-			$element.click;
-			self.is: 'stale', Stale, &wait();
-			$locator = $element.locator;
-			self.nok: 'element not present', $!session.present: $locator;
-			self.nok:
-					'wait stale detects element no longer present',
-					.() with present $!session, $locator, :soft;
-			self.lives-ok:
-					'wait returns immediately if already stale',
-					stale $element, :$duration;
-		}
-		self.subtest: 'wait displayed / hidden' => {
-			plan 6;
-			$!session.refresh;
-			$element = $!session.find-element: By::ID.value: 'visible';
-			self.ok:
-					'displayed detects displayed',
-					.() with displayed $element, :$duration;
-			self.nok:
-					'hidden returns false for displayed',
-					.() with hidden $element, :$duration, :soft;
-			self.throws-like:
-					'hidden times out for displayed',
-					WD2::Wait::Timeout::X,
-					hidden $element, :$duration;
-			&wait = hidden $element, :soft;
-			$element.click;
-			self.ok: 'hidden detects no longer displayed', &wait();
-			&wait = hidden $element, :$duration;
-			self.lives-ok: 'hidden returns immediately for hidden', &wait;
-			self.throws-like:
-					'displayed times out for hidden',
-					WD2::Wait::Timeout::X,
-					displayed $element, :$duration;
-		}
+		my Instant $end;
+		my Int $run;
+		
+		self.dies-ok: 'basic requires defined Callable', -> { basic Callable };
+		self.lives-ok: 'basic accepts False because it is defined', basic -> { False };
+		self.nok: 'basic passes on accepted value as-is', .() with basic -> { False };
+		$run = 0;
+		self.throws-like:
+				'basic expects defined return',
+				WD2::Wait::Timeout::X,
+				basic -> { Failure.new },
+						:$duration,
+						expect => not-true $run;
+		self.ok: 'basic cleanup runs on timeout for undefined', $run;
+		
+		self.throws-like:
+				'basic expects non-Exception return',
+				WD2::Wait::Timeout::X,
+				basic -> { Exception.new },
+						:$duration,
+						expect => not-true $run;
+		self.ok: 'basic cleanup runs on timeout for Exception', $run;
+		
+		.() with basic -> { True }, cleanup => no-arg-once $run;
+		self.is: 'basic cleanup runs on success', 1, $run;
+		
+		.() with basic -> { Any }, :$duration, :soft, cleanup => no-arg-once $run;
+		self.is: 'basic cleanup runs on timeout', 1, $run;
+		&wait = basic -> { Any }, :$duration, :soft;
+		$start = now;
+		&wait();
+		$end = now;
+		self.ok: 'basic respects duration', $end - $start > $duration;
+		my @vals = Any, True;
+		&wait = basic -> { @vals.shift }, :$interval;
+		$start = now;
+		&wait();
+		$end = now;
+		self.ok: 'basic respects interval', $end - $start > $interval;
+		
+		self.lives-ok: 'basic does not throw for soft timeouts', basic -> { Any }, :$duration, :soft;
+		self.ok: 'soft timeout returns last value', Mu === .() with basic -> { Mu }, :$duration, :soft;
+		
+		self.ok:
+				'basic accepts user-supplied expects and it does not affect return value',
+				Any === .() with basic -> { Any }, expect => -> $v { 'Hello' };
 	}
 	
 	method element-by-id( Str $id ) {
