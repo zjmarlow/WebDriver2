@@ -13,25 +13,30 @@ To use a driver directly for driver-level [endpoint commands](#implementation-st
 with `Provider.get-driver: $browser, :$port`.  The test class
 will need to specify the browser and port upon instantiation:
 
+```Raku
 	use WD2;
 	use WD2::Component::Driver;
 	
 	my WD2::Component::Driver:D $driver =
 		Provider.get-driver: 'chrome', port => 9515;
+```
 
 Most commands are Session or Element endpoints, though:
 
+```Raku
 	use WD2::Component::Session;
 	
 	my WD2::Component::Session:D $session =
 		$driver.new-session: %optional-capabilities-options;
 	
 	$session.navigate-to: $url-as-Str; # can be file path or web address
+```
 
 If no capabilities are given, the minimum, empty default will be supplied: `{ capabilities => { } }`.  Please see specification(s) for capability availability and format.
 
 Some Element endpoints:
 
+```Raku
 	use WD2::Component::Element;
 	
 	use WD2::Locators;
@@ -39,16 +44,21 @@ Some Element endpoints:
 	my WD2::Component::Element:D $element =
 		$session.find-element: By::ID.value: 'identifier';
 	$element.click;
+```
 
 In addition to locating Elements by ID, the standard locators are available:
 
+```Raku
 	$element = $session.find-element: By::Tag.value: 'input';
 	$element = $session.find-element: By::CSS.value: 'body > div.head'; # by CSS selector
 	# also By::Link-Text, By::Partial-Link-Text, By::XPath
+```
 
 When finished:
 
+```Raku
 	$session.delete;
+```
 
 ### Convenience Methods and Routines
 
@@ -60,6 +70,7 @@ Some Session and Element convenience methods have been provided that are not par
 
 Since waiting for a condition to be true before moving to the next step is useful, several routines that poll state have also been provided:
 
+```Raku
 	# relevant imports and declarations completed above
 	use WD2::Wait::Common :ALL;
 	
@@ -87,6 +98,7 @@ Since waiting for a condition to be true before moving to the next step is usefu
 	$input.send-keys: 'new text';
 	$updater.click;
 	&wait-updated();
+```
 
 [List](#wait-status) with implementation status given below the endpoints table.
 
