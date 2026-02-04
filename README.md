@@ -632,15 +632,15 @@ welcome.
 		</tr>
 	</thead>
 	<tbody>
-		<tr><td>basic</td><td>I</td><td><code>use WD2::Wait :base</code></td><td>base wait routine.  can be used to wait for arbitrary conditions</td></tr>
+		<tr><td>basic</td><td>&check;</td><td><code>use WD2::Wait :base</code></td><td>base wait routine.  can be used to wait for arbitrary conditions</td></tr>
 		<tr><td>basic-op</td><td>I</td><td><code>use WD2::Wait :base</code></td><td>basic wait - use operation's return value directly for truthiness</td></tr>
 		<tr><td>basic-true</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for identically True value</td></tr>
 		<tr><td>basic-so-true</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for truthiness</td></tr>
 		<tr><td>basic-to-true</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for falsiness and alter return value to be the opposite Bool value</td></tr>
 		<tr><td>basic-equals</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for a specific value using ==</td></tr>
-		<tr><td>throwable</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>return (non-Falure) Exception, otherwise, the return value. used to build waits and is not one itself</td></tr>
-		<tr><td>expect-throw</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>$throwable-return.isa: Exception ?? False !! $result but True.  used to build waits and is not one itself</td></tr>
-		<tr><td>expect-throw-type</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>rethrow wrong type; return the type if it was expected; otherwise, return Error-Code (falsy).  used to build waits and is not one itself</td></tr>
+		<tr><td>throwable</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>return (non-Falure) Exception, otherwise, the return value. used to build waits but is not one itself</td></tr>
+		<tr><td>expect-throw</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>$throwable-return.isa: Exception ?? False !! $result but True.  used to build waits but is not one itself</td></tr>
+		<tr><td>expect-throw-type</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>rethrow wrong type; return the type if it was expected; otherwise, return Error-Code (falsy).  used to build waits but is not one itself</td></tr>
 		<tr><td>no-throw</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>$throwable-return.isa: Exception ?? $throwable-return but False !! $throwable-return.  used to build waits but is not one itself</td></tr>
 		<tr><td>no-throw-type</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>rethrow anything unexpected; return the expected type but False.  used to build waits but is not one itself</td></tr>
 		<tr><td>present</td><td>&check;</td><td><code>use WD2::Wait::Common :presence</code></td><td></td></tr>
