@@ -618,8 +618,7 @@ welcome.
 ### Wait Status
 
 - "" - Planned
-- I - Implemention completed
-- X - Broken / not passing tests
+- I - Implemented
 - &check; - Passing
 
 <table>
