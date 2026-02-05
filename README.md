@@ -167,7 +167,7 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 			a fatal exception.  In which case, the session-id will be given on STDOUT so that it can
 			be used to close the session gracefully later.  E.g., by using the provided
 			<code>bin/close-session.raku</code> script:
-			<code>raku bin/close-session.raku browser(required) session-id(required)</code>
+			<code>raku bin/close-session.raku --host=127.0.0.1 --port=9515 browser(required) session-id(required)</code>
 		</td>
 	</tr><tr>
 		<td>Bool:D :$no-auto-ss = False</td>
