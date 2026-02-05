@@ -77,7 +77,7 @@ our sub basic-op (
 	}
 }
 
-our sub basic (
+our sub base-wait (
 		&operation where .defined,
 		:&expect = -> $value { not $value.isa: Exception and $value.defined },
 		:&cleanup,
@@ -93,7 +93,7 @@ our sub basic (
 		my Instant:D $start = now;
 		react whenever Supply.interval: $interval {
 			try $return = &operation();
-			done if $! && &expect($!) || &expect($return) or $expired = now - $start > $duration;
+			done if $! and &expect($!) or &expect($return) or $expired = now - $start > $duration;
 		}
 		&cleanup() if &cleanup;
 		WD2::Wait::Timeout::X.new.throw if $expired and not $soft;
@@ -113,7 +113,7 @@ our sub basic-true (
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	my &expect = -> $value { $value === True };
-	basic &operation, :&expect, |%args;
+	base-wait &operation, :&expect, |%args;
 }
 
 our sub basic-so-true (
@@ -128,7 +128,7 @@ our sub basic-so-true (
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	my &expect = -> $value { so $value };
-	basic &operation, :&expect, |%args;
+	base-wait &operation, :&expect, |%args;
 }
 
 our sub basic-to-true (
@@ -147,7 +147,7 @@ our sub basic-to-true (
 				?? ( $val = True )
 				!! ( $val = False )
 	};
-	basic &operation, :&expect, |%args;
+	base-wait &operation, :&expect, |%args;
 }
 
 our sub basic-equals (
@@ -163,7 +163,7 @@ our sub basic-equals (
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	my &expect = -> $val { $val == $value };
-	basic &operation, :&expect, |%args;
+	base-wait &operation, :&expect, |%args;
 }
 
 

@@ -1,0 +1,6 @@
+use lib <../http-useragent/lib lib xt/lib>;
+
+use WD2::Test::Template;
+use Example;
+
+constant &MAIN = driver-test Example;

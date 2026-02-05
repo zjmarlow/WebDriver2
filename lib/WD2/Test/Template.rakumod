@@ -13,6 +13,7 @@ role WD2::Test::Template
 {
 	my constant $PLAN = 2;
 	has Level:D $!debug is built is required = WD2::Debug.new;
+	has Bool $!no-auto-ss is built;
 	has IO::Path:D $.test-root is required;
 	has Int:D $.close-delay is rw is required;
 	has Str:D $.browser is required;
@@ -57,10 +58,15 @@ role WD2::Test::Template
 	method test { ... }
 	method post-test { }
 	method close {
+		if $!close-delay < 0 {
+			$!session.session-id.say;
+			DateTime.now.Str.say;
+			return;
+		}
 		say "\nclosing in";
 		.say, sleep 1 for [R,] 1 .. $!close-delay;
 		$!session.delete;
-		.Str.say with DateTime.now;
+		DateTime.now.Str.say;
 	}
 	#method !done-testing { done-testing }
 	method cleanup {
@@ -91,12 +97,12 @@ role WD2::Test::Template
 	}
 	
 	method handle-test-failure ( Str $descr ) {
-		self.screenshot: $descr;
+		self.screenshot: $descr unless $!no-auto-ss;
 	}
 	
 	method handle-error ( Exception $x ) {
 # 		.raku.say for $!session.frames;
-		self.screenshot: $x.WHAT.Str;
+		self.screenshot: $x.WHAT.Str unless $!no-auto-ss;
 	}
 	
 	multi method screenshot {
@@ -128,6 +134,7 @@ our sub driver-test ( WD2::Test::Template:U $test-class ) {
 			Int:D :$port = 9515,
 			IO::Path(Str:D) :$test-root = 'xt'.IO,
 			Int:D :$close-delay = 3,
+			Bool:D :$no-auto-ss = False,
 			Str:D :debug(:$debug-level) = 'WARN'
 	) {
 		$browser ||= browser-from-file;
@@ -137,6 +144,7 @@ our sub driver-test ( WD2::Test::Template:U $test-class ) {
 				:$host,
 				:$port,
 				:$close-delay,
+				:$no-auto-ss,
 				:$test-root,
 				debug => Level::{ $debug-level }
 				;

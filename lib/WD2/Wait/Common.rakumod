@@ -19,7 +19,7 @@ our sub present (
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	;
-	basic &operation, |%args;
+	base-wait &operation, |%args;
 }
 
 our sub absent (
@@ -53,7 +53,7 @@ our sub stale (
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level
 	;
-	basic &operation, |%args;
+	base-wait &operation, |%args;
 }
 
 our sub displayed (

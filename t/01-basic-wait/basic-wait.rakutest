@@ -1,0 +1,104 @@
+use Test;
+
+use lib <../http-useragent/lib lib>;
+
+use WD2;
+use WD2::Wait :ALL;
+use WD2::Test::Template;
+use WD2::Endpoints;
+use WD2::Locators;
+
+my IO::Path:D $html-file = $*CWD.add: <xt content test.html>;
+
+class Wait does WD2::Test::Template {
+	has Int:D $.plan = 15;
+	has Str:D $.name = 'wait';
+	has Str:D $.description = 'various waits';
+	
+	sub no-arg-once ( Int $run is rw ) {
+		$run = 0;
+		-> { not $run++ }
+	}
+	
+	sub throws-once {
+		my $run = 0;
+		-> { $run++ or .throw with Exception.new: message => $run.Str }
+	}
+	
+	sub not-true ( Int $run is rw ) {
+		$run = 0;
+		-> $v { ++$run; False }
+	}
+	
+	method init { }
+	method close { }
+	method handle-test-failure ( Str $descr ) { }
+	method handle-error ( Exception $x ) { }
+	
+	method test {
+		my Duration:D $duration = Duration.new: 1/2;
+		my Duration:D $interval = $duration;
+		my By:D $locator = By::ID.value: 'added';
+		my &wait;
+		my WD2::Component::Element $element;
+		my Instant $start;
+		my Instant $end;
+		my Int $run;
+		
+		self.dies-ok: 'base wait requires defined Callable', -> { base-wait Callable };
+		self.lives-ok: 'base wait accepts False because it is defined', base-wait -> { False };
+		self.ok: 'base wait passes on accepted value as-is', False === .() with base-wait -> { False };
+		
+		self.throws-like:
+				'base wait times out for undefined',
+				WD2::Wait::Timeout::X,
+				base-wait -> { Failure.new }, :$duration;
+		
+		self.throws-like:
+				'base wait times out for Exception',
+				WD2::Wait::Timeout::X,
+				base-wait -> { Exception.new }, :$duration;
+		
+		self.lives-ok: 'base wait survives throw', base-wait throws-once, :$duration;
+		
+		my $val;
+		try $val = .() with base-wait throws-once;
+		self.is: 'base wait returns correct value after throw', 1, $val;
+		my $rcd;
+		try $val = .()
+			with base-wait
+				throws-once,
+				expect => -> $val { $rcd = $val; $val.isa: Exception and $val.message eq '1' };
+		self.isa-ok: 'expect receives thrown Exception', Exception, $rcd;
+		
+		.() with base-wait -> { True }, cleanup => no-arg-once $run;
+		self.is: 'base wait cleanup runs on success', 1, $run;
+		
+		.() with base-wait -> { Any }, :$duration, :soft, cleanup => no-arg-once $run;
+		self.is: 'base wait cleanup runs on timeout', 1, $run;
+		&wait = base-wait -> { Any }, :$duration, :soft;
+		$start = now;
+		&wait();
+		$end = now;
+		self.ok: 'base wait respects duration', $end - $start > $duration;
+		my @vals = Any, True;
+		&wait = base-wait -> { @vals.shift }, :$interval;
+		$start = now;
+		&wait();
+		$end = now;
+		self.ok: 'base wait respects interval', $end - $start > $interval;
+		
+		self.lives-ok: 'base wait does not throw for soft timeouts', base-wait -> { Any }, :$duration, :soft;
+		self.ok: 'soft timeout returns last value', Mu === .() with base-wait -> { Mu }, :$duration, :soft;
+		
+		self.ok:
+				'base wait accepts user-supplied expects and it does not affect return value',
+				Any === .() with base-wait -> { Any }, expect => -> $v { 'Hello' };
+	}
+	
+	method element-by-id( Str $id ) {
+		$!session.find-element( By::ID.value: $id )
+	}
+}
+
+constant &MAIN = driver-test Wait;

@@ -60,7 +60,7 @@ When finished:
 	$session.delete;
 ```
 
-### Convenience Methods and Routines
+### Convenience Methods and Routines, Test Template
 
 #### Methods
 
@@ -101,6 +101,86 @@ Since waiting for a condition to be true before moving to the next step is usefu
 ```
 
 [List](#wait-status) with implementation status given below the endpoints table.
+
+#### Test::Template
+
+Test classes can implement the Test::Template role to avoid some boilerplate.
+The example test included with the distribution is explained here.
+
+From `xt/lib/Example.rakumod`:
+
+```Raku
+	use WD2::Test::Template;
+	
+	class Example does WD2::Test::Template {
+		my IO::Path:D $html-file = $*CWD.add: <xt content test.html>;
+		
+		has Str:D $.name = 'example';
+		has Str:D $.description = 'example test description';
+		
+		method test {
+			$!session.navigate-to: 'file://' ~ $html-file.absolute;
+			self.is: 'title', 'test', $!session.title;
+		}
+	}
+```
+
+Implementing classes need to provide a test name and description and override the test method.
+Once such a class is written, it can be used in a test script.
+
+From `xt/05-test-template/example.rakutest`:
+
+```Raku
+	use lib <lib xt/lib>;
+	
+	use WD2::Test::Template;
+	use Example;
+	
+	constant &MAIN = driver-test Example;
+```
+The script is just a wrapper that runs the test class.  The `driver-test` sub is from the
+`WD2::Test::Template` compunit (hence the first import).  It takes the test class name and
+returns a sub suitable for use as a MAIN.  The options provided are:
+
+<table><tbody>
+	<tr class="header">
+		<th>option</th>
+		<th>notes</th>
+	</tr>
+	<tr>
+		<td>Str $browser?</td>
+		<td>if none is provided and there is a <code>browser</code> file in the CWD,
+			its value will read and used</td>
+	</tr><tr>
+		<td>Str:D :$host = '127.0.0.1'</td>
+		<td></td>
+	</tr><tr>
+		<td>Str:D :$port = 9515</td>
+		<td>9515 is the default for chromedriver and edgedriver.  it will likely need to be supplied when
+			using firefox or safari</td>
+	</tr><tr>
+		<td>IO::Path(Str:D) :$test-root = 'xt'.IO</td>
+		<td>currently unused</td>
+	</tr><tr>
+		<td>Int:D :$close-delay = 3</td>
+		<td>if set negative, the session will be left open when the script completes or if there is
+			a fatal exception.  In which case, the session-id will be given on STDOUT so that it can
+			be used to close the session gracefully later.  E.g., by using the provided
+			<code>bin/close-session.raku</code> script:
+			<code>raku bin/close-session.raku browser(required) sesion-id(required)</code>
+		</td>
+	</tr><tr>
+		<td>Bool:D :$no-auto-ss = False</td>
+		<td>By default, in addition to screenshots Tests explicitly request, screenshots are taken
+			anytime there is a failure (if using the provided WD2::Test::Adapter methods) or exception.
+			set to suppress this behavior</td>
+	</tr><tr>
+		<td>Str:D :$debug(:$debug-level) = 'WARN'</td>
+		<td>valid values: OFF, ERR, WARN, Info, trace, extra.  not much debugging output has been
+			incorporated, yet</td>
+	</tr>
+</tbody></table>
+
 
 ## TODO
 
