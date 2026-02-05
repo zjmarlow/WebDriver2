@@ -104,7 +104,7 @@ Since waiting for a condition to be true before moving to the next step is usefu
 
 #### Test::Template
 
-Test classes can implement the Test::Template role to avoid some boilerplate.
+Test classes can implement the WD2::Test::Template role to avoid some boilerplate.
 The example test included with the distribution is explained here.
 
 From `xt/lib/Example.rakumod`:
@@ -723,7 +723,7 @@ welcome.
 		</tr>
 	</thead>
 	<tbody>
-		<tr><td>basic</td><td>&check;</td><td><code>use WD2::Wait :base</code></td><td>base wait routine.  can be used to wait for arbitrary conditions</td></tr>
+		<tr><td>base-wait</td><td>&check;</td><td><code>use WD2::Wait :base</code></td><td>base wait routine.  can be used to wait for arbitrary conditions</td></tr>
 		<tr><td>basic-op</td><td>I</td><td><code>use WD2::Wait :base</code></td><td>basic wait - use operation's return value directly for truthiness</td></tr>
 		<tr><td>basic-true</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for identically True value</td></tr>
 		<tr><td>basic-so-true</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for truthiness</td></tr>
