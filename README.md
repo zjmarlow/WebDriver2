@@ -104,7 +104,7 @@ Since waiting for a condition to be true before moving to the next step is usefu
 
 #### Test::Template
 
-Test classes can implement the WD2::Test::Template role to avoid some boilerplate.
+Test classes can implement the `WD2::Test::Template` role to avoid some boilerplate.
 The example test included with the distribution is explained here.
 
 From `xt/lib/Example.rakumod`:
@@ -125,7 +125,8 @@ From `xt/lib/Example.rakumod`:
 	}
 ```
 
-Implementing classes need to provide a test name and description and override the test method.
+Implementing classes need to provide a test name and description and override the test method.  the `self.is: ...` is provided by the `WD2::Test::Adapter` role via `WD2::Test::Template` (no additional import necessary).  They delegate to the Test routines but will run a handler if a test fails.  The default handler automatically takes a screenshot when called (see below for details and how to suppress this behavior).  Note that the order of arguments are the reverse of the Test routines.  This leaves the final position available for calculating the actual value.
+
 Once such a class is written, it can be used in a test script.
 
 From `xt/05-test-template/example.rakutest`:
@@ -150,7 +151,7 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 	<tr>
 		<td>Str $browser?</td>
 		<td>if none is provided and there is a <code>browser</code> file in the CWD,
-			its value will read and used</td>
+			its value will read and used.  otherwise the test will fail</td>
 	</tr><tr>
 		<td>Str:D :$host = '127.0.0.1'</td>
 		<td></td>
@@ -164,7 +165,7 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 	</tr><tr>
 		<td>Int:D :$close-delay = 3</td>
 		<td>if set negative, the session will be left open when the script completes or if there is
-			a fatal exception.  In which case, the session-id will be given on STDOUT so that it can
+			a fatal exception (except failed Session creation - in which case there will be no screen to take a screenshot of).  If the session is left open, the session-id will be given on STDOUT so that it can
 			be used to close the session gracefully later.  E.g., by using the provided
 			<code>bin/close-session.raku</code> script:
 			<code>raku bin/close-session.raku --host=127.0.0.1 --port=9515 browser(required) session-id(required)</code>
