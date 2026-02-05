@@ -155,7 +155,7 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 		<td>Str:D :$host = '127.0.0.1'</td>
 		<td></td>
 	</tr><tr>
-		<td>Str:D :$port = 9515</td>
+		<td>Int:D :$port = 9515</td>
 		<td>9515 is the default for chromedriver and edgedriver.  it will likely need to be supplied when
 			using firefox or safari</td>
 	</tr><tr>
@@ -167,7 +167,7 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 			a fatal exception.  In which case, the session-id will be given on STDOUT so that it can
 			be used to close the session gracefully later.  E.g., by using the provided
 			<code>bin/close-session.raku</code> script:
-			<code>raku bin/close-session.raku browser(required) sesion-id(required)</code>
+			<code>raku bin/close-session.raku browser(required) session-id(required)</code>
 		</td>
 	</tr><tr>
 		<td>Bool:D :$no-auto-ss = False</td>
