@@ -102,7 +102,7 @@ Since waiting for a condition to be true before moving to the next step is usefu
 
 [List](#wait-status) with implementation status given below the endpoints table.
 
-#### Test::Template
+#### WD2::Test::Template
 
 Test classes can implement the `WD2::Test::Template` role to avoid some boilerplate.
 The example test included with the distribution is explained here.
@@ -125,7 +125,7 @@ From `xt/lib/Example.rakumod`:
 	}
 ```
 
-Implementing classes need to provide a test name and description and override the test method.  the `self.is: ...` is provided by the `WD2::Test::Adapter` role via `WD2::Test::Template` (no additional import necessary).  They delegate to the Test routines but will run a handler if a test fails.  The default handler automatically takes a screenshot when called (see below for details and how to suppress this behavior).  Note that the order of arguments are the reverse of the Test routines.  This leaves the final position available for calculating the actual value.
+Implementing classes need to provide a test name and description and override the test method.  The `self.is: ...` is provided by the `WD2::Test::Adapter` role via `WD2::Test::Template` (no additional import necessary).  That and the related methods delegate to the Test routines but will run a handler if a test fails.  The default handler takes a screenshot when called (see below for details and how to suppress this behavior).  Note that the order of arguments are the reverse of the Test routines.  This leaves the final position available for calculating the actual value.
 
 Once such a class is written, it can be used in a test script.
 
@@ -140,7 +140,7 @@ From `xt/05-test-template/example.rakutest`:
 	constant &MAIN = driver-test Example;
 ```
 The script is just a wrapper that runs the test class.  The `driver-test` sub is from the
-`WD2::Test::Template` compunit (hence the first import).  It takes the test class name and
+`WD2::Test::Template` compunit (hence the first import).  It takes the test class and
 returns a sub suitable for use as a MAIN.  The options provided are:
 
 <table><tbody>

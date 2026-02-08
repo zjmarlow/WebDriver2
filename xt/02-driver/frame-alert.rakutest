@@ -1,24 +1,20 @@
 use Test;
 
-use lib <../http-useragent/lib lib t/lib>;
+use lib <lib>;
 
-use WD2::Wait;
 use WD2::Test::Template;
-use WD2::Component::Driver;
 use WD2::Locators;
 
 class Local does WD2::Test::Template {
 	has Int:D $.plan = 3;
 	has Str:D $.name = 'none vs stale';
 	has Str:D $.description = 'none and stale both handled';
-#	has IO::Path:D $!test-root = 'xt'.IO;
 	
 	method pre-test { }
 	method post-test { }
 	
 	method test {
 		my IO::Path:D $html-file = $!test-root.add: <content frame-alert-root-doc.html>;
-		#				.add: 'test.html' with $*CWD.add: 'content';
 		$!session.navigate-to: 'file://' ~ $html-file.absolute;
 		
 		.switch-to with self.element-by-tag: 'iframe';
