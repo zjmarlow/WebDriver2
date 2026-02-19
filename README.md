@@ -54,6 +54,8 @@ In addition to locating Elements by ID, the standard locators are available:
 	# also By::Link-Text, By::Partial-Link-Text, By::XPath
 ```
 
+[See below](#locator-status) for status.
+
 When finished:
 
 ```Raku
@@ -707,6 +709,29 @@ welcome.
 		<td><code>$select-element.selected-value</code></td>
 	</tr>
 </tbody></table>
+
+### Locator Status
+
+- "" - Planned
+- I - Implemented
+- &check; - Passing
+
+<table>
+	<thead>
+		<tr>
+			<th>locator</th>
+			<th>status</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr><td>By::ID</td><td>&check;</td></tr>
+		<tr><td>By::Tag</td><td>I</td></tr>
+		<tr><td>By::CSS</td><td>I</td></tr>
+		<tr><td>By::XPath</td><td>I</td></tr>
+		<tr><td>By::Link-Text</td><td>I</td></tr>
+		<tr><td>By::Partial-Link-Text</td><td>I</td></tr>
+	</tbody>
+</table>
 
 ### Wait Status
 

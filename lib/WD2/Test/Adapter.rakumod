@@ -44,7 +44,7 @@ method isa-ok ( Str:D $descr, $exp, $got ) {
 	$result;
 }
 
-method cmp-ok ( Str:D $descr, $got, &op, $exp ) {
+method cmp-ok ( Str:D $descr, $exp, &op, $got ) {
 	my Bool $result = cmp-ok $got, &op, $exp, $descr;
 	self.handle-test-failure: $descr unless $result;
 	$result;

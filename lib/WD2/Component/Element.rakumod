@@ -87,11 +87,33 @@ class WD2::Component::Shadow does WD2::Endpoints {
 class WD2::Component::Element does WD2::Endpoints is export {
 	our constant $IDENTIFIER = 'element-6066-11e4-a52e-4f735466cecf';
 	
-	has By:D $.locator is required;
+	has By $.locator;
 	has WD2::Endpoints:D $.session is required;
 	has Str:D $.element-id is required;
 	method url ( *@command --> Str:D ) {
 		$!session.url: 'element', $!element-id, @command;
+	}
+	
+	submethod TWEAK {
+		unless $!locator {
+			with self.attribute: 'id' {
+				$!locator = By::ID.value: .self;
+			} orwith self.attribute: 'class' {
+				$!locator = By::CSS.value: join '.', '', .self.trim.split: /\s+/;
+			} else {
+				my Str:D $tag = self.tag-name;
+				if $tag.lc = 'a' {
+					$!locator = By::Link-Text.value: self.text;
+				} else {
+					$!locator = By::Tag.value: $tag;
+				}
+			}
+		}
+	}
+	
+	method ACCEPTS ( WD2::Component::Element:D: $other ) {
+		return False unless $other.defined;
+		$!element-id eq $other.element-id;
 	}
 	
 	multi method switch-to (
@@ -238,14 +260,13 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	
 	multi method attribute (
 			WD2::Component::Element:D:
-			Str:D $name,
-			--> Str:D
+			Str:D $name
 	) { WD2::Component::Element.attribute: $name, self }
 	
 	multi method attribute (
 			WD2::Component::Element:U:
 			Str:D $name,
-			WD2::Component::Element:D $element --> Str:D
+			WD2::Component::Element:D $element
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'attribute', $name;
 		return $return<value> unless $return.isa: Exception;
@@ -257,14 +278,13 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	
 	multi method property (
 			WD2::Component::Element:D:
-			Str:D $name,
-			--> Str:D
+			Str:D $name
 	) { WD2::Component::Element.property: $name, self }
 	
 	multi method property (
 			WD2::Component::Element:U:
 			Str:D $name,
-			WD2::Component::Element:D $element --> Str:D
+			WD2::Component::Element:D $element
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'property', $name;
 		return $return<value> unless $return.isa: Exception;
@@ -289,12 +309,12 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	
 	multi method text (
 			WD2::Component::Element:D:
-			--> WD2::Component::Element:D
+			--> Str:D
 	) { WD2::Component::Element.text: self }
 	
 	multi method text (
 			WD2::Component::Element:U:
-			WD2::Component::Element:D $element --> WD2::Component::Element:D
+			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'text';
 		return $return<value> unless $return.isa: Exception;
@@ -414,6 +434,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	}
 	
 	method select ( WD2::Component::Element:D: Str:D $text --> Bool:D ) {
+		self.click;
 		for self.find-elements: By::Tag.value: 'option' {
 			if .text eq $text {
 				.click;
@@ -430,7 +451,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	}
 	method selected-value ( WD2::Component::Element:D: --> Str ) {
 		for self.find-elements: By::Tag.value: 'option' {
-			return .value if .is-element-selected;
+			return .attribute: 'value' if .is-element-selected;
 		}
 		Str;
 	}

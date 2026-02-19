@@ -1,0 +1,129 @@
+use Test;
+
+use lib <lib t/lib>;
+
+use WD2::Component::Element;
+use WD2::Test::Template;
+use WD2::Locators;
+use WD2::Keys;
+
+my IO::Path $html-file = .add: 'focus.html'
+	with $*PROGRAM.parent.parent.add: 'content';
+
+class Endpoint-Test
+		does WD2::Test::Template
+#		does WebDriver2::Test::Locating-Test
+{
+	has Int:D $.plan = 50;
+	has Str:D $.name = 'element element state / interaction tests';
+	has Str:D $.description = 'tests element state / interaction endpoints';
+	
+	method pre-test { }
+	method post-test { }
+
+	method test {
+		$!session.navigate-to: 'file://' ~ $html-file.absolute;
+		
+		# active element
+		self.cmp-ok: 'second input starts focused', $!session.find-element( By::ID.value: 'two' ), &[~~], $!session.active-element;
+		self.cmp-ok: 'first input starts blurred', $!session.find-element( By::ID.value: 'one' ), &[!~~], $!session.active-element;
+		self.cmp-ok: 'third input starts blurred', $!session.find-element( By::ID.value: 'three' ), &[!~~], $!session.active-element;
+		self.cmp-ok: 'second input still focused', $!session.find-element( By::ID.value: 'two' ), &[~~], $!session.active-element;
+		
+		$!session.active-element.send-keys: "2" ~ $WD2::Keys::TAB;
+		self.cmp-ok: 'tab to third input', $!session.find-element( By::ID.value: 'three' ), &[~~], $!session.active-element;
+		self.cmp-ok: 'second input no longer focused', $!session.find-element( By::ID.value: 'two' ), &[!~~], $!session.active-element;
+		
+		my WD2::Component::Element $el = $!session.find-element: By::ID.value: 'two';
+		self.is: 'input was received', '2', $el.property: 'value';
+		
+		# selected
+		$el = $!session.find-element: By::Tag.value: 'select';
+		my WD2::Component::Element @options = $el.find-elements: By::Tag.value: 'option';
+		self.is: 'correct number of option elements', 3, @options.elems;
+		self.nok: 'first option not selected', @options[0].property: 'selected';
+		self.nok: 'second option not selected', @options[1].property: 'selected';
+		self.ok: 'last option is selected', @options[2].property: 'selected';
+		self.is: 'original value three', 'three', $el.property: 'value';
+		
+		# select
+		self.ok: 'first option found', $el.select: 'first';
+		self.ok: 'now selected', @options[0].property: 'selected';
+		self.nok: 'still not selected', @options[1].property: 'selected';
+		self.nok: 'no longer selected', @options[2].property: 'selected';
+		self.is: 'value one', 'one', $el.property: 'value';
+		
+		self.ok: 'second option found', $el.select: 'second';
+		self.nok: 'no longer selected', @options[0].property: 'selected';
+		self.ok: 'now selected', @options[1].property: 'selected';
+		self.nok: 'still not selected', @options[2].property: 'selected';
+		self.is: 'value two', 'two', $el.property: 'value';
+		
+		self.ok: 'third option found', $el.select: 'third';
+		self.nok: 'still not selected', @options[0].property: 'selected';
+		self.nok: 'no longer selected', @options[1].property: 'selected';
+		self.ok: 'now selected', @options[2].property: 'selected';
+		self.is: 'value three', 'three', $el.property: 'value';
+		
+		$el = $!session.find-element: By::ID.value: 'three';
+		self.nok: 'starts unchecked', $el.property: 'checked';
+		$el.click;
+		self.ok: 'click marks selected', $el.property: 'checked';
+		
+		# enabled
+		$el = $!session.find-element: By::ID.value: 'no-text';
+		self.is: 'starts empty', '', $el.property: 'value';
+		self.nok: 'is disabled', $el.is-enabled;
+		if $!session.Str eq 'safari' {
+			$el.send-keys: 'safari';
+			skip 'safari ignores interaction with disabled elements', 1;
+		} else {
+			self.dies-ok: 'does not accept text', { $el.send-keys: 'ignored' };
+		}
+		self.is: 'text still empty', '', $el.property: 'value';
+		
+		$el = $!session.find-element: By::ID.value: 'no-check';
+		self.nok: 'starts unchecked', $el.property: 'selected';
+		self.nok: 'is disabled', $el.is-enabled;
+		$el.click;
+		self.nok: 'still unchecked', $el.property: 'selected';
+		
+		# attribute / property
+		$el = $!session.find-element: By::CSS.value: 'label > input';
+		self.is: 'correct name attribute value', 'radio-group', $el.attribute: 'name';
+		self.is: 'css class selector', 'h3 by class', .text with $!session.find-element: By::CSS.value: '.second';
+		
+		# attribute / property + clear and send keys
+		$el = $!session.find-element: By::ID.value: 'attr-prop';
+		self.is: 'initial value', 'start', $el.property: 'value';
+		self.is: 'initial value', 'start', $el.attribute: 'value';
+		$el.clear;
+		self.is: 'initial attribute value retained', 'start', $el.attribute: 'value';
+		self.is: 'property value cleared', '', $el.property: 'value';
+		self.is: 'value cleared', '', $el.property: 'value';
+		$el.send-keys: 'changed';
+		self.is: 'initial attribute value retained', 'start', $el.attribute: 'value';
+		self.is: 'property value changed', 'changed', $el.property: 'value';
+		self.is: 'value changed', 'changed', $el.property: 'value';
+		
+		# css value
+		self.is: 'italics set', 'italic', $el.css-value: 'font-style';
+		
+		# tag-name
+		$el = $!session.find-element: By::ID.value: 'heading';
+		self.is: 'locate by id; correct tag name', 'h2', $el.tag-name.lc;
+		$el = $!session.find-element: By::Tag.value: 'h2';
+		self.is: 'locate by tag; correct tag name', 'h2', $el.tag-name.lc;
+		
+		# text
+		self.is: 'correct text retrieved', 'element state / interaction', $el.text;
+	}
+	
+	method prep-path ( IO::Path $path ) {
+		return 'file://' ~ $path.absolute if $.browser eq 'safari';
+		'file:///' ~ $path.absolute.subst: '\\', '/', :g;
+	}
+}
+
+constant &MAIN = driver-test Endpoint-Test;
+
