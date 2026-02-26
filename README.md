@@ -671,7 +671,7 @@ welcome.
 		<td align="center" class="complete">I</td>
 		<td align="center" class="not-started">&nbsp;</td>
 		<td align="center" class="not-started">&nbsp;</td>
-		<td><code>$session.presen: By $locator; $element.present: By $locator</code></td>
+		<td><code>$session.present: By $locator; $element.present: By $locator</code></td>
 	</tr>
 	<tr><td>id ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
