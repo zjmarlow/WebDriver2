@@ -21,7 +21,7 @@ class Wait does WD2::Test::Template {
 	
 	method test {
 		my Duration:D $duration = Duration.new: 1/2;
-		my By:D $locator = By::ID.value: 'added';
+		my By:D $locator = By::ID.new: 'added';
 		my &wait;
 		my WD2::Component::Element $element;
 		my Instant $start;
@@ -45,7 +45,7 @@ class Wait does WD2::Test::Template {
 		
 		self.diag: 'element becomes present';
 		&wait = present $!session, $locator, :soft;
-		.click with $!session.find-element: By::ID.value: 'add';
+		.click with $!session.find-element: By::ID.new: 'add';
 		$element = &wait();
 		self.isa-ok:
 				'present returns correct type',
@@ -56,7 +56,7 @@ class Wait does WD2::Test::Template {
 		self.is: 'found correct element', 'added', $element.id;
 		
 		self.diag: 'element present';
-		$locator = By::ID.value: 'hidden';
+		$locator = By::ID.new: 'hidden';
 		&wait = present $!session, $locator, :$duration;
 		$start = now;
 		$element = &wait();
@@ -74,7 +74,7 @@ class Wait does WD2::Test::Template {
 				absent $!session, $locator, :$duration;
 		
 		self.diag: 'element removed';
-		$locator = By::ID.value: 'remove';
+		$locator = By::ID.new: 'remove';
 		$element = $!session.find-element: $locator;
 		&wait = absent $!session, $locator, :soft;
 		$element.click;
@@ -84,7 +84,7 @@ class Wait does WD2::Test::Template {
 	}
 	
 	method element-by-id( Str $id ) {
-		$!session.find-element( By::ID.value: $id )
+		$!session.find-element( By::ID.new: $id )
 	}
 }
 

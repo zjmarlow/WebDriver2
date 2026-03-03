@@ -25,21 +25,21 @@ class Endpoint-Test
 		$!session.navigate-to: 'file://' ~ $html-file.absolute;
 		
 		# active element
-		self.cmp-ok: 'second input starts focused', $!session.find-element( By::ID.value: 'two' ), &[~~], $!session.active-element;
-		self.cmp-ok: 'first input starts blurred', $!session.find-element( By::ID.value: 'one' ), &[!~~], $!session.active-element;
-		self.cmp-ok: 'third input starts blurred', $!session.find-element( By::ID.value: 'three' ), &[!~~], $!session.active-element;
-		self.cmp-ok: 'second input still focused', $!session.find-element( By::ID.value: 'two' ), &[~~], $!session.active-element;
+		self.cmp-ok: 'second input starts focused', $!session.find-element( By::ID.new: 'two' ), &[~~], $!session.active-element;
+		self.cmp-ok: 'first input starts blurred', $!session.find-element( By::ID.new: 'one' ), &[!~~], $!session.active-element;
+		self.cmp-ok: 'third input starts blurred', $!session.find-element( By::ID.new: 'three' ), &[!~~], $!session.active-element;
+		self.cmp-ok: 'second input still focused', $!session.find-element( By::ID.new: 'two' ), &[~~], $!session.active-element;
 		
 		$!session.active-element.send-keys: "2" ~ $WD2::Keys::TAB;
-		self.cmp-ok: 'tab to third input', $!session.find-element( By::ID.value: 'three' ), &[~~], $!session.active-element;
-		self.cmp-ok: 'second input no longer focused', $!session.find-element( By::ID.value: 'two' ), &[!~~], $!session.active-element;
+		self.cmp-ok: 'tab to third input', $!session.find-element( By::ID.new: 'three' ), &[~~], $!session.active-element;
+		self.cmp-ok: 'second input no longer focused', $!session.find-element( By::ID.new: 'two' ), &[!~~], $!session.active-element;
 		
-		my WD2::Component::Element $el = $!session.find-element: By::ID.value: 'two';
+		my WD2::Component::Element $el = $!session.find-element: By::ID.new: 'two';
 		self.is: 'input was received', '2', $el.property: 'value';
 		
 		# selected
-		$el = $!session.find-element: By::Tag.value: 'select';
-		my WD2::Component::Element @options = $el.find-elements: By::Tag.value: 'option';
+		$el = $!session.find-element: By::Tag.new: 'select';
+		my WD2::Component::Element @options = $el.find-elements: By::Tag.new: 'option';
 		self.is: 'correct number of option elements', 3, @options.elems;
 		self.nok: 'first option not selected', @options[0].property: 'selected';
 		self.nok: 'second option not selected', @options[1].property: 'selected';
@@ -65,13 +65,13 @@ class Endpoint-Test
 		self.ok: 'now selected', @options[2].property: 'selected';
 		self.is: 'value three', 'three', $el.property: 'value';
 		
-		$el = $!session.find-element: By::ID.value: 'three';
+		$el = $!session.find-element: By::ID.new: 'three';
 		self.nok: 'starts unchecked', $el.property: 'checked';
 		$el.click;
 		self.ok: 'click marks selected', $el.property: 'checked';
 		
 		# enabled
-		$el = $!session.find-element: By::ID.value: 'no-text';
+		$el = $!session.find-element: By::ID.new: 'no-text';
 		self.is: 'starts empty', '', $el.property: 'value';
 		self.nok: 'is disabled', $el.is-enabled;
 		if $!session.Str eq 'safari' {
@@ -82,19 +82,19 @@ class Endpoint-Test
 		}
 		self.is: 'text still empty', '', $el.property: 'value';
 		
-		$el = $!session.find-element: By::ID.value: 'no-check';
+		$el = $!session.find-element: By::ID.new: 'no-check';
 		self.nok: 'starts unchecked', $el.property: 'selected';
 		self.nok: 'is disabled', $el.is-enabled;
 		$el.click;
 		self.nok: 'still unchecked', $el.property: 'selected';
 		
 		# attribute / property
-		$el = $!session.find-element: By::CSS.value: 'label > input';
+		$el = $!session.find-element: By::CSS.new: 'label > input';
 		self.is: 'correct name attribute value', 'radio-group', $el.attribute: 'name';
-		self.is: 'css class selector', 'h3 by class', .text with $!session.find-element: By::CSS.value: '.second';
+		self.is: 'css class selector', 'h3 by class', .text with $!session.find-element: By::CSS.new: '.second';
 		
 		# attribute / property + clear and send keys
-		$el = $!session.find-element: By::ID.value: 'attr-prop';
+		$el = $!session.find-element: By::ID.new: 'attr-prop';
 		self.is: 'initial value', 'start', $el.property: 'value';
 		self.is: 'initial value', 'start', $el.attribute: 'value';
 		$el.clear;
@@ -110,9 +110,9 @@ class Endpoint-Test
 		self.is: 'italics set', 'italic', $el.css-value: 'font-style';
 		
 		# tag-name
-		$el = $!session.find-element: By::ID.value: 'heading';
+		$el = $!session.find-element: By::ID.new: 'heading';
 		self.is: 'locate by id; correct tag name', 'h2', $el.tag-name.lc;
-		$el = $!session.find-element: By::Tag.value: 'h2';
+		$el = $!session.find-element: By::Tag.new: 'h2';
 		self.is: 'locate by tag; correct tag name', 'h2', $el.tag-name.lc;
 		
 		# text

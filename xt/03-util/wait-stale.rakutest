@@ -21,13 +21,13 @@ class Wait does WD2::Test::Template {
 	
 	method test {
 		my Duration:D $duration = Duration.new: 1/2;
-		my By:D $locator = By::ID.value: 'added';
+		my By:D $locator = By::ID.new: 'added';
 		my &wait;
 		my WD2::Component::Element $element;
 		my Instant $start;
 		
 		$!session.navigate-to: 'file://' ~ $html-file.absolute;
-		$element = .() with present $!session, By::ID.value: 'remove';
+		$element = .() with present $!session, By::ID.new: 'remove';
 		self.ok: 'button starts out present', $element;
 		self.nok:
 				'not stale while present',
@@ -50,7 +50,7 @@ class Wait does WD2::Test::Template {
 	}
 	
 	method element-by-id( Str $id ) {
-		$!session.find-element( By::ID.value: $id )
+		$!session.find-element( By::ID.new: $id )
 	}
 }
 

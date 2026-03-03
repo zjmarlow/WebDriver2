@@ -28,11 +28,11 @@ class Local does WD2::Test::Template {
 		ok self.element-by-id( 'form' ), 'root page';
 	}
 	method element-by-tag( Str $tag-name ) {
-		$!session.find-element( By::Tag.value: $tag-name )
+		$!session.find-element( By::Tag.new: $tag-name )
 	}
 	
 	method element-by-id( Str $id ) {
-		$!session.find-element( By::ID.value: $id )
+		$!session.find-element( By::ID.new: $id )
 	}
 }
 
