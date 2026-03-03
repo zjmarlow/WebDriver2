@@ -1,3 +1,5 @@
+my constant $STRICT = True;
+
 our Str enum Error-Code (
 		# 200
 		OK => 'OK',
@@ -94,7 +96,7 @@ class WD2::Endpoints::Result::X is Exception {
 role WD2::Endpoints {
 	use JSON::Fast;
 	use HTTP::UserAgent;
-	my HTTP::UserAgent:D $ua = HTTP::UserAgent.new: :strict;
+	my HTTP::UserAgent:D $ua = HTTP::UserAgent.new: $STRICT;
 	
 	has Str:D $.host is required = '127.0.0.1';
 	has Int:D $.port is required;

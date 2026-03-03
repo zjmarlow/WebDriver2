@@ -1,7 +1,7 @@
 role By {
-    has Str:D $.value is built is required;
+    has Str:D $.value is required is rw;
+    method new ( Str:D $value ) { self.bless: :$value }
     method using ( --> Str:D ) { ... }
-    method value ( Str:D $value ) { self.bless: :$value }
     method args ( --> Hash:D[ Str:D ] ) {
         { :$.using, :$!value }
     }
@@ -13,7 +13,7 @@ class By::CSS does By {
     has Str:D $.using = 'css selector';
 }
 class By::ID is By::CSS {
-    method value ( Str:D $value ) {
+    method new ( Str:D $value ) {
         callwith "#$value";
     }
 }

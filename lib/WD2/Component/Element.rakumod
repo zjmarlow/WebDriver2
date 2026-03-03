@@ -97,15 +97,15 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	submethod TWEAK {
 		unless $!locator {
 			with self.attribute: 'id' {
-				$!locator = By::ID.value: .self;
+				$!locator = By::ID.new: .self;
 			} orwith self.attribute: 'class' {
-				$!locator = By::CSS.value: join '.', '', .self.trim.split: /\s+/;
+				$!locator = By::CSS.new: join '.', '', .self.trim.split: /\s+/;
 			} else {
 				my Str:D $tag = self.tag-name;
 				if $tag.lc = 'a' {
 					$!locator = By::Link-Text.value: self.text;
 				} else {
-					$!locator = By::Tag.value: $tag;
+					$!locator = By::Tag.new: $tag;
 				}
 			}
 		}
@@ -433,9 +433,19 @@ class WD2::Component::Element does WD2::Endpoints is export {
 		$return.throw;
 	}
 	
-	method select ( WD2::Component::Element:D: Str:D $text --> Bool:D ) {
+	multi method select ( WD2::Component::Element:D: Regex:D $option --> Bool:D ) {
 		self.click;
-		for self.find-elements: By::Tag.value: 'option' {
+		for self.find-elements: By::Tag.new: 'option' {
+			if .text ~~ $option {
+				.click;
+				return True;
+			}
+		}
+		False;
+	}
+	multi method select ( WD2::Component::Element:D: Str:D $text --> Bool:D ) {
+		self.click;
+		for self.find-elements: By::Tag.new: 'option' {
 			if .text eq $text {
 				.click;
 				return True;
@@ -444,13 +454,13 @@ class WD2::Component::Element does WD2::Endpoints is export {
 		False;
 	}
 	method selected-option ( WD2::Component::Element:D: --> Str ) {
-		for self.find-elements: By::Tag.value: 'option' {
+		for self.find-elements: By::Tag.new: 'option' {
 			return .text if .is-element-selected;
 		}
 		Str;
 	}
 	method selected-value ( WD2::Component::Element:D: --> Str ) {
-		for self.find-elements: By::Tag.value: 'option' {
+		for self.find-elements: By::Tag.new: 'option' {
 			return .attribute: 'value' if .is-element-selected;
 		}
 		Str;

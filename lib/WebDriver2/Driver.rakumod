@@ -25,6 +25,8 @@ use WebDriver2::Constants;
 use WebDriver2::Test::Debugging;
 use WebDriver2::Test::Config-From-File;
 
+my constant $STRICT = True;
+
 class WebDriver2::Driver
 		does WebDriver2::Driver-Actions
 		does WebDriver2::Test::Debugging
@@ -59,7 +61,7 @@ class WebDriver2::Driver
 	) {
 		return %driver{ $browser } if %driver{ $browser };
 		self.set-from-file: $browser, #`[ $.debug-level ];
-		$ua ||= HTTP::UserAgent.new: debug => $debug-level > Level::Info;
+		$ua ||= HTTP::UserAgent.new: $STRICT, debug => $debug-level > Level::Info;
 		%driver{ $browser } .=new: :$debug-level;
 	}
 #	method browser ( --> Str:D ) { ... }
