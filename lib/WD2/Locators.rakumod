@@ -5,6 +5,12 @@ role By {
     method args ( --> Hash:D[ Str:D ] ) {
         { :$.using, :$!value }
     }
+    method ACCEPTS ( $o ) {
+        $o.does: By
+        and $o.using eq self.using
+        and $o.value eq self.value
+        ;
+    }
 }
 class By::Tag does By {
     has Str:D $.using = 'tag name';

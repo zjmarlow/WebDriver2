@@ -152,5 +152,5 @@ our sub title-to-be (
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	;
-	basic-equals &operation, $title, |%args;
+	basic-eq &operation, $title, |%args;
 }

@@ -754,7 +754,9 @@ welcome.
 		<tr><td>basic-true</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for identically True value</td></tr>
 		<tr><td>basic-so-true</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for truthiness</td></tr>
 		<tr><td>basic-to-true</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for falsiness and alter return value to be the opposite Bool value</td></tr>
+		<tr><td>basic-eq</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for a specific value using eq</td></tr>
 		<tr><td>basic-equals</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for a specific value using ==</td></tr>
+		<tr><td>basic-accepts</td><td>I</td><td><code>use WD2::Wait :basic</code></td><td>wait for a specific value using ~~</td></tr>
 		<tr><td>throwable</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>return (non-Falure) Exception, otherwise, the return value. used to build waits but is not one itself</td></tr>
 		<tr><td>expect-throw</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>$throwable-return.isa: Exception ?? False !! $result but True.  used to build waits but is not one itself</td></tr>
 		<tr><td>expect-throw-type</td><td>I</td><td><code>use WD2::Wait :throw</code></td><td>rethrow wrong type; return the type if it was expected; otherwise, return Error-Code (falsy).  used to build waits but is not one itself</td></tr>

@@ -150,6 +150,22 @@ our sub basic-to-true (
 	base-wait &operation, :&expect, |%args;
 }
 
+our sub basic-eq (
+		&operation where .defined,
+		Str $value,
+		:&cleanup,
+		Duration:D :$duration = $_duration,
+		Duration:D :$interval = $_interval,
+		Bool :$soft,
+		Level :$debug-level = $_debug
+) is export(:basic) {
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my &expect = -> $val { $val eq $value };
+	base-wait &operation, :&expect, |%args;
+}
+
 our sub basic-equals (
 		&operation where .defined,
 		$value,
@@ -163,6 +179,22 @@ our sub basic-equals (
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	my &expect = -> $val { $val == $value };
+	base-wait &operation, :&expect, |%args;
+}
+
+our sub basic-accepts (
+		&operation where .defined,
+		$value,
+		:&cleanup,
+		Duration:D :$duration = $_duration,
+		Duration:D :$interval = $_interval,
+		Bool :$soft,
+		Level :$debug-level = $_debug
+) is export(:basic) {
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	my &expect = -> $val { $val ~~ $value };
 	base-wait &operation, :&expect, |%args;
 }
 
