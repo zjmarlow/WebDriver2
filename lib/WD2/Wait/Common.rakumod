@@ -104,6 +104,23 @@ our sub value-not-empty (
 	basic-so-true &operation, |%args;
 }
 
+our sub value-to-eq (
+		WD2::Component::Element:D $element,
+		Str $value,
+		:&cleanup,
+		Duration :$duration,
+		Duration :$interval,
+		Bool :$soft,
+		Level :$debug-level
+) is export(:value) {
+	my &operation = { $element.value };
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic-eq &operation, $value, |%args;
+}
+
 our sub value-to-be (
 		WD2::Component::Element:D $element,
 		Str $value,

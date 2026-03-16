@@ -406,14 +406,17 @@ multi method page-source (
 }
 multi method execute-script (
 		WD2::Component::Session:D:
-		Str:D $script, @args ) {
+		Str:D $script,
+		@args
+) {
 	WD2::Component::Session.execute-script: $script, @args, self
 }
 multi method execute-script (
 		WD2::Component::Session:U:
 		Str:D $script,
 		@args,
-		WD2::Component::Session:D $session ) {
+		WD2::Component::Session:D $session
+) {
 	my $return = self.check-status:
 			self.request:
 					self.post-request:
