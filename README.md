@@ -184,6 +184,9 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 	</tr>
 </tbody></table>
 
+In addition, any extra named arguments will be passed to the test class, so that instance variables can be built
+from them.
+
 
 ## TODO
 
@@ -679,6 +682,13 @@ welcome.
 		<td align="center" class="not-started">&nbsp;</td>
 		<td align="center" class="not-started">&nbsp;</td>
 		<td><code>$element.id</code></td>
+	</tr>
+	<tr><td>top ( convenience method - not spec'd )</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="not-started">&nbsp;</td>
+		<td><code>$session.top</code></td>
 	</tr>
 	<tr><td>switch-to ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>

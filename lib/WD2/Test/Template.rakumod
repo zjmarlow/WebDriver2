@@ -135,7 +135,8 @@ our sub driver-test ( WD2::Test::Template:U $test-class ) {
 			IO::Path(Str:D) :$test-root = 'xt'.IO,
 			Int:D :$close-delay = 3,
 			Bool:D :$no-auto-ss = False,
-			Str:D :debug(:$debug-level) = 'WARN'
+			Str:D :debug(:$debug-level) = 'WARN',
+			*%rest
 	) {
 		$browser ||= browser-from-file;
 		.execute
@@ -146,7 +147,8 @@ our sub driver-test ( WD2::Test::Template:U $test-class ) {
 				:$close-delay,
 				:$no-auto-ss,
 				:$test-root,
-				debug => Level::{ $debug-level }
+				debug => Level::{ $debug-level },
+				|%rest
 				;
 	}
 }

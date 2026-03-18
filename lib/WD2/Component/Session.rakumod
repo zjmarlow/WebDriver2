@@ -200,18 +200,19 @@ multi method new-window (
 	return .<value> with $return;
 	$return.throw;
 }
-multi method switch-to-frame ( WD2::Component::Session:D: --> WD2::Component::Session:D
-) {
+multi method switch-to-frame ( WD2::Component::Session:D: --> WD2::Component::Session:D ) {
 	my $return = self.check-status: self.request: self.post-request: { id => Str }, self, 'frame';
 	return self with $return;
 	$return.throw;
 }
-multi method switch-to-frame ( WD2::Component::Session:D: Int $frame --> WD2::Component::Session:D
-) {
+multi method switch-to-frame ( WD2::Component::Session:D: Int $frame --> WD2::Component::Session:D ) {
 	my $return = self.check-status: 
 			self.request: self.post-request: { id => $frame }, self, 'frame';
 	return self with $return;
 	$return.throw;
+}
+method top ( WD2::Component::Session:D: --> WD2::Component::Session:D ) {
+	self.switch-to-frame;
 }
 multi method switch-to-parent-frame (
 		WD2::Component::Session:D:
