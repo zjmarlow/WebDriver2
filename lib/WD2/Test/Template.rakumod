@@ -78,8 +78,8 @@ role WD2::Test::Template
 			self.init;
 			
 			self.subtest: Pair.new: $.name, {
-				plan $.plan with $.plan;
 				self.pre-test;
+				plan $.plan with $.plan;
 				self.test;
 				self.post-test;
 				done-testing unless $.plan;
