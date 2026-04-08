@@ -69,7 +69,7 @@ class Stale-Test does WD2::Test::Template {
 	}
 	
 	method element-by-id( Str $id ) {
-		$!session.find-element( By::ID.new: $id )
+		$!session.find-element( By.id: $id )
 	}
 }
 

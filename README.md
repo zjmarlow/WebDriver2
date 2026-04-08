@@ -42,16 +42,16 @@ Some Element endpoints:
 	use WD2::Locators;
 	
 	my WD2::Component::Element:D $element =
-		$session.find-element: By::ID.new: 'identifier';
+		$session.find-element: By.id: 'identifier';
 	$element.click;
 ```
 
 In addition to locating Elements by ID, the standard locators are available:
 
 ```Raku
-	$element = $session.find-element: By::Tag.new: 'input';
-	$element = $session.find-element: By::CSS.new: 'body > div.head'; # by CSS selector
-	# also By::Link-Text, By::Partial-Link-Text, By::XPath
+	$element = $session.find-element: By.tag: 'input';
+	$element = $session.find-element: By.css: 'body > div.head';
+	# also By.link-text, By.partial-link-text, By.xpath
 ```
 
 [See below](#locator-status) for status.
@@ -83,7 +83,7 @@ Since waiting for a condition to be true before moving to the next step is usefu
 	&wait-present();
 	
 	my WD2::Component::Element $element =
-		$session.find-element: By::ID.new: 'gets-removed';
+		$session.find-element: By.id: 'gets-removed';
 	my &wait-stale = stale $element;
 	# do something...
 	# then wait for the element to be removed using default values;
@@ -91,11 +91,11 @@ Since waiting for a condition to be true before moving to the next step is usefu
 	&wait-stale();
 	
 	my WD2::Component::Element $updatable =
-		$session.find-element: By::ID.new: 'updatable';
+		$session.find-element: By.id: 'updatable';
 	my WD2::Component::Element $input =
-		$session.find-element: By::ID.new: 'text-input';
+		$session.find-element: By.id: 'text-input';
 	my WD2::Component::Element $updater =
-		$session.find-element: By::Tag.new: 'button';
+		$session.find-element: By.tag: 'button';
 	my &wait-updated = text-to-be $updatable, 'new text';
 	$input.send-keys: 'new text';
 	$updater.click;
@@ -734,12 +734,12 @@ welcome.
 		</tr>
 	</thead>
 	<tbody>
-		<tr><td>By::ID</td><td>&check;</td></tr>
-		<tr><td>By::Tag</td><td>I</td></tr>
-		<tr><td>By::CSS</td><td>I</td></tr>
-		<tr><td>By::XPath</td><td>I</td></tr>
-		<tr><td>By::Link-Text</td><td>I</td></tr>
-		<tr><td>By::Partial-Link-Text</td><td>I</td></tr>
+		<tr><td>By.id</td><td>&check;</td></tr>
+		<tr><td>By.tag</td><td>I</td></tr>
+		<tr><td>By.css</td><td>I</td></tr>
+		<tr><td>By.xpath</td><td>I</td></tr>
+		<tr><td>By.link-text</td><td>I</td></tr>
+		<tr><td>By.partial-link-text</td><td>I</td></tr>
 	</tbody>
 </table>
 

@@ -21,13 +21,13 @@ class Wait does WD2::Test::Template {
 	
 	method test {
 		my Duration:D $duration = Duration.new: 1/2;
-		my By:D $locator = By::ID.new: 'added';
+		my By:D $locator = By.id: 'added';
 		my &wait;
 		my WD2::Component::Element $element;
 		my Instant $start;
 		
 		$!session.navigate-to: 'file://' ~ $html-file.absolute;
-		$element = $!session.find-element: By::ID.new: 'visible';
+		$element = $!session.find-element: By.id: 'visible';
 		self.ok:
 				'displayed detects displayed',
 				.() with displayed $element, :$duration;
@@ -50,7 +50,7 @@ class Wait does WD2::Test::Template {
 	}
 	
 	method element-by-id( Str $id ) {
-		$!session.find-element( By::ID.new: $id )
+		$!session.find-element( By.id: $id )
 	}
 }
 
