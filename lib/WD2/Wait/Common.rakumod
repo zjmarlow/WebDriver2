@@ -152,7 +152,7 @@ our sub text-to-be (
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
 	;
-	basic-equals &operation, $text, |%args;
+	basic-eq &operation, $text, |%args;
 }
 
 our sub title-to-be (
