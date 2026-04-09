@@ -13,7 +13,7 @@ class By {
         { :$.using, :$!value }
     }
     method ACCEPTS ( $o ) {
-        $o.is: By
+        $o.isa: By
         and $o.using eq self.using
         and $o.value eq self.value
         ;
