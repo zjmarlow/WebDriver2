@@ -1,5 +1,3 @@
-my constant $STRICT = True;
-
 our Str enum Error-Code (
 		# 200
 		OK => 'OK',
@@ -95,19 +93,19 @@ class WD2::Endpoints::Result::X is Exception {
 
 role WD2::Endpoints {
 	use JSON::Fast;
-	use HTTP::UserAgent;
-	my HTTP::UserAgent:D $ua = HTTP::UserAgent.new: $STRICT;
+	use HTTP::UserAgent::Strict;
+	my HTTP::UserAgent::Strict:D $ua = HTTP::UserAgent::Strict.new;
 	
 	has Str:D $.host is required = '127.0.0.1';
 	has Int:D $.port is required;
 	
 	method url ( *@command --> Str:D ) { ... }
 	
-	multi method request ( HTTP::Request:D $req --> HTTP::Response:D ) {
+	multi method request ( HTTP::Request::Strict:D $req --> HTTP::Response::Strict:D ) {
 		$ua.request: $req;
 	}
 	
-	method check-status ( HTTP::Response $response ) {
+	method check-status ( HTTP::Response::Strict $response ) {
 		my $return = from-json $response.content;
 		#| as specified in https://w3c.github.io/webdriver/
 		#| success for endpoints without natural return values return json null
@@ -125,26 +123,26 @@ role WD2::Endpoints {
 									;
 	}
 	
-	multi method request ( Str:D $method, WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request:D ) {
+	multi method request ( Str:D $method, WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request::Strict:D ) {
 		my Str:D $url = $endpoint.url: @endpoint;
 		given $method {
-			when 'GET' { return HTTP::Request.new: GET => $url, :strict }
-			when 'POST' { return HTTP::Request.new: POST => $url, :strict }
-			when 'DELETE' { return HTTP::Request.new: DELETE => $url, :strict }
+			when 'GET' { return HTTP::Request::Strict.new: GET => $url }
+			when 'POST' { return HTTP::Request::Strict.new: POST => $url }
+			when 'DELETE' { return HTTP::Request::Strict.new: DELETE => $url }
 		}
 	}
-	method get-request ( WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request:D ) {
+	method get-request ( WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request::Strict:D ) {
 		self.request: 'GET', $endpoint, @endpoint;
 	}
-	method post-request ( $data, WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request:D ) {
-		my HTTP::Request $req = self.request: 'POST', $endpoint, @endpoint;
+	method post-request ( $data, WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request::Strict:D ) {
+		my HTTP::Request::Strict $req = self.request: 'POST', $endpoint, @endpoint;
 		# $req.field: Connection => 'keep-alive';
 		my Str:D $json = to-json $data;
 		# debug: Level::extra, $json;
 		$req.add-content: $json;
 		$req;
 	}
-	method delete-request ( WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request:D ) {
+	method delete-request ( WD2::Endpoints:D $endpoint, *@endpoint --> HTTP::Request::Strict:D ) {
 		self.request: 'DELETE', $endpoint, @endpoint;
 	}
 }

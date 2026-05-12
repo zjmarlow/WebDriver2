@@ -44,6 +44,7 @@ role WD2::Test::Template
 				:$test-root,
 				:$close-delay,
 				:$debug-level,
+				  debug => $debug-level,
 				|%_,
 				;
 	}

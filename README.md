@@ -115,7 +115,8 @@ From `xt/lib/Example.rakumod`:
 	use WD2::Test::Template;
 	
 	class Example does WD2::Test::Template {
-		my IO::Path:D $html-file = $*CWD.add: <xt content test.html>;
+		my IO::Path:D $html-file =
+			$*PROGRAM.parent.sibling( 'content' ).add: 'test.html';
 		
 		has Str:D $.name = 'example';
 		has Str:D $.description = 'example test description';
@@ -134,7 +135,7 @@ Once such a class is written, it can be used in a test script.
 From `xt/05-test-template/example.rakutest`:
 
 ```Raku
-	use lib <lib xt/lib>;
+	use lib do for <lib xt/lib> { $*PROGRAM.parent.parent.add: $_ };
 	
 	use WD2::Test::Template;
 	use Example;
@@ -160,7 +161,8 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 	</tr><tr>
 		<td>Int:D :$port = 9515</td>
 		<td>9515 is the default for chromedriver and edgedriver.  it will likely need to be supplied when
-			using firefox or safari</td>
+			using firefox or safari.  the port can also be set when starting the driver (as opposed to or
+			in addition to the script)</td>
 	</tr><tr>
 		<td>IO::Path(Str:D) :$test-root = 'xt'.IO</td>
 		<td>currently unused</td>
@@ -170,7 +172,7 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 			a fatal exception (except failed Session creation - in which case there will be no screen to take a screenshot of).  If the session is left open, the session-id will be given on STDOUT so that it can
 			be used to close the session gracefully later.  E.g., by using the provided
 			<code>bin/close-session.raku</code> script:
-			<code>raku bin/close-session.raku --host=127.0.0.1 --port=9515 browser(required) session-id(required)</code>
+			<code>raku bin/close-session.raku --host=127.0.0.1 --port=9515 &lt;browser&gt;(required) session-id(required)</code>
 		</td>
 	</tr><tr>
 		<td>Bool:D :$no-auto-ss = False</td>
@@ -179,7 +181,7 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 			set to suppress this behavior</td>
 	</tr><tr>
 		<td>Str:D :$debug(:$debug-level) = 'WARN'</td>
-		<td>valid values: OFF, ERR, WARN, Info, trace, extra.  not much debugging output has been
+		<td>valid values: OFF, ERR, WARN, Info, trace, extra.  debugging output has been
 			incorporated, yet</td>
 	</tr>
 </tbody></table>

@@ -1,4 +1,4 @@
-use lib <../http-useragent/lib lib xt/lib>;
+use lib do for <lib xt/lib> { $*PROGRAM.parent.parent.parent.add: $_ };
 
 use WD2::Test::Template;
 use Example;

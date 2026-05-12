@@ -1,0 +1,16 @@
+use Test;
+
+use-ok 'WD2';
+use-ok 'WD2::Config';
+use-ok 'WD2::Debug';
+use-ok 'WD2::Endpoints';
+use-ok 'WD2::Keys';
+use-ok 'WD2::Locators';
+use-ok 'WD2::Page';
+use-ok 'WD2::Wait';
+use-ok 'WD2::Wait::Common';
+use-ok 'WD2::Test::Adapter';
+use-ok 'WD2::Test::Template';
+use-ok 'WD2::Component::Driver';
+use-ok 'WD2::Component::Element';
+use-ok 'WD2::Component::Session';
