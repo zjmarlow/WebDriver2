@@ -22,7 +22,7 @@ role WD2::Test::Template
 	
 	#method browser ( --> Str:D ) { $!driver-provider.browser }
 	
-	method plan ( --> Int ) { Int; }
+	method plan ( --> Int:D ) { ... }
 	method name ( --> Str:D ) { ... }
 	method description ( --> Str:D ) { ... }
 	

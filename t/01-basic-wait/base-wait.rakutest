@@ -30,7 +30,7 @@ class Wait does WD2::Test::Template {
 		-> $v { ++$run; False }
 	}
 	
-	method init { }
+	method init { plan 1 }
 	method close { }
 	method handle-test-failure ( Str $descr ) { }
 	method handle-error ( Exception $x ) { }

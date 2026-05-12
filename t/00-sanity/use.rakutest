@@ -1,5 +1,9 @@
 use Test;
 
+use lib 'lib';
+
+plan 14;
+
 use-ok 'WD2';
 use-ok 'WD2::Config';
 use-ok 'WD2::Debug';
