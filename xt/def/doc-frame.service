@@ -1,9 +1,0 @@
-#page: doc-main
-
-iframe: /iframe
-
-form: /iframe/form
-outer: /iframe/outer-lc/outer
-inner: /iframe/outer-lc/outer/inner
-
-div: /iframe/div

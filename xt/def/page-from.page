@@ -1,5 +1,0 @@
-page page-from 'file://xt/content/page-from.html' {
-    elemt h2 tag-name 'h2';
-    elemt text id 'text';
-    elemt link tag-name 'a';
-}

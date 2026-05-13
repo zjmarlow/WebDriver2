@@ -1,3 +1,0 @@
-elgrp form tag-name 'form' {
-	elemt input tag-name 'input';
-}

@@ -1,8 +1,0 @@
-page lr-root 'file://xt/content/lr-root.html' {
-    frame lf id 'l' {
-		elemt li tag-name 'input';
-    }
-    frame rf id 'r' {
-        elemt ri tag-name 'input';
-    }
-}

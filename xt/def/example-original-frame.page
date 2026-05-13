@@ -1,6 +1,0 @@
-		frame switchable-frame-original id 'frame' {
-			elemt original-content tag-name 'h2';
-			elgrp original-list tag-name 'ul' {
-				list of elemt original-item tag-name 'li';
-			}
-		}

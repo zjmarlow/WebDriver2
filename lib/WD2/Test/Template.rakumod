@@ -20,9 +20,7 @@ role WD2::Test::Template
 	has WD2::Component::Driver:D $!driver is built is required;
 	has WD2::Component::Session $!session;
 	
-	#method browser ( --> Str:D ) { $!driver-provider.browser }
-	
-	method plan ( --> Int:D ) { ... }
+	method plan ( --> Int ) { ... }
 	method name ( --> Str:D ) { ... }
 	method description ( --> Str:D ) { ... }
 	
@@ -69,7 +67,7 @@ role WD2::Test::Template
 		$!session.delete;
 		DateTime.now.Str.say;
 	}
-	#method !done-testing { done-testing }
+	
 	method cleanup {
 		self.close;
 	}
@@ -107,7 +105,7 @@ role WD2::Test::Template
 	}
 	
 	multi method screenshot {
-		$!session.take-screenshot; #  if $!driver-provider.driver.session-id;
+		$!session.take-screenshot;
 	}
 	
 	multi method screenshot ( Str:D $name ) {

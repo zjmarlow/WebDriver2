@@ -1,5 +1,0 @@
-page lr 'file://xt/content/ml.html' {
-	elgrp form tag-name 'form' {
-		elemt button tag-name 'input';
-	}
-}
