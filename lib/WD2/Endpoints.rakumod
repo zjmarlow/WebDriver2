@@ -111,7 +111,7 @@ role WD2::Endpoints {
 		#| success for endpoints without natural return values return json null
 		return $return // True if $response.code.Int == 200;
 		
-		# Failure.new:
+		fail
 				WD2::Endpoints::Result::X.new:
 						execution-error =>
 							WD2::Endpoints::Error.new:

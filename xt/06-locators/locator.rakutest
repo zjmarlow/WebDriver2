@@ -1,0 +1,299 @@
+use Test;
+
+use lib <lib>;
+
+use WD2::Test::Template;
+use WD2::Component::Element;
+use WD2::Locators;
+
+class Locate does WD2::Test::Template {
+	has Int:D $.plan = 21;
+	has Str:D $.name = 'locators';
+	has Str:D $.description = 'test locators';
+	
+	my Str:D @link-ids = <l1 l2 l3 l4 l5 l6 l7>;
+	my Str:D @link-text =
+		'link one - first link',
+		'link two - second link',
+		'link three - third link',
+		'repeat link text',
+		'repeat link text',
+		'repeat link text',
+		'link seven - last link'
+		;
+	my Str:D @li-text =
+		@link-text[1],
+		'not third link',
+		@link-text[2],
+		;
+	
+	my Str:D $id = 'pass';
+	my Str:D $class = 'has-children';
+	my Str:D $css-children = 'li > a';
+	my Str:D $css = ".$class";
+	my Str:D $tag = 'a';
+	my Str:D $link-text = 'link three - third link';
+	my Str:D $partial-link-text = 'third link';
+	my Str:D $xpath = 'ul/li';
+	
+	my By:D $by-id  = By.id:   $id;
+	my By:D $by-css = By.css: $css;
+	my By:D $by-tag = By.tag: $tag;
+	my By:D $by-link-text = By.link-text: $link-text;
+	my By:D $by-part-link-text = By.partial-link-text: $partial-link-text;
+	my By:D $by-xpath = By.xpath: $xpath;
+	
+	my By:D $no-id = By.id: 'DNE';
+	my By:D $no-css = By.css: '.classless';
+	my By:D $no-tag = By.tag: 'input';
+	my By:D $no-link-text = By.link-text: 'third link';
+	my By:D $no-partial-link-text = By.partial-link-text: 'not third';
+	my By:D $no-xpath = By.xpath: '//form/submit';
+	
+	my Str:D $l1id = 'l1';
+	my Str:D $li = 'li';
+	my Str:D $l2id = 'l2';
+	
+	my By:D $sub-by-li = By.tag: $li;
+	my By:D $sub-by-id = By.id: $l2id;
+	
+	method get ( By:D $l --> WD2::Component::Element ) {
+		$!session.find-element: $l;
+	}
+	method get-all ( By:D $l --> Array:D[ WD2::Component::Element:D ] ) {
+		Array[ WD2::Component::Element:D ].new: $!session.find-elements: $l;
+	}
+	
+	method test {
+		my IO::Path:D $html-file = $!test-root.add: <content locate.html>;
+		$!session.navigate-to: 'file://' ~ $html-file.absolute;
+		
+		my WD2::Component::Element $el;
+		my WD2::Component::Element @el;
+		
+		self.subtest: 'one from session by id' => {
+			plan 3;
+			@el = self.get: $by-id;
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'locator', $id, @el.head.id;
+			self.is: 'correct one', 'ul', @el.head.tag-name;
+		}
+		self.subtest: 'all one from session by id' => {
+			plan 3;
+			@el = self.get-all: $by-id;
+			self.is: 'still the only one returned', 1, +@el;
+			self.is: 'locator', $id, @el.head.id;
+			self.is: 'correct one', 'ul', @el.head.tag-name;
+		}
+		self.subtest: 'one from element by id' => {
+			plan 3;
+			$el = self.get: By.tag: 'p';
+			@el = $el.find-element: By.id: $l1id;
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'locator', $l1id, @el.head.id;
+			self.is: 'correct one', @link-text.head, @el.head.text;
+		}
+		self.subtest: 'all one from element by id' => {
+			plan 3;
+			@el = $el.find-elements: By.id: $l1id;
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'locator', $l1id, @el.head.id;
+			self.is: 'correct one', @link-text.head, @el.head.text;
+		}
+		
+		
+		
+		self.subtest: 'one from element by tag' => {
+			plan 3;
+			$el = self.get: $by-id;
+			@el = $el.find-element: $sub-by-li;
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'locator', 'li', @el.head.tag-name;
+			self.is: 'correct one', 'has ul parent', @el.head.text;
+		}
+		self.subtest: 'one of many from session by tag' => {
+			plan 3;
+			@el = self.get: $by-tag;
+			self.is: 'first one returned', 1, +@el;
+			self.is: 'locator', $tag, @el.head.tag-name;
+			self.is: 'correct one', 'link one - first link', @el.head.text;
+		}
+		self.subtest: 'many from session by tag' => {
+			plan 3;
+			@el = self.get-all: $by-tag;
+			self.is: 'all returned', 7, +@el;
+			self.subtest: 'locators' => {
+				plan 7;
+				self.is: 'locator', $tag, .tag-name for @el;
+			}
+			self.subtest: 'correct ones' => {
+				plan 7;
+				self.is: 'correct one', .[0], .[1] for @link-ids Z @el>>.id;
+			}
+		}
+		
+		
+		
+		self.subtest: 'one of many from session by css' => {
+			plan 3;
+			@el = self.get: By.css: $css-children;
+			self.is: 'only one returned', 1, +@el;
+			self.is: 'locator', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-text[1], @el.head.text;
+		}
+		self.subtest: 'one from session by css' => {
+			plan 3;
+			@el = self.get: $by-css;
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'locator', $class, @el.head.attribute: 'class';
+			self.is: 'correct one', 'ol', @el.head.tag-name;
+			$el = @el.head;
+		}
+		self.subtest: 'all from session by css' => {
+			plan 3;
+			@el = self.get-all: By.css: $css-children;
+			self.is: 'all returned', 2, +@el;
+			self.subtest: 'locators' => {
+				plan 2;
+				self.is: 'locator', 'a', .tag-name for @el;
+			}
+			self.subtest: 'correct ones' => {
+				plan 2;
+				self.is: 'correct one', .[0], .[1] for @link-text[ 1, 2 ] Z @el>>.text;
+			}
+		}
+		self.subtest: 'one from element by css' => {
+			plan 3;
+			@el = self.get: $by-css;
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'locator', $class, @el.head.attribute: 'class';
+			self.is: 'correct one', 'ol', @el.head.tag-name;
+		}
+		self.subtest: 'one of many from element by css' => {
+			plan 3;
+			@el = self.get: By.css: $css-children;
+			self.is: 'only one returned', 1, +@el;
+			self.is: 'locator', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-text[1], @el.head.text;
+		}
+		self.subtest: 'all from element by css' => {
+			plan 3;
+			@el = self.get-all: By.css: $css-children;
+			self.is: 'all returned', 2, +@el;
+			self.subtest: 'locators' => {
+				plan 2;
+				self.is: 'locator', 'a', .tag-name for @el;
+			}
+			self.subtest: 'correct ones' => {
+				plan 2;
+				self.is: 'correct one', .[0], .[1] for @link-text[ 1, 2 ] Z @el>>.text;
+			}
+		}
+		
+		
+		
+		# first subelement
+		self.subtest: 'one of many from element by tag' => {
+			plan 3;
+			@el = $el.find-element: By.tag: $li;
+			self.is: 'only one returned', 1, +@el;
+			self.is: 'locator', $li, @el.head.tag-name;
+			self.is: 'correct one', @li-text.head, @el.head.text;
+		}
+		# all subelements
+		self.subtest: 'all subelements by tag' => {
+			plan 3;
+			@el = $el.find-elements: By.tag: $li;
+			self.is: 'all returned', 3, +@el;
+			self.subtest: 'locators' => {
+				plan 3;
+				self.is: 'locator', $li, .tag-name for @el;
+			}
+			self.subtest: 'correct ones' => {
+				plan 3;
+				self.is: 'correct one', .[0], .[1] for @li-text Z @el>>.text;
+			}
+		}
+		
+		
+		
+		self.subtest: 'one from session by link text' => {
+			plan 4;
+			@el = self.get: $by-link-text;
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'locator', @link-text[2], @el.head.text;
+			self.is: 'type', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-ids[2], @el.head.id;
+		}
+		self.subtest: 'one of many from session by link text' => {
+			plan 4;
+			@el = self.get: By.link-text: @link-text[3];
+			self.is: 'only one returned', 1, +@el;
+			self.is: 'locator', @link-text[3], @el.head.text;
+			self.is: 'type', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-ids[3], @el.head.id;
+		}
+		self.subtest: 'all from session by link text' => {
+			plan 4;
+			@el = self.get-all: By.link-text: @link-text[3];
+			self.is: 'all returned', 3, +@el;
+			self.subtest: 'locators' => {
+				plan 3;
+				self.is: 'locator', .[0], .[1] for @link-text[ 3, 4, 5 ] Z @el>>.text;
+			}
+			self.subtest: 'types' => {
+				plan 3;
+				self.is: 'type', 'a', .tag-name for @el;
+			}
+			self.subtest: 'correct ones' => {
+				plan 3;
+				self.is: 'correct one', .[0], .[1] for @link-ids[ 3, 4, 5 ] Z @el>>.id;
+			}
+		}
+		self.subtest: 'one from element by link text' => {
+			plan 4;
+			$el = self.get: By.tag: 'fieldset';
+			@el = $el.find-element: By.link-text: @link-text[6];
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'locator', @link-text[6], @el.head.text;
+			self.is: 'type', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-ids[6], @el.head.id;
+		}
+		self.subtest: 'one of many from element by link text' => {
+			plan 4;
+			@el = $el.find-element: By.link-text: @link-text[4];
+			self.is: 'only one returned', 1, +@el;
+			self.is: 'locator', @link-text[4], @el.head.text;
+			self.is: 'type', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-ids[4], @el.head.id;
+		}
+		self.subtest: 'all from element by link text' => {
+			plan 4;
+			@el = $el.find-elements: By.link-text: @link-text[4];
+			self.is: 'all returned', 2, +@el;
+			self.subtest: 'locators' => {
+				plan 2;
+				self.is: 'locator', .[0], .[1] for @link-text[ 4, 5 ] Z @el>>.text;
+			}
+			self.subtest: 'types' => {
+				plan 2;
+				self.is: 'type', 'a', .tag-name for @el;
+			}
+			self.subtest: 'correct ones' => {
+				plan 2;
+				self.is: 'correct one', .[0], .[1] for @link-ids[ 4, 5 ] Z @el>>.id;
+			}
+		}
+		
+		
+		
+		# partial link text
+		
+		
+		
+		# find-element fail
+		# find-elements none
+	}
+}
+
+constant &MAIN = driver-test Locate;

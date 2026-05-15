@@ -39,7 +39,7 @@ class WD2::Component::Shadow does WD2::Endpoints {
 				session => $shadow.session,
 				element-id => $return<value>{ $WD2::Component::Element::IDENTIFIER }
 		with $return;
-		$return.throw;
+		$return;
 	}
 
 	multi method find-sub-shadow-elements (
@@ -137,7 +137,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 								'frame'
 								;
 		return $element.session with $return;
-		$return.throw;
+		$return;
 	}
 	
 	method find-element ( By:D $locator --> WD2::Component::Element:D ) {
@@ -167,7 +167,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 				session => $element.session,
 				element-id => $return<value>{ $WD2::Component::Element::IDENTIFIER }
 		with $return;
-		$return.throw;
+		$return;
 	}
 	
 	multi method find-sub-elements (
@@ -227,7 +227,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 				session => $element.session,
 				shadow-id => $return<value>{ $WD2::Component::Shadow::IDENTIFIER }
 		with $return;
-		$return.throw;
+		$return;
 	}
 			
 	multi method is-element-selected (
@@ -240,8 +240,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Bool:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'selected';
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method is-displayed (
@@ -254,8 +254,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Bool:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'displayed';
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method attribute (
@@ -269,11 +269,11 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'attribute', $name;
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 	method id ( WD2::Component::Element:D: --> Str ) {
-		self.attribute: 'id';
+		self.attribute: 'id' orelse Str;
 	}
 	
 	multi method property (
@@ -287,8 +287,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'property', $name;
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method css-value (
@@ -303,8 +303,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'css', $name;
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method text (
@@ -317,8 +317,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'text';
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method tag-name (
@@ -331,8 +331,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'name';
-		return $return.<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return.<value> unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method rect (
@@ -343,8 +343,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:U:
 			WD2::Component::Element:D $element ) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'rect';
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method is-enabled (
@@ -357,8 +357,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Bool:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'enabled';
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method computed-role (
@@ -371,8 +371,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'computedrole';
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method computed-label (
@@ -385,8 +385,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'computedlabel';
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method click (
@@ -399,8 +399,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> WD2::Component::Element:D
 	) {
 		my $return = self.check-status: self.request: self.post-request: { }, $element, 'click';
-		return $element unless $return.isa: Exception;
-		$return.throw;
+		return $element unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method clear (
@@ -413,8 +413,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> WD2::Component::Element:D
 	) {
 		my $return = self.check-status: self.request: self.post-request: { }, $element, 'clear';
-		return $element unless $return.isa: Exception;
-		$return.throw;
+		return $element unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method send-keys (
@@ -429,8 +429,8 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> WD2::Component::Element:D
 	) {
 		my $return = self.check-status: self.request: self.post-request: { :$text }, $element, 'value';
-		return $element unless $return.isa: Exception;
-		$return.throw;
+		return $element unless $return.isa: Failure;
+		$return;
 	}
 	
 	multi method select ( WD2::Component::Element:D: Regex:D $option --> Bool:D ) {
@@ -481,7 +481,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			--> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'screenshot';
-		return $return<value> unless $return.isa: Exception;
-		$return.throw;
+		return $return<value> unless $return.isa: Failure;
+		$return;
 	}
 }

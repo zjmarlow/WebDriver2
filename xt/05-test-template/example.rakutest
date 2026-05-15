@@ -1,4 +1,4 @@
-use lib do for <lib xt/lib> { $*PROGRAM.parent.parent.add: $_ };
+use lib <lib xt/lib>;
 
 use WD2::Test::Template;
 use Example;

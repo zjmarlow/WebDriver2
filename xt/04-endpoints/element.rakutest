@@ -78,7 +78,14 @@ class Endpoint-Test
 			$el.send-keys: 'safari';
 			skip 'safari ignores interaction with disabled elements', 1;
 		} else {
-			self.dies-ok: 'does not accept text', { $el.send-keys: 'ignored' };
+			my $return = $el.send-keys: 'ignored';
+			self.subtest: 'interact with disabled element' => {
+				plan 4;
+				self.nok: 'soft throw', $return.defined;
+				self.isa-ok: 'does not accept text', Failure, $return;
+				self.isa-ok: 'correct type', WD2::Endpoints::Result::X, $return.exception;
+				self.ok: 'correct reason', $return.exception.message.starts-with: 'element not interactable';
+			}
 		}
 		self.is: 'text still empty', '', $el.property: 'value';
 		
