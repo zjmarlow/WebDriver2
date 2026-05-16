@@ -5,9 +5,10 @@ use lib <lib>;
 use WD2::Test::Template;
 use WD2::Component::Element;
 use WD2::Locators;
+use WD2::Endpoints;
 
 class Locate does WD2::Test::Template {
-	has Int:D $.plan = 21;
+	has Int:D $.plan = 37;
 	has Str:D $.name = 'locators';
 	has Str:D $.description = 'test locators';
 	
@@ -34,7 +35,7 @@ class Locate does WD2::Test::Template {
 	my Str:D $tag = 'a';
 	my Str:D $link-text = 'link three - third link';
 	my Str:D $partial-link-text = 'third link';
-	my Str:D $xpath = 'ul/li';
+	my Str:D $xpath = '//ul/li';
 	
 	my By:D $by-id  = By.id:   $id;
 	my By:D $by-css = By.css: $css;
@@ -287,12 +288,205 @@ class Locate does WD2::Test::Template {
 		
 		
 		
-		# partial link text
+		self.subtest: 'one from session by partial link text' => {
+			plan 4;
+			@el = self.get: $by-part-link-text;
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'locator', @link-text[2], @el.head.text;
+			self.is: 'type', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-ids[2], @el.head.id;
+		}
+		self.subtest: 'one of many from session by partial link text' => {
+			plan 4;
+			@el = self.get: By.partial-link-text: 'link';
+			self.is: 'only one returned', 1, +@el;
+			self.is: 'locator', @link-text[0], @el.head.text;
+			self.is: 'type', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-ids[0], @el.head.id;
+		}
+		self.subtest: 'all from session by partial link text' => {
+			plan 4;
+			@el = self.get-all: By.partial-link-text: 'link text';
+			self.is: 'all returned', 3, +@el;
+			self.subtest: 'locators' => {
+				plan 3;
+				self.is: 'locator', .[0], .[1] for @link-text[ 3, 4, 5 ] Z @el>>.text;
+			}
+			self.subtest: 'types' => {
+				plan 3;
+				self.is: 'type', 'a', .tag-name for @el;
+			}
+			self.subtest: 'correct ones' => {
+				plan 3;
+				self.is: 'correct one', .[0], .[1] for @link-ids[ 3, 4, 5 ] Z @el>>.id;
+			}
+		}
+		self.subtest: 'one from element by partial link text' => {
+			plan 4;
+			$el = self.get: By.tag: 'ol';
+			@el = $el.find-element: $by-part-link-text;
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'locator', @link-text[2], @el.head.text;
+			self.is: 'type', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-ids[2], @el.head.id;
+		}
+		self.subtest: 'one of many from element by partial link text' => {
+			plan 4;
+			$el = self.get: By.tag: 'fieldset';
+			@el = $el.find-element: By.partial-link-text: 'link text';
+			self.is: 'only one returned', 1, +@el;
+			self.is: 'locator', @link-text[4], @el.head.text;
+			self.is: 'type', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-ids[4], @el.head.id;
+		}
+		self.subtest: 'all from element by partial link text' => {
+			plan 4;
+			@el = $el.find-elements: By.partial-link-text: 'link text';
+			self.is: 'all returned', 2, +@el;
+			self.subtest: 'locators' => {
+				plan 2;
+				self.is: 'locator', .[0], .[1] for @link-text[ 4, 5 ] Z @el>>.text;
+			}
+			self.subtest: 'types' => {
+				plan 2;
+				self.is: 'type', 'a', .tag-name for @el;
+			}
+			self.subtest: 'correct ones' => {
+				plan 2;
+				self.is: 'correct one', .[0], .[1] for @link-ids[ 4, 5 ] Z @el>>.id;
+			}
+		}
 		
 		
 		
-		# find-element fail
-		# find-elements none
+		self.subtest: 'one from session by xpath' => {
+			plan 3;
+			@el = self.get: $by-xpath;
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'type', 'li', @el.head.tag-name;
+			self.is: 'correct one', 'has ul parent', @el.head.text;
+		}
+		self.subtest: 'one of many from session by xpath' => {
+			plan 3;
+			@el = self.get: By.xpath: '//li[a]';
+			self.is: 'only one returned', 1, +@el;
+			self.is: 'type', 'li', @el.head.tag-name;
+			self.is: 'correct one', @link-text[1], @el.head.text;
+		}
+		self.subtest: 'all from session by xpath' => {
+			plan 3;
+			@el = self.get-all: By.xpath: '//li[a]';
+			self.is: 'all returned', 2, +@el;
+			self.subtest: 'types' => {
+				plan 2;
+				self.is: 'type', 'li', .tag-name for @el;
+			}
+			self.subtest: 'correct ones' => {
+				plan 2;
+				self.is: 'correct one', .[0], .[1] for @link-text[ 1, 2 ] Z @el>>.text;
+			}
+		}
+		self.subtest: 'one from element by xpath' => {
+			plan 3;
+			$el = self.get: By.tag: 'form';
+			@el = $el.find-element: By.xpath: './/legend';
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'type', 'legend', @el.head.tag-name;
+			self.is: 'correct one', 'test form', @el.head.text;
+		}
+		self.subtest: 'all from element by xpath' => {
+			plan 3;
+			@el = $el.find-elements: By.xpath: './/*[@href="#"]';
+			self.is: 'all returned', 3, +@el;
+			self.subtest: 'types' => {
+				plan 3;
+				self.is: 'type', 'a', .tag-name for @el;
+			}
+			self.subtest: 'correct ones' => {
+				plan 3;
+				self.is: 'correct one', .[0], .[1] for @link-text[ 4 .. 6 ] Z @el>>.text;
+			}
+		}
+		self.subtest: 'one of many from element by xpath' => {
+			plan 3;
+			$el = self.get: By.tag: 'ol';
+			@el = $el.find-element: By.xpath: './/*[@href="#"]';
+			self.is: 'the only one returned', 1, +@el;
+			self.is: 'type', 'a', @el.head.tag-name;
+			self.is: 'correct one', @link-text[1], @el.head.text;
+		}
+		
+		
+		
+		# tag, css, id, link-text, partial-link-txt, xpath
+		my By:D $lr = By.tag: 'ol';
+		self.subtest: 'session find-element fail' => {
+			self.session-one-fail: $no-tag;
+			self.session-one-fail: $no-css;
+			self.session-one-fail: $no-id;
+			self.session-one-fail: $no-link-text;
+			self.session-one-fail: $no-partial-link-text;
+			self.session-one-fail: $no-xpath;
+		}
+		self.subtest: 'element find-element fail' => {
+			self.element-one-fail: $lr, $no-tag;
+			self.element-one-fail: $lr, $no-css;
+			self.element-one-fail: $lr, $no-id;
+			self.element-one-fail: $lr, $no-link-text;
+			self.element-one-fail: $lr, $no-partial-link-text;
+			self.element-one-fail: $lr, $no-xpath;
+		}
+		self.subtest: 'session find-elements none' => {
+			self.session-all-none: $no-tag;
+			self.session-all-none: $no-css;
+			self.session-all-none: $no-id;
+			self.session-all-none: $no-link-text;
+			self.session-all-none: $no-partial-link-text;
+			self.session-all-none: $no-xpath;
+		}
+		self.subtest: 'element find-elements none' => {
+			self.element-one-fail: $lr, $no-tag;
+			self.element-one-fail: $lr, $no-css;
+			self.element-one-fail: $lr, $no-id;
+			self.element-one-fail: $lr, $no-link-text;
+			self.element-one-fail: $lr, $no-partial-link-text;
+			self.element-one-fail: $lr, $no-xpath;
+		}
+	}
+	
+	my $no-el = 'no such element: Unable to locate element: ';
+	method locator-string ( By:D $l ) {
+		qq/\{"method":"{$l.using}","selector":"{$l.value}"\}/;
+	}
+	method session-one-fail ( By:D $l ) {
+		my Str:D $test-dscr = self.locator-string: $l;
+		self.subtest: "element one fail $test-dscr" => {
+			plan 4;
+			my $result = self.get: $l;
+			self.nok: 'soft throw', $result.defined;
+			self.isa-ok: 'not found', Failure, $result;
+			self.isa-ok: 'correct type', WD2::Endpoints::Result::X, $result.exception;
+			self.ok: 'correct reason', $result.exception.message.starts-with: $no-el ~ self.locator-string: $l;
+		}
+	}
+	method session-all-none ( By:D $l ) {
+		self.is: 'session all none ' ~ $l.Str, 0, + self.get-all: $l;
+	}
+	method element-one-fail ( By:D $lr, By:D $ld ) {
+		my Str:D $test-dscr = self.locator-string: $ld;
+		self.subtest: "element one fail $test-dscr" => {
+			plan 4;
+			my WD2::Component::Element:D $el = self.get: $lr;
+			my $result = $el.find-element: $ld;
+			self.nok: 'soft throw', $result.defined;
+			self.isa-ok: 'not found', Failure, $result;
+			self.isa-ok: 'correct type', WD2::Endpoints::Result::X, $result.exception;
+			self.ok: 'correct reason', $result.exception.message.starts-with: $no-el ~ self.locator-string: $ld;
+		}
+	}
+	method element-all-none ( By:D $lr, By:D $ld ) {
+		my WD2::Component::Element:D $el = self.get: $lr;
+		self.is: 'session all none ' ~ $ld.Str, 0, + $el.find-elements: $ld;
 	}
 }
 

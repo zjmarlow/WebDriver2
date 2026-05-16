@@ -737,11 +737,11 @@ welcome.
 	</thead>
 	<tbody>
 		<tr><td>By.id</td><td>&check;</td></tr>
-		<tr><td>By.tag</td><td>I</td></tr>
-		<tr><td>By.css</td><td>I</td></tr>
-		<tr><td>By.xpath</td><td>I</td></tr>
-		<tr><td>By.link-text</td><td>I</td></tr>
-		<tr><td>By.partial-link-text</td><td>I</td></tr>
+		<tr><td>By.tag</td><td>&check;</td></tr>
+		<tr><td>By.css</td><td>&check;</td></tr>
+		<tr><td>By.xpath</td><td>&check;</td></tr>
+		<tr><td>By.link-text</td><td>&check;</td></tr>
+		<tr><td>By.partial-link-text</td><td>&check;</td></tr>
 	</tbody>
 </table>
 
