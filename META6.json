@@ -1,7 +1,7 @@
 {
     "name": "WebDriver2",
     "description": "WebDriver level 2 bindings",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "raku": "6.d",
     "auth": "zef:zjmarlow",
     "depends": [
@@ -30,9 +30,17 @@
 		"WD2::Component::Session": "lib/WD2/Component/Session.rakumod",
 		"WD2::Component::Element": "lib/WD2/Component/Element.rakumod",
 		"WD2::Component::Shadow": "lib/WD2/Component/Element.rakumod",
+        "WD2::Locators": "lib/WD2/Locators.rakumod",
+        "WD2::By::Tag": "lib/WD2/Locators.rakumod",
+        "WD2::By::CSS": "lib/WD2/Locators.rakumod",
+        "WD2::By::ID": "lib/WD2/Locators.rakumod",
+        "WD2::By::Link-Text": "lib/WD2/Locators.rakumod",
+        "WD2::By::Partial-Link-Text": "lib/WD2/Locators.rakumod",
+        "WD2::By::XPath": "lib/WD2/Locators.rakumod",
 		"WD2::Test::Adapter": "lib/WD2/Test/Adapter.rakumod",
 		"WD2::Test::Template": "lib/WD2/Test/Adapter.rakumod",
-		"WD2::Wait::Timeout::X": "lib/WD2/Wait.rakumod"
+		"WD2::Wait::Timeout::X": "lib/WD2/Wait.rakumod",
+        "WD2::Debug": "lib/WD2/Debug.rakumod"
     },
     "license": "Artistic-2.0",
     "tags": [
@@ -40,6 +48,5 @@
         "browser",
         "automation"
     ],
-    "api": "1",
     "source-url": "https://github.com/zjmarlow/WebDriver2.git"
 }
