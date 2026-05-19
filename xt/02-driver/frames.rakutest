@@ -1,0 +1,56 @@
+use Test;
+
+use lib <lib t/lib>;
+
+use WD2;
+use WD2::Component::Element;
+use WD2::Locators;
+use WD2::Test::Template;
+
+my IO::Path:D $page = $*PROGRAM.parent.parent.add: <content lists.html>;
+$page.absolute.say;
+
+class Frames-Test does WD2::Test::Template {
+	has Int $.plan = 3;
+	has Str:D $.name = 'nested frames';
+	has Str:D $.description = 'basic frame navigation test';
+	
+	method pre-test { }
+	method post-test { }
+	method test {
+		$!session.navigate-to: join '://', 'file', $page.absolute;
+
+# 		.tag-name.say for self.elements-by-xpath: '//*';
+
+		my WD2::Component::Element $el = self.element-by-tag: 'iframe';
+		$el.switch-to;
+		self.is:
+				'in first frame',
+				'list frame test',
+				.text
+		with self.element-by-tag: 'h2'
+		;
+		$el = self.element-by-tag: 'iframe';
+		$el.switch-to;
+		$el = self.element-by-tag: 'h2';
+		self.is: 'in deepest frame', 'internal frame', $el.text;
+		$!session.switch-to-parent-frame;
+		$el = self.element-by-tag: 'h2';
+		self.is: 'up one frame', 'list frame test', $el.text;
+	}
+	
+	method element-by-id( Str:D $id ) {
+		$!session.find-element:
+				By.id: $id;
+	}
+	method element-by-tag( Str:D $tag-name ) {
+		$!session.find-element:
+				By.tag: $tag-name;
+	}
+	method elements-by-xpath ( Str:D $xpath ) {
+		$!session.find-elements:
+				By.xpath: $xpath;
+	}
+}
+
+constant &MAIN = driver-test Frames-Test;

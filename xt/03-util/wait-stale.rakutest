@@ -1,6 +1,6 @@
 use Test;
 
-use lib <../http-useragent/lib lib>;
+use lib 'lib';
 
 use WD2;
 use WD2::Wait;

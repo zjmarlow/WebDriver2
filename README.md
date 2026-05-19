@@ -181,7 +181,7 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 			set to suppress this behavior</td>
 	</tr><tr>
 		<td>Str:D :$debug(:$debug-level) = 'WARN'</td>
-		<td>valid values: OFF, ERR, WARN, Info, trace, extra.  debugging output has been
+		<td>valid values: OFF, ERR, WARN, Info, trace, extra.  debugging output has not been
 			incorporated, yet</td>
 	</tr>
 </tbody></table>
