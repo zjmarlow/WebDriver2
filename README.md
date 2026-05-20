@@ -169,10 +169,11 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 	</tr><tr>
 		<td>Int:D :$close-delay = 3</td>
 		<td>if set negative, the session will be left open when the script completes or if there is
-			a fatal exception (except failed Session creation - in which case there will be no screen to take a screenshot of).  If the session is left open, the session-id will be given on STDOUT so that it can
+			a fatal exception (except failed Session creation - in which case there will be no session to leave open).
+			If the session is left open, the session-id will be given on STDOUT so that it can
 			be used to close the session gracefully later.  E.g., by using the provided
 			<code>bin/close-session.raku</code> script:
-			<code>raku bin/close-session.raku --host=127.0.0.1 --port=9515 &lt;browser&gt;(required) session-id(required)</code>
+			<code>close-session --host=127.0.0.1 --port=9515 &lt;browser&gt;(required) &lt;session-id&gt;(required)</code>
 		</td>
 	</tr><tr>
 		<td>Bool:D :$no-auto-ss = False</td>

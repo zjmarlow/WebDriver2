@@ -64,6 +64,17 @@ class Locate does WD2::Test::Template {
 	method get-all ( By:D $l --> Array:D[ WD2::Component::Element:D ] ) {
 		Array[ WD2::Component::Element:D ].new: $!session.find-elements: $l;
 	}
+
+	method init {
+		if %*ENV<DRIVER_TESTING> {
+			self.WD2::Test::Template::init;
+		} else {
+			plan 1;
+			diag "DRIVER_TESTING was not set";
+			skip-rest("DRIVER_TESTING was not set");
+			exit;
+		}
+	}
 	
 	method test {
 		my IO::Path:D $html-file = $!test-root.add: <content locate.html>;

@@ -15,6 +15,17 @@ class Stale-Test does WD2::Test::Template {
 	
 	method pre-test { }
 	method post-test { }
+
+	method init {
+		if %*ENV<DRIVER_TESTING> {
+			self.WD2::Test::Template::init;
+		} else {
+			plan 1;
+			diag "DRIVER_TESTING was not set";
+			skip-rest("DRIVER_TESTING was not set");
+			exit;
+		}
+	}
 	
 	method test {
 		$!session.navigate-to: 'file://' ~ $html-file.absolute;
