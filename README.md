@@ -120,6 +120,22 @@ From `xt/lib/Example.rakumod`:
 		
 		has Str:D $.name = 'example';
 		has Str:D $.description = 'example test description';
+		has Int:D $.plan = 1;
+		
+		# included so that when run as part of the test suite,
+		#   it will skip testing if the user has not requested
+		#   driver testing.  This Should Be Omitted for normal
+		#   user tests.
+		method init {
+			if %*ENV<DRIVER_TESTING> {
+				self.WD2::Test::Template::init;
+			} else {
+				self.diag: 'DRIVER_TESTING was not set';
+				self.pass: 'DRIVER_TESTING was not set';
+				self.done-testing;
+				exit;
+			}
+		}
 		
 		method test {
 			$!session.navigate-to: 'file://' ~ $html-file.absolute;
@@ -135,7 +151,7 @@ Once such a class is written, it can be used in a test script.
 From `xt/05-test-template/example.rakutest`:
 
 ```Raku
-	use lib do for <lib xt/lib> { $*PROGRAM.parent.parent.add: $_ };
+	use lib <lib xt/lib>;
 	
 	use WD2::Test::Template;
 	use Example;
@@ -154,14 +170,15 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 	<tr>
 		<td>Str $browser?</td>
 		<td>if none is provided and there is a <code>browser</code> file in the CWD,
-			its value will read and used.  otherwise the test will fail</td>
+			its value will be read and used.  otherwise the test will fail</td>
 	</tr><tr>
 		<td>Str:D :$host = '127.0.0.1'</td>
 		<td></td>
 	</tr><tr>
 		<td>Int:D :$port = 9515</td>
-		<td>9515 is the default for chromedriver and edgedriver.  it will likely need to be supplied when
-			using firefox or safari.  the port can also be set when starting the driver (as opposed to or
+		<td>9515 was the default for chromedriver and edgedriver.  it will likely need to be supplied when
+			using firefox or safari, or if chromedriver or edgedriver is using a random port.  the port can
+			also be set when starting the driver (as opposed to or
 			in addition to the script)</td>
 	</tr><tr>
 		<td>IO::Path(Str:D) :$test-root = 'xt'.IO</td>

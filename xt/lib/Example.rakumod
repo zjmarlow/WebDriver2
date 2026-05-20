@@ -1,5 +1,3 @@
-use Test;
-
 use WD2::Test::Template;
 
 class Example does WD2::Test::Template {
@@ -14,9 +12,9 @@ class Example does WD2::Test::Template {
 		if %*ENV<DRIVER_TESTING> {
 			self.WD2::Test::Template::init;
 		} else {
-			plan 1;
-			diag "DRIVER_TESTING was not set";
-			skip-rest("DRIVER_TESTING was not set");
+			self.diag: 'DRIVER_TESTING was not set';
+			self.skip: 'DRIVER_TESTING was not set';
+			self.done-testing;
 			exit;
 		}
 	}

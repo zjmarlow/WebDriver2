@@ -88,6 +88,10 @@ method skip ( Str $reason, Int $count? ) {
 	skip ( !$count.defined ?? $reason !! ( $reason, $count ) );
 }
 
+method skip-rest ( Str $reason ) {
+	skip-rest $reason;
+}
+
 method pass ( Str $reason? ) {
 	$reason.defined ?? pass $reason !! pass;
 }
