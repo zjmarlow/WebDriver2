@@ -14,7 +14,7 @@ class Endpoint-Test
 		does WD2::Test::Template
 #		does WebDriver2::Test::Locating-Test
 {
-	has Int:D $.plan = 50;
+	has Int:D $.plan = 51;
 	has Str:D $.name = 'element element state / interaction tests';
 	has Str:D $.description = 'tests element state / interaction endpoints';
 	
@@ -95,7 +95,12 @@ class Endpoint-Test
 				self.nok: 'soft throw', $return.defined;
 				self.isa-ok: 'does not accept text', Failure, $return;
 				self.isa-ok: 'correct type', WD2::Endpoints::Result::X, $return.exception;
-				self.ok: 'correct reason', $return.exception.message.starts-with: 'element not interactable';
+				self.ok: 'correct reason',
+					(
+						$return.exception.message.starts-with: 'element not interactable'
+						or $return.exception.message.ends-with: 'is not reachable by keyboard'
+					)
+					or self.diag: $return.exception.message;
 			}
 		}
 		self.is: 'text still empty', '', $el.property: 'value';
@@ -113,6 +118,7 @@ class Endpoint-Test
 		
 		# attribute / property + clear and send keys
 		$el = $!session.find-element: By.id: 'attr-prop';
+		self.ok: 'enabled', $el.is-enabled;
 		self.is: 'initial value', 'start', $el.property: 'value';
 		self.is: 'initial value', 'start', $el.attribute: 'value';
 		$el.clear;

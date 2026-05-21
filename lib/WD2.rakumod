@@ -5,6 +5,7 @@ use WD2::Component::Driver;
 my WD2::Component::Driver %driver = (
     chrome => WD2::Component::Driver,
     edge => WD2::Component::Driver,
+    firefox => WD2::Component::Driver,
 );
 method get-driver (
         Str:D $browser where %driver.keys.any,

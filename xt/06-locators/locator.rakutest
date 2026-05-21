@@ -477,7 +477,12 @@ class Locate does WD2::Test::Template {
 			self.nok: 'soft throw', $result.defined;
 			self.isa-ok: 'not found', Failure, $result;
 			self.isa-ok: 'correct type', WD2::Endpoints::Result::X, $result.exception;
-			self.ok: 'correct reason', $result.exception.message.starts-with: $no-el ~ self.locator-string: $l;
+			self.ok: 'correct reason',
+				(
+					$result.exception.message.starts-with: $no-el ~ self.locator-string: $l
+					or $result.exception.message eq 'Unable to locate element: ' ~ $l.value
+				)
+				or self.diag: $result.exception.message;
 		}
 	}
 	method session-all-none ( By:D $l ) {
@@ -492,7 +497,12 @@ class Locate does WD2::Test::Template {
 			self.nok: 'soft throw', $result.defined;
 			self.isa-ok: 'not found', Failure, $result;
 			self.isa-ok: 'correct type', WD2::Endpoints::Result::X, $result.exception;
-			self.ok: 'correct reason', $result.exception.message.starts-with: $no-el ~ self.locator-string: $ld;
+			self.ok: 'correct reason',
+				(
+					$result.exception.message.starts-with: $no-el ~ self.locator-string: $ld
+					or $result.exception.message eq 'Unable to locate element: ' ~ $ld.value
+				)
+				or self.diag: $result.exception.message;
 		}
 	}
 	method element-all-none ( By:D $lr, By:D $ld ) {
