@@ -144,7 +144,8 @@ From `xt/lib/Example.rakumod`:
 	}
 ```
 
-Implementing classes need to provide a test name and description and override the test method.  The `self.is: ...` is provided by the `WD2::Test::Adapter` role via `WD2::Test::Template` (no additional import necessary).  That and the related methods delegate to the Test routines but will run a handler if a test fails.  The default handler takes a screenshot when called (see below for details and how to suppress this behavior).  Note that the order of arguments are the reverse of the Test routines.  This leaves the final position available for calculating the actual value.
+Implementing classes need to provide a test name and description and override the `test` method.  The
+`self.is: ...` is provided by the `WD2::Test::Adapter` role via `WD2::Test::Template` (template role is the only import necessary).  That and the related methods delegate to the Test routines but will run a handler if a test fails.  The default handler takes a screenshot when called (see below for details and how to suppress this behavior).  Note that the order of arguments are the reverse of the Test routines.  This leaves the final position available for calculating the actual value.
 
 Once such a class is written, it can be used in a test script.
 
@@ -169,43 +170,51 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 	</tr>
 	<tr>
 		<td>Str $browser?</td>
-		<td>if none is provided and there is a <code>browser</code> file in the CWD,
-			its value will be read and used.  otherwise the test will fail</td>
+		<td>if none is provided and there is a <code>browser</code> file in the test root
+			(default <code>./xt</code>), its value will be read and used.
+			otherwise the test will fail</td>
 	</tr><tr>
 		<td>Str:D :$host = '127.0.0.1'</td>
 		<td></td>
 	</tr><tr>
 		<td>Int:D :$port = 9515</td>
-		<td>9515 was the default for chromedriver and edgedriver.  it will likely need to be supplied when
-			using firefox or safari, or if chromedriver or edgedriver is using a random port.  the port can
-			also be set when starting the driver (as opposed to or
-			in addition to the script)</td>
+		<td>9515 was the default for chromedriver and edgedriver.
+			it will likely need to be supplied when using firefox or safari,
+			or if chromedriver or edgedriver is using a random port.
+			the port can also be set when starting the driver
+			(as opposed to or in addition to the script)</td>
 	</tr><tr>
 		<td>IO::Path(Str:D) :$test-root = 'xt'.IO</td>
 		<td>currently unused</td>
 	</tr><tr>
 		<td>Int:D :$close-delay = 3</td>
-		<td>if set negative, the session will be left open when the script completes or if there is
-			a fatal exception (except failed Session creation - in which case there will be no session to leave open).
-			If the session is left open, the session-id will be given on STDOUT so that it can
-			be used to close the session gracefully later.  E.g., by using the provided
+		<td>if set negative, the session will be left open when the script completes
+			or if there is a fatal exception (except failed Session creation - in which case
+			there will be no session to leave open).  if the session is left open,
+			the session-id will be given on STDOUT so that it can be used to close
+			the session gracefully later.  E.g., by using the provided
 			<code>bin/close-session.raku</code> script:
-			<code>close-session --host=127.0.0.1 --port=9515 &lt;browser&gt;(required) &lt;session-id&gt;(required)</code>
+			<code>close-session
+			--host=127.0.0.1
+			--port=9515
+			&lt;browser&gt;(required)
+			&lt;session-id&gt;(required)</code>
 		</td>
 	</tr><tr>
 		<td>Bool:D :$no-auto-ss = False</td>
-		<td>By default, in addition to screenshots Tests explicitly request, screenshots are taken
-			anytime there is a failure (if using the provided WD2::Test::Adapter methods) or exception.
+		<td>By default, in addition to screenshots Tests explicitly request,
+			screenshots are taken anytime there is a failure
+			(if using the provided WD2::Test::Adapter methods) or exception.
 			set to suppress this behavior</td>
 	</tr><tr>
 		<td>Str:D :$debug(:$debug-level) = 'WARN'</td>
-		<td>valid values: OFF, ERR, WARN, Info, trace, extra.  debugging output has not been
-			incorporated, yet</td>
+		<td>valid values: OFF, ERR, WARN, Info, trace, extra.
+			debugging output has not been incorporated, yet</td>
 	</tr>
 </tbody></table>
 
-In addition, any extra named arguments will be passed to the test class, so that instance variables can be built
-from them.
+In addition, any extra named arguments will be passed to the test class,
+so that instance variables can be built from them.
 
 
 ## TODO

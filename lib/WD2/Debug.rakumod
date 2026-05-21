@@ -9,7 +9,7 @@ method !frame ( --> Backtrace::Frame ) {
 	my Int:D $i = 0;
 	my Backtrace::Frame $f;
 	Nil while $f =
-		$b.list[$i = $b.next-interesting-index: $i, :named, :noproto, :setting]
+		$b.list[ $i = $b.next-interesting-index: $i, :named, :noproto, :setting ]
 				and do $f.subname ~~ /debug/ or $f.file ~~ /SETTING/
 				;
 	$f;

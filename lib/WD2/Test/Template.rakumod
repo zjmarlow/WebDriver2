@@ -12,9 +12,9 @@ role WD2::Test::Template
 		does WD2::Config::From-File
 {
 	my constant $PLAN = 2;
-	has Level:D $!debug is built is required = WD2::Debug.new;
-	has Bool $!no-auto-ss is built;
-	has IO::Path:D $.test-root is required;
+	has WD2::Debug:D $.debug is required = WD2::Debug.new;
+	has Bool $.no-auto-ss;
+	has IO::Path $.test-root;
 	has Int:D $.close-delay is rw is required;
 	has Str:D $.browser is required;
 	has WD2::Component::Driver:D $!driver is built is required;
@@ -24,16 +24,16 @@ role WD2::Test::Template
 	method name ( --> Str:D ) { ... }
 	method description ( --> Str:D ) { ... }
 	
-	multi method new (
-			Str $browser is copy,
+	method new (
+			Str $browser? is copy,
 			Str:D :$host = '127.0.0.1',
-			Int :$port?,
-			IO::Path:D :$test-root = 't'.IO,
+			Int :$port,
+			IO::Path :$test-root = 'xt'.IO,
 			Int:D :$close-delay = 3,
 			Level:D :$debug-level is copy = Level::WARN,
 			*%_
 	) {
-		self.set-from-file: $browser, :$test-root, :$debug-level;
+		self.set-from-file: $test-root, $browser, :$debug-level;
 		my WD2::Component::Driver:D $driver =
 				Provider.get-driver: $browser, :$host, :$port, :$debug-level;
 		self.bless:
@@ -42,7 +42,7 @@ role WD2::Test::Template
 				:$test-root,
 				:$close-delay,
 				:$debug-level,
-				  debug => $debug-level,
+				  debug => WD2::Debug.new( :$debug-level ),
 				|%_,
 				;
 	}
@@ -126,27 +126,34 @@ role WD2::Test::Template
 	}
 }
 
-our sub driver-test ( WD2::Test::Template:U $test-class ) {
+our sub driver-test ( WD2::Test::Template:U $test-class, Str :$default-browser ) {
 	sub (
 			Str $browser? is copy,
 			Str:D :$host = '127.0.0.1',
 			Int:D :$port = 9515,
-			IO::Path(Str:D) :$test-root = 'xt'.IO,
+			IO::Path(Str:D) :$test-root,
 			Int:D :$close-delay = 3,
 			Bool:D :$no-auto-ss = False,
 			Str:D :debug(:$debug-level) = 'WARN',
 			*%rest
 	) {
-		$browser ||= browser-from-file;
+		my %args = :$host, :$port, :$close-delay, :$no-auto-ss, :$debug-level;
+		if not $browser {
+			if $default-browser {
+				$browser = $default-browser;
+			} elsif $test-root {
+				if $test-root.d {
+					%args<test-root> = $test-root;
+				} else {
+					warn "$test-root DNE; using default";
+				}
+			}
+		}
 		.execute
 		with $test-class.new:
 				$browser,
-				:$host,
-				:$port,
-				:$close-delay,
-				:$no-auto-ss,
-				:$test-root,
-				debug => Level::{ $debug-level },
+				|%args,
+				debug-level => Level::{ $debug-level },
 				|%rest
 				;
 	}

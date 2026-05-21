@@ -1,20 +1,21 @@
 role WD2::Config::From-File {
-	my IO::Path $browser-file = $*CWD.add: 'browser';
-	my IO::Path $debug-file = $*CWD.add: 'debug';
+	# my IO::Path $browser-file = $*CWD.add: 'browser';
+	# my IO::Path $debug-file = $*CWD.add: 'debug';
 	
-	method set-from-file ( Str $browser is rw, IO::Path :$test-root = 'xt'.IO
-	#`[, Level $debug-level is rw ] ) {
-		unless $browser {
-			die 'must provide valid browser argument or specify in browser file'
-			unless do .f with $test-root.add: 'browser';
-			$browser = .trim.lc with $browser-file.slurp: :close;
-		}
+	method set-from-file (
+			IO::Path:D $test-root,
+			Str $browser is rw,
+			# Level $debug-level is rw
+	) {
+		return if $browser;
+		$browser = browser-from-file $test-root unless $browser;
 	}
 }
 
-our sub browser-from-file ( IO::Path $test-root = 'xt'.IO ) {
+our sub browser-from-file ( IO::Path:D $test-root ) {
 	my IO::Path:D $browser-file = $test-root.add: 'browser';
-	die 'missing plain file "browser"' unless $browser-file.f;
+	die 'missing plain file "browser" using test root ' ~ $test-root.Str
+		unless $browser-file.f;
 	.trim.lc with $browser-file.slurp: :close;
 }
 

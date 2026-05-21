@@ -101,4 +101,4 @@ class Wait does WD2::Test::Template {
 	}
 }
 
-constant &MAIN = driver-test Wait;
+constant &MAIN = driver-test Wait, default-browser => 'chrome';
