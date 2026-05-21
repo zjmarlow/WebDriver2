@@ -194,11 +194,7 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 			the session-id will be given on STDOUT so that it can be used to close
 			the session gracefully later.  E.g., by using the provided
 			<code>bin/close-session.raku</code> script:
-			<code>close-session
-			--host=127.0.0.1
-			--port=9515
-			&lt;browser&gt;(required)
-			&lt;session-id&gt;(required)</code>
+			<code>close-session --host=127.0.0.1 --port=9515 &lt;browser&gt;(required) &lt;session-id&gt;(required)</code>
 		</td>
 	</tr><tr>
 		<td>Bool:D :$no-auto-ss = False</td>
