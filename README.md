@@ -185,7 +185,8 @@ returns a sub suitable for use as a MAIN.  The options provided are:
 			(as opposed to or in addition to the script)</td>
 	</tr><tr>
 		<td>IO::Path(Str:D) :$test-root = 'xt'.IO</td>
-		<td>currently unused</td>
+		<td>determines where to look for the browser file, which is used when the browser
+			is not specified on the command line</td>
 	</tr><tr>
 		<td>Int:D :$close-delay = 3</td>
 		<td>if set negative, the session will be left open when the script completes
