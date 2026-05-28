@@ -76,7 +76,9 @@ Since waiting for a condition to be true before moving to the next step is usefu
 	# relevant imports and declarations completed above
 	use WD2::Wait::Common :ALL;
 	
-	my &wait-present = present $session, $locator, duration => 5, interval => 1/10, :soft;
+	my Duration:D $duration = Duration.new: 5;
+	my Duration:D $interval = Duration.new: 1/10;
+	my &wait-present = present $session, $locator, :$duration, :$interval, :soft;
 	# do something...
 	# then wait for 5 seconds, polling every .1 second,
 	#   for an element to appear; don't throw an exception if it doesn't
