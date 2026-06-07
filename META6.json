@@ -5,21 +5,10 @@
     "raku": "6.d",
     "auth": "zef:zjmarlow",
     "depends": [
-        "JSON::Fast",
-        "URI::Encode",
-        "HTTP::Status",
-		"HTTP::UserAgent::Strict",
-        "File::Temp",
-        "DateTime::Parse",
-        "Encode",
-        "MIME::Base64",
-        "URI",
-        "IO::Socket::SSL"
+		"HTTP::UserAgent::Strict"
     ],
     "build-depends": [],
-    "test-depends": [
-        "PostCocoon::Url"
-    ],
+    "test-depends": [],
     "provides": {
 		"Provider": "lib/WD2.rakumod",
 		"WD2::Endpoints": "lib/WD2/Endpoints.rakumod",
