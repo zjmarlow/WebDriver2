@@ -92,6 +92,10 @@ method skip-rest ( Str $reason ) {
 	skip-rest $reason;
 }
 
+method todo ( Str $reason, Int $count = 1 ) {
+	todo $reason, $count;
+}
+
 method pass ( Str $reason? ) {
 	$reason.defined ?? pass $reason !! pass;
 }

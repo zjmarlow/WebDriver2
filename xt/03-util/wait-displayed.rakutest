@@ -31,6 +31,10 @@ class Wait does WD2::Test::Template {
 	}
 	
 	method test {
+		if $!driver.browser eq 'safari' {
+			self.skip-rest: 'safari does not support the displayed endpoint';
+			return;
+		}
 		my Duration:D $duration = Duration.new: 1/2;
 		my By:D $locator = By.id: 'added';
 		my &wait;

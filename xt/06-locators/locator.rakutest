@@ -432,6 +432,7 @@ class Locate does WD2::Test::Template {
 		# tag, css, id, link-text, partial-link-txt, xpath
 		my By:D $lr = By.tag: 'ol';
 		self.subtest: 'session find-element fail' => {
+			plan 6;
 			self.session-one-fail: $no-tag;
 			self.session-one-fail: $no-css;
 			self.session-one-fail: $no-id;
@@ -440,6 +441,7 @@ class Locate does WD2::Test::Template {
 			self.session-one-fail: $no-xpath;
 		}
 		self.subtest: 'element find-element fail' => {
+			plan 6;
 			self.element-one-fail: $lr, $no-tag;
 			self.element-one-fail: $lr, $no-css;
 			self.element-one-fail: $lr, $no-id;
@@ -448,6 +450,7 @@ class Locate does WD2::Test::Template {
 			self.element-one-fail: $lr, $no-xpath;
 		}
 		self.subtest: 'session find-elements none' => {
+			plan 6;
 			self.session-all-none: $no-tag;
 			self.session-all-none: $no-css;
 			self.session-all-none: $no-id;
@@ -456,6 +459,7 @@ class Locate does WD2::Test::Template {
 			self.session-all-none: $no-xpath;
 		}
 		self.subtest: 'element find-elements none' => {
+			plan 6;
 			self.element-one-fail: $lr, $no-tag;
 			self.element-one-fail: $lr, $no-css;
 			self.element-one-fail: $lr, $no-id;
@@ -481,6 +485,7 @@ class Locate does WD2::Test::Template {
 				(
 					$result.exception.message.starts-with: $no-el ~ self.locator-string: $l
 					or $result.exception.message eq 'Unable to locate element: ' ~ $l.value
+					or $result.exception.execution-error.status == 404 and $result.exception.execution-error.error.Str eq 'no such element'
 				)
 				or self.diag: $result.exception.message;
 		}
@@ -497,10 +502,12 @@ class Locate does WD2::Test::Template {
 			self.nok: 'soft throw', $result.defined;
 			self.isa-ok: 'not found', Failure, $result;
 			self.isa-ok: 'correct type', WD2::Endpoints::Result::X, $result.exception;
+$result.exception.message.say;
 			self.ok: 'correct reason',
 				(
 					$result.exception.message.starts-with: $no-el ~ self.locator-string: $ld
 					or $result.exception.message eq 'Unable to locate element: ' ~ $ld.value
+					or $result.exception.execution-error.status == 404 and $result.exception.execution-error.error.Str eq 'no such element'
 				)
 				or self.diag: $result.exception.message;
 		}

@@ -48,6 +48,8 @@ class Frames-Test does WD2::Test::Template {
 		self.is: 'in deepest frame', 'internal frame', $el.text;
 		$!session.switch-to-parent-frame;
 		$el = self.element-by-tag: 'h2';
+		self.todo: 'safari parent frame endpoint to default content'
+			if $!driver.browser eq 'safari';
 		self.is: 'up one frame', 'list frame test', $el.text;
 	}
 	

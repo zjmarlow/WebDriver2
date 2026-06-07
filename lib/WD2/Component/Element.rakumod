@@ -331,7 +331,7 @@ class WD2::Component::Element does WD2::Endpoints is export {
 			WD2::Component::Element:D $element --> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'name';
-		return $return.<value> unless $return.isa: Failure;
+		return $return.<value>.lc unless $return.isa: Failure;
 		$return;
 	}
 	

@@ -4,6 +4,8 @@ use WD2::Component::Session;
 
 unit class WD2::Component::Driver does WD2::Endpoints;
 
+has Str:D $.browser is required;
+
 method url ( *@command --> Str:D ) {
 	join '/', "http://$!host:$!port", |@command;
 }

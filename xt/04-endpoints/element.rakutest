@@ -85,7 +85,7 @@ class Endpoint-Test
 		$el = $!session.find-element: By.id: 'no-text';
 		self.is: 'starts empty', '', $el.property: 'value';
 		self.nok: 'is disabled', $el.is-enabled;
-		if $!session.Str eq 'safari' {
+		if $!session.driver.browser eq 'safari' {
 			$el.send-keys: 'safari';
 			skip 'safari ignores interaction with disabled elements', 1;
 		} else {
