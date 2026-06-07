@@ -229,6 +229,7 @@ Suggestions, design recommendations, and feature requests
 welcome.
 
 ### Implementation Status
+- X - Unsupported
 - "" - Planned
 - NYI - will throw exception
 - I - Implemented
@@ -254,14 +255,14 @@ welcome.
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$driver.new-session: { capabilities => { ... } }</code></td>
 	</tr>
 	<tr><td>delete session</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$session.delete</code></td>
 	</tr>
 	<tr><td>status</td>
@@ -289,7 +290,7 @@ welcome.
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$session.navigate-to: Str $url</code></td>
 	</tr>
 	<tr><td>get current url</td>
@@ -324,7 +325,7 @@ welcome.
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$session.title</code></td>
 	</tr>
 	<tr><td>get window handle</td>
@@ -366,7 +367,7 @@ welcome.
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$session.switch-to: Int $frame-id</code>
 			<code>$frame-element.switch-to</code>
 		</td>
@@ -431,28 +432,28 @@ welcome.
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$session.find-element: By $locator</code></td>
 	</tr>
 	<tr><td>find elements</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$session.find-elements: By $locator</code></td>
 	</tr>
 	<tr><td>find element from element</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$element.find-element: By $locator</code></td>
 	</tr>
 	<tr><td>find elements from element</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$element.find-elements: By $locator</code></td>
 	</tr>
 	<tr><td>find element from shadow root</td>
@@ -480,14 +481,14 @@ welcome.
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$element.attribute: Str $name</code></td>
 	</tr>
 	<tr><td>get element property</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$element.property: Str $name</code></td>
 	</tr>
 	<tr><td>get element css value</td>
@@ -501,14 +502,14 @@ welcome.
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$element.text</code></td>
 	</tr>
 	<tr><td>get element tag name</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$element.tag-name</code></td>
 	</tr>
 	<tr><td>get element rect</td>
@@ -522,7 +523,7 @@ welcome.
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$element.is-enabled</code></td>
 	</tr>
 	<tr><td>get computed role</td>
@@ -543,21 +544,21 @@ welcome.
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$element.click</code></td>
 	</tr>
 	<tr><td>element clear</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$element.clear</code></td>
 	</tr>
 	<tr><td>element send keys</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$element.send-keys: Str $text</code></td>
 	</tr>
 	<tr><td>get page source</td>
@@ -652,14 +653,14 @@ welcome.
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$session.accept-alert</code></td>
 	</tr>
 	<tr><td>get alert text</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">&check;</td>
 		<td><code>$session.alert-text</code></td>
 	</tr>
 	<tr><td>send alert text</td>
@@ -694,7 +695,7 @@ welcome.
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="not-started">X</td>
 		<td><code>$element.is-displayed</code></td>
 	</tr>
 	<tr><td>present ( convenience method - not spec'd )</td>

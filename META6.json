@@ -1,7 +1,7 @@
 {
     "name": "WebDriver2",
     "description": "WebDriver level 2 bindings",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "raku": "6.d",
     "auth": "zef:zjmarlow",
     "depends": [
