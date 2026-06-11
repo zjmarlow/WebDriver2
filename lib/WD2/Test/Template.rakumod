@@ -48,8 +48,13 @@ role WD2::Test::Template
 	}
 	
 	method init {
-		plan $PLAN;
-		self.lives-ok: 'session created', { $!session = $!driver.new-session };
+		plan $.plan if $.plan;
+		try $!session = $!driver.new-session;
+		with $! {
+			.message.say;
+			exit 1;
+		}
+		# self.lives-ok: 'session created', { $!session = $!driver.new-session };
 		$!session.set-window-rect: 1200, 750, 8, 8
 			if $!browser eq 'chrome' | 'safari';
 	}
@@ -76,13 +81,13 @@ role WD2::Test::Template
 		try {
 			self.init;
 			
-			self.subtest: Pair.new: $.name, {
+			# self.subtest: Pair.new: $.name, {
 				self.pre-test;
-				plan $.plan with $.plan;
+				# plan $.plan with $.plan;
 				self.test;
 				self.post-test;
 				done-testing unless $.plan;
-			};
+			# };
 			
 			self.close;
 			CATCH {
