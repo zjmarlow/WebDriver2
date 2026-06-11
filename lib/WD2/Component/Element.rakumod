@@ -56,10 +56,11 @@ class WD2::Component::Shadow does WD2::Endpoints {
 	) {
 		my $return = self.check-status:
 				self.request: self.post-request: $locator.args, $shadow, 'elements';
-		without $return {
-			$return.handled = False;
-			return $return;
-		}
+		return $return without $return;
+		# without $return {
+		# 	$return.handled = False;
+		# 	return $return;
+		# }
 		my WD2::Component::Element:D @elements = Array[ WD2::Component::Element:D ].new;
 		for $return<value>>>.{ $WD2::Component::Element::IDENTIFIER } -> $element-id {
 			@elements.push:
@@ -184,10 +185,11 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	) {
 		my $return = self.check-status:
 				self.request: self.post-request: $locator.args, $element, 'elements';
-		without $return {
-			$return.handled = False;
-			return $return;
-		}
+		return $return without $return;
+		# without $return {
+		# 	# $return.handled = False;
+		# 	return $return;
+		# }
 		my WD2::Component::Element:D @elements = Array[ WD2::Component::Element:D ].new;
 		for $return<value>>>.{ $WD2::Component::Element::IDENTIFIER } -> $element-id {
 			@elements.push:

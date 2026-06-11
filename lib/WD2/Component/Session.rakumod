@@ -365,10 +365,11 @@ multi method find-elements (
 ) {
 	my $return = self.check-status:
 			self.request: self.post-request: $locator.args, $session, 'elements';
-	without $return {
-		$return.handled = False;
-		return $return;
-	}
+	return $return without $return;
+	# without $return {
+	# 	$return.handled = False;
+	# 	return $return;
+	# }
 	my Element:D @elements = Array[ Element:D ].new;
 	for $return<value>>>.{ $Element::IDENTIFIER } -> $element-id {
 		@elements.push:
