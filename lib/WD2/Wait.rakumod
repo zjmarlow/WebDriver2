@@ -214,8 +214,10 @@ our sub throwable (&operation) is export(:throw) {
 our sub expect-throw ( &operation ) is export(:throw){
 	-> {
 		my $result = .() with throwable &operation;
-		return False unless $result.isa: Exception;
-		$result but True;
+		$result.isa: Exception
+				?? $result but True
+				!! False
+		;
 	}
 }
 
@@ -245,9 +247,12 @@ our sub expect-throw-type ( &operation, Error-Code:D @types ) is export(:throw) 
 # wait until exception no longer occurs
 our sub no-throw (&operation) {
 	-> {
-		my $result = .() with throwable &operation;
-		return $result unless $result ~~ Exception;
-		$result but False;
+		my $result;
+		try $result = .() with throwable &operation;
+		$result ~~ Exception
+				?? $result but False
+				!! $result
+		;
 	}
 }
 
@@ -256,9 +261,12 @@ our sub no-throw (&operation) {
 our sub no-throw-type ( &operation, Error-Code:D @types ) is export(:throw) {
 	-> {
 		my $result = .() with throwable &operation;
-		return $result unless $result ~~ Exception;
-		$result.rethrow unless $result ~~ WD2::Endpoints::Result::X;
-		$result.rethrow unless $result.execution-error.error === @types.any;
-		$result but False;
+		do if $result ~~ Exception {
+			$result.rethrow unless $result ~~ WD2::Endpoints::Result::X;
+			$result.rethrow unless $result.execution-error.error === @types.any;
+			$result but False;
+		} else {
+			$result;
+		}
 	}
 }

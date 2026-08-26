@@ -171,3 +171,19 @@ our sub title-to-be (
 	;
 	basic-eq &operation, $title, |%args;
 }
+
+our sub alert (
+		WD2::Component::Session:D $session,
+		:&cleanup,
+		Duration :$duration,
+		Duration :$interval,
+		Bool :$soft,
+		Level :$debug-level
+) is export(:alert) {
+	my &operation = no-throw { $session.get-alert-text };
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic-so-true &operation, |%args;
+}
