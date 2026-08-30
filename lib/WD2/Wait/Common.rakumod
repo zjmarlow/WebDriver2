@@ -180,7 +180,9 @@ our sub alert (
 		Bool :$soft,
 		Level :$debug-level
 ) is export(:alert) {
-	my &operation = no-throw { $session.get-alert-text };
+	my &operation =
+		no-throw-type { $session.get-alert-text },
+			Array[ Error-Code ].new: Error-Code::No-Alert;
 	my %args =
 		grep *.value.defined,
 		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;

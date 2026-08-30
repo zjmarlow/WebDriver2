@@ -12,7 +12,7 @@ use WD2::Locators;
 my IO::Path:D $html-file = $*CWD.add: <xt content alert.html>;
 
 class Wait does WD2::Test::Template {
-	has Int:D $.plan = 5;
+	has Int:D $.plan = 6;
 	has Str:D $.name = 'wait-alert';
 	has Str:D $.description = 'wait alert';
 	
@@ -45,6 +45,15 @@ class Wait does WD2::Test::Template {
 				'no alert present; hard wait',
 				WD2::Wait::Timeout::X,
 				alert $!session, :$duration
+				;
+		
+		self.throws-like:
+				'specifically no such alert',
+				X::AdHoc,
+				{
+					start alert $!session, :$duration;
+					die 'not an alert';
+				},
 				;
 		
 		self.nok:
