@@ -240,6 +240,12 @@ so that instance variables can be built from them.
 Suggestions, design recommendations, and feature requests
 welcome.
 
+### Safari Quirks
+- is displayed ( optional endpoint ) is not supported ( by Apple's design )
+- safaridriver ignores interactions with disabled elements instead of throwing the
+  spec'd Element Not Interactable exception ( by Apple's design )
+- switch to parent frame switches to default content ( bug - needs investigation )
+
 ### Implementation Status
 - X - Unsupported
 - "" - Planned
@@ -279,22 +285,22 @@ welcome.
 	<tr><td>status</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$driver.status</code></td>
 	</tr>
 	<tr><td>get timeouts</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.get-timeouts</code></td>
 	</tr>
 	<tr><td>set timeouts</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.set-timeouts: Int $script, Int $page-load, Int $implicit</code></td>
 	</tr>
 	<tr><td>navigate to</td>
@@ -307,29 +313,29 @@ welcome.
 	<tr><td>get current url</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.current-url</code></td>
 	</tr>
 	<tr><td>back</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.back</code></td>
 	</tr>
 	<tr><td>forward</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.forward</code></td>
 	</tr>
 	<tr><td>refresh</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.refresh</code></td>
 	</tr>
 	<tr><td>get title</td>
@@ -342,43 +348,43 @@ welcome.
 	<tr><td>get window handle</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.get-window-handle</code></td>
 	</tr>
 	<tr><td>close window</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.close-window</code></td>
 	</tr>
 	<tr><td>switch to window</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.switch-to-window: $handle</code></td>
 	</tr>
 	<tr><td>get window handles</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.window-handles</code></td>
 	</tr>
 	<tr><td>new window</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.new-window: Str $type? where &lt;tab window&gt;.any</code></td>
 	</tr>
 	<tr><td>switch to frame</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="complete">&check;</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.switch-to: Int $frame-id</code>
 			<code>$frame-element.switch-to</code>
 		</td>
@@ -386,57 +392,57 @@ welcome.
 	<tr><td>switch to parent frame</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.switch-to-parent-frame</code></td>
 	</tr>
 	<tr><td>get window rect</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.get-window-rect</code></td>
 	</tr>
 	<tr><td>set window rect</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.set-window-rect: Int $width, Int $height, Int $x, Int $y</code></td>
 	</tr>
 	<tr><td>maximize window</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.maximize-window</code></td>
 	</tr>
 	<tr><td>minimize window</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.minimize-window</code></td>
 	</tr>
 	<tr><td>fullscreen window</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.fullscreen-window</code></td>
 	</tr>
 	<tr><td>get active element</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.active-element</code></td>
 	</tr>
 	<tr><td>get element shadow root</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td class="not-started">&nbsp;</td>
-		<td class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$element.shadow-root</code></td>
 	</tr>
 	<tr><td>find element</td>
@@ -470,22 +476,22 @@ welcome.
 	<tr><td>find element from shadow root</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td class="not-started">&nbsp;</td>
-		<td class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$shadow-root.find-element: By $locator</code></td>
 	</tr>
 	<tr><td>find elements from shadow root</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td class="not-started">&nbsp;</td>
-		<td class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$shadow-root.find-elements: By $locator</code></td>
 	</tr>
 	<tr><td>is element selected</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$element.is-element-selected</code></td>
 	</tr>
 	<tr><td>get element attribute</td>
@@ -505,8 +511,8 @@ welcome.
 	<tr><td>get element css value</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$element.css-value: Str $css-prop</code></td>
 	</tr>
 	<tr><td>get element text</td>
@@ -524,31 +530,31 @@ welcome.
 		<td><code>$element.tag-name</code></td>
 	</tr>
 	<tr><td>get element rect</td>
+		<td align="center" class="complete">&check;</td>
+		<td align="center" class="complete">&check;</td>
+		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
 		<td><code>$element.rect</code></td>
 	</tr>
 	<tr><td>is element enabled</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
 		<td align="center" class="complete">&check;</td>
-		<td align="center" class="complete">&check;</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$element.is-enabled</code></td>
 	</tr>
 	<tr><td>get computed role</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$element.computed-role</code></td>
 	</tr>
 	<tr><td>get computed label</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$element.computed-label</code></td>
 	</tr>
 	<tr><td>element click</td>
@@ -575,43 +581,43 @@ welcome.
 	<tr><td>get page source</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.page-source</code></td>
 	</tr>
 	<tr><td>execute script</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.execute-script: Str $scr, @args</code></td>
 	</tr>
 	<tr><td>execute async script</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.execute-async-script: Str $scr, @args</code></td>
 	</tr>
 	<tr><td>get all cookies</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.get-all-cookies</code></td>
 	</tr>
 	<tr><td>get named cookie</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.get-named-cookie: Str $name</code></td>
 	</tr>
 	<tr><td>add cookie</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.add-cookie: %cookie-spec</code>
 		<p>keys:</p>
 		<code>name</code>*
@@ -628,15 +634,15 @@ welcome.
 	<tr><td>delete cookie</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.delete-cookie: Str $name</code></td>
 	</tr>
 	<tr><td>delete all cookies</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.delete-all-cookies</code></td>
 	</tr>
 	<tr><td>perform actions</td>
@@ -656,8 +662,8 @@ welcome.
 	<tr><td>dismiss alert</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.dismiss-alert</code></td>
 	</tr>
 	<tr><td>accept alert</td>
@@ -678,84 +684,84 @@ welcome.
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.send-alert-text: Str $text</code></td>
 	</tr>
 	<tr><td>take screenshot</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.take-screenshot</code></td>
 	</tr>
 	<tr><td>take element screenshot</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$element.take-element-screenshot</code></td>
 	</tr>
 	<tr><td>print page</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.print-page</code></td>
 	</tr>
 	<tr><td>is-displayed ( optional endpoint )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">X</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">X</td>
 		<td><code>$element.is-displayed</code></td>
 	</tr>
 	<tr><td>present ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.present: By $locator; $element.present: By $locator</code></td>
 	</tr>
 	<tr><td>id ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$element.id</code></td>
 	</tr>
 	<tr><td>top ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.top</code></td>
 	</tr>
 	<tr><td>switch-to ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$frame-element.switch-to</code></td>
 	</tr>
 	<tr><td>select ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$select-element.select: Str $option-text</code></td>
 	</tr>
 	<tr><td>selected-option ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$select-element.selected-option</code></td>
 	</tr>
 	<tr><td>selected-value ( convenience method - not spec'd )</td>
 		<td align="center" class="complete">I</td>
 		<td align="center" class="complete">I</td>
-		<td align="center" class="not-started">&nbsp;</td>
-		<td align="center" class="not-started">&nbsp;</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$select-element.selected-value</code></td>
 	</tr>
 </tbody></table>
