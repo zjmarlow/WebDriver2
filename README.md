@@ -82,15 +82,14 @@ Since waiting for a condition to be true before moving to the next step is usefu
 	# do something...
 	# then wait for 5 seconds, polling every .1 second,
 	#   for an element to appear; don't throw an exception if it doesn't
-	&wait-present();
+	my WD2::Component::Element $element = wait-present;
 	
-	my WD2::Component::Element $element =
-		$session.find-element: By.id: 'gets-removed';
+	$element = $session.find-element: By.id: 'gets-removed';
 	my &wait-stale = stale $element;
 	# do something...
 	# then wait for the element to be removed using default values;
 	#   throw Timeout exception if it isn't
-	&wait-stale();
+	wait-stale;
 	
 	my WD2::Component::Element $updatable =
 		$session.find-element: By.id: 'updatable';
@@ -101,7 +100,7 @@ Since waiting for a condition to be true before moving to the next step is usefu
 	my &wait-updated = text-to-be $updatable, 'new text';
 	$input.send-keys: 'new text';
 	$updater.click;
-	&wait-updated();
+	wait-updated;
 ```
 
 [List](#wait-status) with implementation status given below the endpoints table.
@@ -115,6 +114,9 @@ From `xt/lib/Example.rakumod`:
 
 ```Raku
 	use WD2::Test::Template;
+	
+	use WD2::Locators;
+	use WD2::Wait::Common :presence;
 	
 	class Example does WD2::Test::Template {
 		my IO::Path:D $html-file =
@@ -142,6 +144,16 @@ From `xt/lib/Example.rakumod`:
 		method test {
 			$!session.navigate-to: 'file://' ~ $html-file.absolute;
 			self.is: 'title', 'test', $!session.title;
+			
+			my Duration:D $duration = Duration.new: 5;
+			my Duration:D $interval = Duration.new: 1/10;
+			my By:D $locator = By.id: 'DNE';
+			my &wait-present = present $!session, $locator, :$duration, :$interval, :soft;
+			
+			self.lives-ok: 'lives but False for element that DNE', {
+				my WD2::Component::Element $element = wait-present;
+				self.nok: 'no element found', $element;
+			}
 		}
 	}
 ```
