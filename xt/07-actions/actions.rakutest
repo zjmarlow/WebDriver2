@@ -1,0 +1,86 @@
+use Test;
+
+use lib <lib t/lib>;
+
+use WD2::Component::Element;
+use WD2::Test::Template;
+use WD2::Locators;
+use Action;
+use WD2::Wait::Common :presence;
+
+my IO::Path $html-file = .add: 'test.html'
+	with $*PROGRAM.parent.parent.add: 'content';
+
+class Action-Test
+		does WD2::Test::Template
+{
+	has Int:D $.plan = 6;
+	has Str:D $.name = 'actions';
+	has Str:D $.description = 'tests action sequences';
+	
+	method pre-test { }
+	method post-test { }
+
+	method init {
+		if %*ENV<DRIVER_TESTING> {
+			self.WD2::Test::Template::init;
+		} else {
+			plan 1;
+			diag "DRIVER_TESTING was not set";
+			skip-rest("DRIVER_TESTING was not set");
+			exit;
+		}
+	}
+
+	method test {
+		$!session.navigate-to: 'file://' ~ $html-file.absolute;
+		
+		my WD2::Component::Element $origin = $!session.find-element: By.id: 'remove';
+		my $rect = $origin.rect;
+		
+		my Int:D $x = $rect<x>.round + 4;
+		my Int:D $y = $rect<y>.round + 4;
+		
+		my Action-Factory:D $af = Action-Factory.new; # Action-Factory::Element.new: :$origin;
+		
+		my Action::Pointer:D @ptr = Array[ Action::Pointer:D ].new: ( $af.move: :$x, :$y ), $af.mouse-down;
+		my $actions = seq-as-arg sequence @ptr;
+		$!session.perform-actions: $actions;
+		my Duration:D $duration = Duration.new: 5;
+		self.nok: 'not removed yet', .() with stale $origin, :$duration, :soft;
+		
+		$!session.release-actions;
+		self.ok: 'removed after actions released', .() with stale $origin, :$duration, :soft;
+		
+		$origin = $!session.find-element: By.id: 'cb';
+		$af = Action-Factory::Element.new: :$origin;
+		self.ok: 'starts checked', $origin.property: 'checked';
+		
+		@ptr = Array[ Action::Pointer:D ].new: $af.click;
+		$actions = seq-as-arg sequence @ptr;
+		$!session.perform-actions: $actions;
+		$!session.release-actions;
+		self.nok: 'no longer checked', $origin.property: 'checked';
+		
+		$origin = $!session.find-element: By.id: 'text';
+		$af = Action-Factory::Element.new: :$origin;
+		self.is: 'textbox starts empty', '', $origin.property: 'value';
+		
+		my Action::Key:D @kbd = Array[ Action::Key:D ].new: $af.type: 'hello';
+		@ptr = Array[ Action::Pointer:D ].new: $af.click;
+		$actions = seq-as-arg sequence @ptr;
+		$!session.perform-actions: $actions;
+		$!session.release-actions;
+		$actions = seq-as-arg sequence @kbd;
+		$!session.perform-actions: $actions;
+		$!session.release-actions;
+		self.is: 'textbox received text', 'hello', $origin.property: 'value';
+	}
+	
+	method prep-path ( IO::Path $path ) {
+		return 'file://' ~ $path.absolute if $.browser eq 'safari';
+		'file:///' ~ $path.absolute.subst: '\\', '/', :g;
+	}
+}
+
+constant &MAIN = driver-test Action-Test;

@@ -233,7 +233,7 @@ so that instance variables can be built from them.
 - [ ] cover all implemented endpoints with unit tests
 - [ ] add Rakudoc
 - [ ] browser support
-- [ ] implement the rest of the endpoints
+- [x] implement the rest of the endpoints
 
 ### Feedback
 
@@ -243,7 +243,6 @@ welcome.
 ### Implementation Status
 - X - Unsupported
 - "" - Planned
-- NYI - will throw exception
 - I - Implemented
 - &check; - Implemented and tested
 
@@ -641,17 +640,17 @@ welcome.
 		<td><code>$session.delete-all-cookies</code></td>
 	</tr>
 	<tr><td>perform actions</td>
-		<td align="center" class="not-started">NYI</td>
-		<td align="center" class="not-started">NYI</td>
-		<td align="center" class="not-started">NYI</td>
-		<td align="center" class="not-started">NYI</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.perform-actions</code></td>
 	</tr>
 	<tr><td>release actions</td>
-		<td align="center" class="not-started">NYI</td>
-		<td align="center" class="not-started">NYI</td>
-		<td align="center" class="not-started">NYI</td>
-		<td align="center" class="not-started">NYI</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
+		<td align="center" class="complete">I</td>
 		<td><code>$session.release-actions</code></td>
 	</tr>
 	<tr><td>dismiss alert</td>

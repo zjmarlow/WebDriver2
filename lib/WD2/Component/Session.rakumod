@@ -540,14 +540,19 @@ multi method delete-all-cookies (
 }
 multi method perform-actions (
 		WD2::Component::Session:D:
+		$actions,
 		--> WD2::Component::Session:D
-) { WD2::Component::Session.perform-actions: self }
+) { WD2::Component::Session.perform-actions: self, $actions }
 multi method perform-actions (
 		WD2::Component::Session:U:
-		WD2::Component::Session:D $session
+		WD2::Component::Session:D $session,
+		$actions,
 		--> WD2::Component::Session:D
 ) {
-	!!! 'nyi'
+	my $return = self.check-status:
+			self.request: self.post-request: $actions,  $session, 'actions';
+	return $session with $return;
+	$return;
 }
 multi method release-actions (
 		WD2::Component::Session:D:
@@ -558,7 +563,9 @@ multi method release-actions (
 		WD2::Component::Session:D $session
 		--> WD2::Component::Session:D
 ) {
-	!!! 'nyi'
+	my $return = self.check-status: self.request: self.delete-request: $session, 'actions';
+	return $session with $return;
+	$return;
 }
 multi method dismiss-alert (
 		WD2::Component::Session:D:
@@ -571,6 +578,7 @@ multi method dismiss-alert (
 ) {
 	my $return = self.check-status:
 			self.request: self.post-request: { }, $session, <alert dismiss>;
+	return $session with $return;
 	$return;
 }
 multi method accept-alert (

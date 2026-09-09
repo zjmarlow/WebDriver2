@@ -1,7 +1,7 @@
 {
     "name": "WebDriver2",
     "description": "WebDriver level 2 bindings",
-    "version": "0.0.15",
+    "version": "0.0.16",
     "raku": "6.d",
     "auth": "zef:zjmarlow",
     "depends": [
@@ -29,7 +29,15 @@
 		"WD2::Test::Adapter": "lib/WD2/Test/Adapter.rakumod",
 		"WD2::Test::Template": "lib/WD2/Test/Adapter.rakumod",
 		"WD2::Wait::Timeout::X": "lib/WD2/Wait.rakumod",
-        "WD2::Debug": "lib/WD2/Debug.rakumod"
+        "WD2::Debug": "lib/WD2/Debug.rakumod",
+        "Action": "lib/Action.rakumod",
+        "Action::Pause": "lib/Action.rakumod",
+        "Action::Key": "lib/Action.rakumod",
+        "Action::Pointer": "lib/Action.rakumod",
+        "Action::Wheel": "lib/Action.rakumod",
+        "Action::Origin": "lib/Action.rakumod",
+        "Action-Factory": "lib/Action.rakumod",
+        "Action-Factory::Element": "lib/Action.rakumod"
     },
     "license": "Artistic-2.0",
     "tags": [

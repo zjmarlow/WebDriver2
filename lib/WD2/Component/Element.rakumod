@@ -1,5 +1,6 @@
 use WD2::Endpoints;
 use WD2::Locators;
+use Action;
 
 class WD2::Component::Element { ... }
 
@@ -85,7 +86,7 @@ class WD2::Component::Shadow does WD2::Endpoints {
 	}
 }
 
-class WD2::Component::Element does WD2::Endpoints is export {
+class WD2::Component::Element does WD2::Endpoints does Action::Origin is export {
 	our constant $IDENTIFIER = 'element-6066-11e4-a52e-4f735466cecf';
 	
 	has By $.locator;
@@ -115,6 +116,10 @@ class WD2::Component::Element does WD2::Endpoints is export {
 	method ACCEPTS ( WD2::Component::Element:D: $other ) {
 		return False unless $other.defined;
 		$!element-id eq $other.element-id;
+	}
+	
+	method struct {
+		{ $IDENTIFIER => $!element-id }
 	}
 	
 	multi method switch-to (
