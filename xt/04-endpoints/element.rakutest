@@ -149,5 +149,5 @@ class Endpoint-Test
 	}
 }
 
-constant &MAIN = driver-test Endpoint-Test;
+my &MAIN = driver-test Endpoint-Test;
 

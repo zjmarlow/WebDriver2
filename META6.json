@@ -1,11 +1,12 @@
 {
     "name": "WebDriver2",
     "description": "WebDriver level 2 bindings",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "raku": "6.d",
     "auth": "zef:zjmarlow",
     "depends": [
-		"HTTP::UserAgent::Strict"
+		"HTTP::UserAgent::Strict",
+        "RakuAST::Utils"
     ],
     "build-depends": [],
     "test-depends": [],

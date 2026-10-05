@@ -177,11 +177,11 @@ multi method switch-to-window (
 }
 multi method get-window-handles (
 		WD2::Component::Session:D:
-		--> List:D[ Str:D ]  ) { WD2::Component::Session.get-window-handles: self }
+		--> Array:D[ Str:D ]  ) { WD2::Component::Session.get-window-handles: self }
 multi method get-window-handles (
 		WD2::Component::Session:U:
 		WD2::Component::Session:D $session
-		--> List:D[ Str:D ] ) {
+		--> Array:D[ Str:D ] ) {
 	my $return = self.check-status: self.request: self.get-request: $session, <window handles>;
 	return .<value> with $return;
 	$return;
@@ -353,7 +353,7 @@ multi method find-element (
 multi method find-elements (
 		WD2::Component::Session:D:
 		By:D $locator,
-		--> List:D[ Element:D ]
+		--> Array:D[ Element:D ]
 ) {
 	WD2::Component::Session.find-elements: $locator, self
 }
@@ -361,7 +361,7 @@ multi method find-elements (
 		WD2::Component::Session:U:
 		By:D $locator,
 		WD2::Component::Session:D $session
-		--> List:D[ Element:D ]
+		--> Array:D[ Element:D ]
 ) {
 	my $return = self.check-status:
 			self.request: self.post-request: $locator.args, $session, 'elements';
@@ -447,12 +447,12 @@ multi method execute-async-script (
 }
 multi method get-all-cookies (
 		WD2::Component::Session:D:
-		--> List:D
+		--> Array:D
 ) { WD2::Component::Session.get-all-cookies: self }
 multi method get-all-cookies (
 		WD2::Component::Session:U:
 		WD2::Component::Session:D $session
-		--> List:D
+		--> Array:D
 ) {
 	my $return = self.check-status: self.request: self.get-request: $session, 'cookie';
 	return Array.new: |.<value> with $return;

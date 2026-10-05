@@ -84,4 +84,4 @@ class Stale-Test does WD2::Test::Template {
 	}
 }
 
-constant &MAIN = driver-test Stale-Test;
+my &MAIN = driver-test Stale-Test;

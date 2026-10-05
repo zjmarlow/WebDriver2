@@ -519,4 +519,4 @@ class Locate does WD2::Test::Template {
 	}
 }
 
-constant &MAIN = driver-test Locate;
+my &MAIN = driver-test Locate;

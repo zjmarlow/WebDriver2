@@ -67,4 +67,4 @@ class Frames-Test does WD2::Test::Template {
 	}
 }
 
-constant &MAIN = driver-test Frames-Test;
+my &MAIN = driver-test Frames-Test;

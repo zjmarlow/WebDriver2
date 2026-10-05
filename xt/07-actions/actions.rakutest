@@ -83,4 +83,4 @@ class Action-Test
 	}
 }
 
-constant &MAIN = driver-test Action-Test;
+my &MAIN = driver-test Action-Test;

@@ -33,8 +33,8 @@ our proto sub sequence ( ::T Action:D @queue ) {*}
 # eventually typed-sequence above
 multi sub sequence ( Action::Key:D @queue --> Array:D[ Action::Key:D ] ) {
 	return @queue if @queue < 2;
-	my Action::Key $action = @queue.shift;
-	my Action::Key @sequence;
+	my Action::Key:D $action = @queue.shift;
+	my Action::Key:D @sequence;
 	my @actions = $action.actions;
 	@actions.append: .actions for @queue;
 	@sequence.push: Action::Key.new: :@actions;
@@ -44,8 +44,8 @@ multi sub sequence ( Action::Key:D @queue --> Array:D[ Action::Key:D ] ) {
 # eventually typed-sequence above
 multi sub sequence ( Action::Pointer:D @queue --> Array:D[ Action::Pointer:D ] ) {
 	return @queue if @queue < 2;
-	my Action::Pointer $action = @queue.shift;
-	my Action::Pointer @sequence;
+	my Action::Pointer:D $action = @queue.shift;
+	my Action::Pointer:D @sequence;
 	my @actions = $action.actions;
 	@actions.append: .actions for @queue;
 	@sequence.push: Action::Pointer.new: :@actions;

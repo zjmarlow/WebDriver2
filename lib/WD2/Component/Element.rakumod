@@ -16,7 +16,7 @@ class WD2::Component::Shadow does WD2::Endpoints {
 	method find-element ( By:D $locator --> WD2::Component::Element:D ) {
 		self.find-sub-shadow-element: $locator;
 	}
-	method find-elements ( By:D $locator --> List:D[ WD2::Component::Element:D ] ) {
+	method find-elements ( By:D $locator --> Array:D[ WD2::Component::Element:D ] ) {
 		self.find-sub-shadow-elements: $locator;
 	}
 
@@ -53,7 +53,7 @@ class WD2::Component::Shadow does WD2::Endpoints {
 			WD2::Component::Shadow:U:
 			By:D $locator,
 			WD2::Component::Shadow:D $shadow
-			--> List:D[ WD2::Component::Element:D ]
+			--> Array:D[ WD2::Component::Element:D ]
 	) {
 		my $return = self.check-status:
 				self.request: self.post-request: $locator.args, $shadow, 'elements';
@@ -149,7 +149,7 @@ class WD2::Component::Element does WD2::Endpoints does Action::Origin is export 
 	method find-element ( By:D $locator --> WD2::Component::Element:D ) {
 		self.find-sub-element: $locator;
 	}
-	method find-elements ( By:D $locator --> List:D[ WD2::Component::Element:D ] ) {
+	method find-elements ( By:D $locator --> Array:D[ WD2::Component::Element:D ] ) {
 		self.find-sub-elements: $locator;
 	}
 	multi method find-sub-element (
@@ -179,14 +179,14 @@ class WD2::Component::Element does WD2::Endpoints does Action::Origin is export 
 	multi method find-sub-elements (
 			WD2::Component::Element:D:
 			By:D $locator,
-			--> List:D[ WD2::Component::Element:D ]
+			--> Array:D[ WD2::Component::Element:D ]
 	) { WD2::Component::Element.find-sub-elements: $locator, self }
 	
 	multi method find-sub-elements (
 			WD2::Component::Element:U:
 			By:D $locator,
 			WD2::Component::Element:D $element
-			--> List:D[ WD2::Component::Element:D ]
+			--> Array:D[ WD2::Component::Element:D ]
 	) {
 		my $return = self.check-status:
 				self.request: self.post-request: $locator.args, $element, 'elements';

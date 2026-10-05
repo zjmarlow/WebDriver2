@@ -65,4 +65,4 @@ class Wait does WD2::Test::Template {
 	}
 }
 
-constant &MAIN = driver-test Wait;
+my &MAIN = driver-test Wait;

@@ -10,7 +10,7 @@ class By {
     method new ( Str:D $value ) { self.bless: :$value }
     method using ( --> Str:D ) { ... }
     method args ( --> Hash:D[ Str:D ] ) {
-        { :$.using, :$!value }
+        Hash[ Str:D ].new: { :$.using, :$!value }
     }
     method ACCEPTS ( $o ) {
         $o.isa: By
