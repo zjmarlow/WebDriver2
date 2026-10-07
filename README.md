@@ -827,6 +827,7 @@ welcome.
 		<tr><td>value-to-eq</td><td>I</td><td><code>use WD2::Wait::Common :value</code></td><td></td></tr>
 		<tr><td>value-to-be</td><td>I</td><td><code>use WD2::Wait::Common :value</code></td><td></td></tr>
 		<tr><td>text-to-be</td><td>I</td><td><code>use WD2::Wait::Common :value</code></td><td></td></tr>
+		<tr><td>text-not-empty</td><td>I</td><td><code>use WD2::Wait::Common :value</code></td><td></td></tr>
 		<tr><td>title-to-be</td><td>I</td><td><code>use WD2::Wait::Common :value</code></td><td></td></tr>
 		<tr><td>alert</td><td>&check;</td><td><code>use WD2::Wait::Common :alert</code></td><td>return is alert text</td></tr>
 	</tbody>

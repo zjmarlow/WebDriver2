@@ -155,6 +155,22 @@ our sub text-to-be (
 	basic-eq &operation, $text, |%args;
 }
 
+our sub text-not-empty (
+		WD2::Component::Element:D $element,
+		:&cleanup,
+		Duration :$duration,
+		Duration :$interval,
+		Bool :$soft,
+		Level :$debug-level
+) is export(:value) {
+	my &operation = { $element.text };
+	my %args =
+		grep *.value.defined,
+		do :&cleanup, :$duration, :$interval, :$soft, :$debug-level;
+	;
+	basic-so-true &operation, |%args;
+}
+
 our sub title-to-be (
 		WD2::Component::Session:D $session,
 		Str $title,
