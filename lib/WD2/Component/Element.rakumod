@@ -488,7 +488,7 @@ class WD2::Component::Element does WD2::Endpoints does Action::Origin is export 
 			--> Str:D
 	) {
 		my $return = self.check-status: self.request: self.get-request: $element, 'screenshot';
-		return $return<value> unless $return.isa: Failure;
+		return .<value> with $return;
 		$return;
 	}
 }
