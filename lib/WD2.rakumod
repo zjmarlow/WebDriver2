@@ -11,10 +11,12 @@ my WD2::Component::Driver %driver = (
 method get-driver (
         Str:D $browser where %driver.keys.any,
         Str:D :$host = '127.0.0.1',
-        Int :$port?
+        Int :$port?,
+        Int :$log-level
         --> WD2::Component::Driver:D
 ) {
     my %args = :$browser, :$host;
     %args<port> = $port if $port;
+    %args<log-level> = $log-level if $log-level;
     %driver{ $browser } // %driver{ $browser } = %driver{ $browser }.new: |%args;
 }

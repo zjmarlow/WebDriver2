@@ -34,7 +34,8 @@ multi method new-session (
 			:$driver,
 			host => $driver.host,
 			port => $driver.port,
-			session-id => .<value><sessionId>
+			session-id => .<value><sessionId>,
+			log-level => $driver.log-level,
 	with $return;
 	$return;
 }

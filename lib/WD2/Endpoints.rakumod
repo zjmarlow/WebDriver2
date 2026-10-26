@@ -95,9 +95,11 @@ role WD2::Endpoints {
 	use JSON::Fast;
 	use HTTP::UserAgent::Strict;
 	my HTTP::UserAgent::Strict:D $ua = HTTP::UserAgent::Strict.new;
+	$ua.cookies.autosave = 0;
 	
 	has Str:D $.host is required = '127.0.0.1';
 	has Int:D $.port is required;
+	has Int $.log-level is rw = 0;
 	
 	method url ( *@command --> Str:D ) { ... }
 	
